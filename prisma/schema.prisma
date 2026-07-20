@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  weddings      Wedding[]
+  createdAt     DateTime  @default(now())
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Wedding {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String        @default("")
+  religion        String        @default("")
+  region          String        @default("")
+  budget          String        @default("")
+  guestCount      String        @default("")
+  weddingDate     DateTime?
+  weddingCity     String        @default("")
+  selectedEvents  String        @default("[]")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  budgetItems     BudgetItem[]
+  vendors         Vendor[]
+  guests          Guest[]
+  tasks           Task[]
+  seatingTables   SeatingTable[]
+  aiMessages      AiMessage[]
+}
+
+model BudgetItem {
+  id        String  @id @default(cuid())
+  weddingId String
+  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  category  String  @default("")
+  item      String  @default("")
+  estimated Int     @default(0)
+  actual    Int     @default(0)
+  paid      Int     @default(0)
+  balance   Int     @default(0)
+  status    String  @default("Pending")
+  dueDate   String  @default("")
+  notes     String  @default("")
+  order     Int     @default(0)
+}
+
+model Vendor {
+  id        String  @id @default(cuid())
+  weddingId String
+  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  category  String  @default("")
+  name      String  @default("")
+  contact   String  @default("")
+  quote     Int     @default(0)
+  paid      Int     @default(0)
+  balance   Int     @default(0)
+  rating    String  @default("")
+  contract  String  @default("Pending")
+  notes     String  @default("")
+  order     Int     @default(0)
+}
+
+model Guest {
+  id         String  @id @default(cuid())
+  weddingId  String
+  wedding    Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  name       String  @default("")
+  relation   String  @default("")
+  side       String  @default("")
+  rsvp       String  @default("Pending")
+  dietary    String  @default("Veg")
+  tableNum   Int     @default(0)
+  giftGiven  String  @default("No")
+  thankYou   String  @default("No")
+  notes      String  @default("")
+  order      Int     @default(0)
+}
+
+model Task {
+  id        String  @id @default(cuid())
+  weddingId String
+  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  period    String  @default("")
+  text      String  @default("")
+  done      Boolean @default(false)
+  order     Int     @default(0)
+}
+
+model SeatingTable {
+  id        String  @id @default(cuid())
+  weddingId String
+  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  name      String  @default("")
+  capacity  Int     @default(8)
+  guests    String  @default("[]")
+  order     Int     @default(0)
+}
+
+model AiMessage {
+  id        String  @id @default(cuid())
+  weddingId String
+  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  role      String  @default("user")
+  content   String  @default("")
+  createdAt DateTime @default(now())
+}
