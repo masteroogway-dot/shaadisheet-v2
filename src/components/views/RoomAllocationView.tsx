@@ -18,6 +18,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showBulkAdd, setShowBulkAdd] = useState(false);
   const [bulkAddCount, setBulkAddCount] = useState(1);
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
 
   const allocations = wedding.roomAllocations || [];
   const totalRooms = allocations.length;
@@ -80,6 +81,14 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
     onToast(`${selected.size} room(s) deleted`, "success");
   };
 
+  const handleDeleteAll = async () => {
+    await bulkDeleteRoomAllocations(weddingId, allocations.map((a: any) => a.id));
+    setShowDeleteAllConfirm(false);
+    setSelected(new Set());
+    onUpdate();
+    onToast("All rooms deleted", "success");
+  };
+
   const handleBulkAdd = async () => {
     const count = Math.max(1, bulkAddCount);
     await bulkAddRoomAllocations(weddingId, count);
@@ -103,6 +112,11 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
           <button onClick={handleAdd} className="btn-maroon">
             <i className="fas fa-plus" /> Add Room
           </button>
+          {totalRooms > 0 && (
+            <button onClick={() => setShowDeleteAllConfirm(true)} className="btn-delete">
+              <i className="fas fa-trash" /> Delete All
+            </button>
+          )}
         </div>
       </div>
 
@@ -138,6 +152,16 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
           <input type="number" min={1} max={100} value={bulkAddCount} onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 1)} className="card-input w-20 py-1.5 text-center" />
           <button onClick={handleBulkAdd} className="btn-maroon text-xs py-1.5 px-3">Add</button>
           <button onClick={() => { setShowBulkAdd(false); setBulkAddCount(1); }} className="btn-cancel text-xs py-1.5 px-3">Cancel</button>
+        </div>
+      )}
+
+      {showDeleteAllConfirm && (
+        <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-red-50 border border-red-200 rounded-lg">
+          <span className="text-sm font-medium text-red-700">Delete all {totalRooms} rooms? This cannot be undone.</span>
+          <button onClick={handleDeleteAll} className="btn-delete text-xs py-1.5 px-3">
+            <i className="fas fa-trash mr-1" /> Yes, Delete All
+          </button>
+          <button onClick={() => setShowDeleteAllConfirm(false)} className="btn-cancel text-xs py-1.5 px-3">Cancel</button>
         </div>
       )}
 

@@ -187,6 +187,68 @@ const tools = [
       },
     },
   },
+  {
+    type: "function" as const,
+    function: {
+      name: "delete_rooms",
+      description: "Delete room allocations. Use this when the user wants to remove room assignments.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              hotel: { type: "string", description: "Filter by hotel name" },
+              status: { type: "string", enum: ["Reserved", "Checked In", "Checked Out", "Cancelled", "No Show"], description: "Filter by status" },
+              guestName_contains: { type: "string", description: "Filter by guest name containing" },
+            },
+          },
+        },
+        required: ["filter"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "delete_vendors",
+      description: "Delete vendors based on filters. Use this when the user wants to remove vendors.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              category: { type: "string", description: "Filter by category" },
+              name_contains: { type: "string", description: "Filter by vendor name containing" },
+              contract: { type: "string", enum: ["Pending", "Signed", "Completed"], description: "Filter by contract status" },
+            },
+          },
+        },
+        required: ["filter"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "delete_budget_items",
+      description: "Delete budget items based on filters. Use this when the user wants to remove budget entries.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              category: { type: "string", description: "Filter by category" },
+              item_contains: { type: "string", description: "Filter by item name containing" },
+            },
+          },
+        },
+        required: ["filter"],
+      },
+    },
+  },
 ];
 
 // ─── Tool execution ──────────────────────────────────────────────────
@@ -282,6 +344,35 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
       if (filter.rsvp) where.rsvp = filter.rsvp;
       const result = await prisma.guest.deleteMany({ where });
       return `Deleted ${result.count} guest(s).`;
+    }
+
+    case "delete_rooms": {
+      const { filter = {} } = args;
+      const where: any = { weddingId };
+      if (filter.hotel) where.hotel = { contains: filter.hotel, mode: "insensitive" };
+      if (filter.status) where.status = filter.status;
+      if (filter.guestName_contains) where.guestName = { contains: filter.guestName_contains, mode: "insensitive" };
+      const result = await prisma.roomAllocation.deleteMany({ where });
+      return `Deleted ${result.count} room allocation(s).`;
+    }
+
+    case "delete_vendors": {
+      const { filter = {} } = args;
+      const where: any = { weddingId };
+      if (filter.category) where.category = { contains: filter.category, mode: "insensitive" };
+      if (filter.name_contains) where.name = { contains: filter.name_contains, mode: "insensitive" };
+      if (filter.contract) where.contract = filter.contract;
+      const result = await prisma.vendor.deleteMany({ where });
+      return `Deleted ${result.count} vendor(s).`;
+    }
+
+    case "delete_budget_items": {
+      const { filter = {} } = args;
+      const where: any = { weddingId };
+      if (filter.category) where.category = { contains: filter.category, mode: "insensitive" };
+      if (filter.item_contains) where.item = { contains: filter.item_contains, mode: "insensitive" };
+      const result = await prisma.budgetItem.deleteMany({ where });
+      return `Deleted ${result.count} budget item(s).`;
     }
 
     default:
