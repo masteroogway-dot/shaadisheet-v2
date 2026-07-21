@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { updateVendor, createVendor, deleteVendor } from "@/lib/actions";
+import { updateVendor, createVendor, deleteVendor, batchCreateVendors } from "@/lib/actions";
+import ImportModal from "@/components/ImportModal";
 
 export default function VendorsView({ wedding, weddingId, onUpdate }: { wedding: any; weddingId: string; onUpdate: () => void }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
+  const [showImport, setShowImport] = useState(false);
 
   const handleSave = async (id: string) => {
     const data = { ...editData };
@@ -37,9 +39,14 @@ export default function VendorsView({ wedding, weddingId, onUpdate }: { wedding:
           <h2 className="text-2xl font-bold">Vendor Tracker</h2>
           <p className="text-gray-500 text-sm">Manage all your wedding vendors in one place</p>
         </div>
-        <button onClick={handleAdd} className="px-4 py-2 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
-          <i className="fas fa-plus mr-1.5" /> Add Vendor
-        </button>
+        <div className="flex gap-2.5">
+          <button onClick={() => setShowImport(true)} className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-br from-maroon to-maroon-light rounded-lg hover:shadow-md transition-all cursor-pointer">
+            <i className="fas fa-file-import mr-1.5" /> Import Excel
+          </button>
+          <button onClick={handleAdd} className="px-4 py-2 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
+            <i className="fas fa-plus mr-1.5" /> Add Vendor
+          </button>
+        </div>
       </div>
 
       {!wedding.vendors || wedding.vendors.length === 0 ? (
@@ -116,6 +123,15 @@ export default function VendorsView({ wedding, weddingId, onUpdate }: { wedding:
         </table>
         </div>
       )}
+      <ImportModal
+        open={showImport}
+        onClose={() => setShowImport(false)}
+        type="vendors"
+        onImport={async (items: any[]) => {
+          await batchCreateVendors(weddingId, items);
+          onUpdate();
+        }}
+      />
     </div>
   );
 }

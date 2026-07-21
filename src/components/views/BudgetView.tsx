@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { updateBudgetItem, createBudgetItem, deleteBudgetItem } from "@/lib/actions";
+import { updateBudgetItem, createBudgetItem, deleteBudgetItem, batchCreateBudgetItems } from "@/lib/actions";
+import ImportModal from "@/components/ImportModal";
 
 export default function BudgetView({ wedding, weddingId, onUpdate }: { wedding: any; weddingId: string; onUpdate: () => void }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
+  const [showImport, setShowImport] = useState(false);
 
   const handleSave = async (id: string) => {
     const data = { ...editData };
@@ -44,6 +46,9 @@ export default function BudgetView({ wedding, weddingId, onUpdate }: { wedding: 
           <p className="text-gray-500 text-sm">Track every rupee {'\u2014'} from estimate to final payment</p>
         </div>
         <div className="flex gap-2.5 items-center">
+          <button onClick={() => setShowImport(true)} className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-br from-maroon to-maroon-light rounded-lg hover:shadow-md transition-all cursor-pointer">
+            <i className="fas fa-file-import mr-1.5" /> Import Excel
+          </button>
           {wedding.budgetItems?.length > 0 && (
             <>
               <div className="text-right mr-4">
@@ -130,6 +135,15 @@ export default function BudgetView({ wedding, weddingId, onUpdate }: { wedding: 
         </table>
         </div>
       )}
+      <ImportModal
+        open={showImport}
+        onClose={() => setShowImport(false)}
+        type="budget"
+        onImport={async (items: any[]) => {
+          await batchCreateBudgetItems(weddingId, items);
+          onUpdate();
+        }}
+      />
     </div>
   );
 }

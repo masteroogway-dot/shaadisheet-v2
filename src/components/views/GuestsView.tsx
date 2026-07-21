@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { updateGuest, createGuest, deleteGuest } from "@/lib/actions";
+import { updateGuest, createGuest, deleteGuest, batchCreateGuests } from "@/lib/actions";
+import ImportModal from "@/components/ImportModal";
 
 export default function GuestsView({ wedding, weddingId, onUpdate }: { wedding: any; weddingId: string; onUpdate: () => void }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
+  const [showImport, setShowImport] = useState(false);
 
   const totalGuests = wedding.guests?.length || 0;
   const rsvpYes = wedding.guests?.filter((g: any) => g.rsvp === "Yes").length || 0;
@@ -35,9 +37,14 @@ export default function GuestsView({ wedding, weddingId, onUpdate }: { wedding: 
           <h2 className="text-2xl font-bold">Guest List & RSVP</h2>
           <p className="text-gray-500 text-sm">Track every guest {'\u2014'} RSVP, dietary needs, gifts</p>
         </div>
-        <button onClick={handleAdd} className="px-4 py-2 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
-          <i className="fas fa-plus mr-1.5" /> Add Guest
-        </button>
+        <div className="flex gap-2.5">
+          <button onClick={() => setShowImport(true)} className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-br from-maroon to-maroon-light rounded-lg hover:shadow-md transition-all cursor-pointer">
+            <i className="fas fa-file-import mr-1.5" /> Import Excel
+          </button>
+          <button onClick={handleAdd} className="px-4 py-2 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
+            <i className="fas fa-plus mr-1.5" /> Add Guest
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-6">
@@ -121,6 +128,15 @@ export default function GuestsView({ wedding, weddingId, onUpdate }: { wedding: 
         </table>
       </div>
       )}
+      <ImportModal
+        open={showImport}
+        onClose={() => setShowImport(false)}
+        type="guests"
+        onImport={async (items: any[]) => {
+          await batchCreateGuests(weddingId, items);
+          onUpdate();
+        }}
+      />
     </div>
   );
 }

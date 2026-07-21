@@ -481,3 +481,101 @@ export async function deleteWedding(weddingId: string) {
 
   return prisma.wedding.delete({ where: { id: weddingId } });
 }
+
+// ═══════════════════════════════════════════════════════════════
+// BATCH CREATE: IMPORT
+// ═══════════════════════════════════════════════════════════════
+
+export async function batchCreateBudgetItems(weddingId: string, items: any[]) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const maxOrder = await prisma.budgetItem.aggregate({
+    where: { weddingId },
+    _max: { order: true },
+  });
+
+  let order = (maxOrder._max.order ?? -1) + 1;
+
+  for (const item of items) {
+    const estimated = Number(item.estimated) || 0;
+    const paid = Number(item.paid) || 0;
+    await prisma.budgetItem.create({
+      data: {
+        weddingId,
+        order: order++,
+        category: item.category || "",
+        item: item.item || "",
+        estimated,
+        actual: Number(item.actual) || 0,
+        paid,
+        balance: estimated - paid,
+        status: paid >= estimated && estimated > 0 ? "Paid" : paid > 0 ? "Partial" : "Pending",
+        dueDate: item.dueDate || "",
+        notes: item.notes || "",
+      },
+    });
+  }
+}
+
+export async function batchCreateVendors(weddingId: string, items: any[]) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const maxOrder = await prisma.vendor.aggregate({
+    where: { weddingId },
+    _max: { order: true },
+  });
+
+  let order = (maxOrder._max.order ?? -1) + 1;
+
+  for (const item of items) {
+    const quote = Number(item.quote) || 0;
+    const paid = Number(item.paid) || 0;
+    await prisma.vendor.create({
+      data: {
+        weddingId,
+        order: order++,
+        category: item.category || "",
+        name: item.name || "",
+        contact: item.contact || "",
+        quote,
+        paid,
+        balance: quote - paid,
+        rating: item.rating || "\u2605\u2605\u2605\u2605\u2606",
+        contract: item.contract || "Pending",
+        notes: item.notes || "",
+      },
+    });
+  }
+}
+
+export async function batchCreateGuests(weddingId: string, items: any[]) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const maxOrder = await prisma.guest.aggregate({
+    where: { weddingId },
+    _max: { order: true },
+  });
+
+  let order = (maxOrder._max.order ?? -1) + 1;
+
+  for (const item of items) {
+    await prisma.guest.create({
+      data: {
+        weddingId,
+        order: order++,
+        name: item.name || "",
+        relation: item.relation || "",
+        side: item.side || "Both",
+        rsvp: item.rsvp || "Pending",
+        dietary: item.dietary || "Veg",
+        tableNum: 0,
+        giftGiven: "No",
+        thankYou: "No",
+        notes: item.notes || "",
+      },
+    });
+  }
+}
