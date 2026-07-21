@@ -23,8 +23,9 @@ async function getSummary(weddingId: string) {
   for (const t of w.tasks) { if (t.done) tasksDone++; }
   for (const b of w.budgetItems) { budgetAllocated += b.estimated || 0; budgetSpent += b.actual || 0; }
 
-  return {
-    name: w.name,
+    return {
+      weddingId: w.id,
+      name: w.name,
     budget: w.budget || 0,
     budgetAllocated,
     budgetSpent,
@@ -57,12 +58,7 @@ export async function POST(req: NextRequest) {
     const summary = await getSummary(weddingId);
     if (!summary) return NextResponse.json({ error: "Wedding not found" }, { status: 404 });
 
-    const learned = await prisma.aiMessage.findMany({
-      where: { weddingId, role: "learned", successful: true },
-      orderBy: { createdAt: "desc" },
-    });
-
-    const response = await askAI(question, summary, learned, conversationHistory || []);
+    const response = await askAI(question, summary, conversationHistory || []);
     return NextResponse.json({ response });
   } catch (error: any) {
     console.error("AI API route error:", error);
