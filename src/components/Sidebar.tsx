@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { id: "events", icon: "fa-calendar-alt", label: "Events" },
   { id: "tasks", icon: "fa-tasks", label: "Tasks" },
   { id: "seating", icon: "fa-th-large", label: "Seating" },
+  { id: "rooms", icon: "fa-bed", label: "Room Allocation" },
   { id: "timeline", icon: "fa-clock", label: "Day Timeline" },
 ];
 

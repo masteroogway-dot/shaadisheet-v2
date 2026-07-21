@@ -862,3 +862,79 @@ export async function seedWeddingTimeline(weddingId: string) {
     });
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// ROOM ALLOCATIONS
+// ═══════════════════════════════════════════════════════════════
+
+export async function createRoomAllocation(weddingId: string, data: any) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const maxOrder = await prisma.roomAllocation.aggregate({
+    where: { weddingId },
+    _max: { order: true },
+  });
+
+  return prisma.roomAllocation.create({
+    data: {
+      weddingId,
+      order: (maxOrder._max.order ?? -1) + 1,
+      guestName: data.guestName || "",
+      hotel: data.hotel || "",
+      roomNumber: data.roomNumber || "",
+      roomType: data.roomType || "Standard",
+      checkIn: data.checkIn || "",
+      checkOut: data.checkOut || "",
+      status: data.status || "Reserved",
+      notes: data.notes || "",
+    },
+  });
+}
+
+export async function updateRoomAllocation(weddingId: string, allocationId: string, data: any) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const { weddingId: _, ...updateData } = data;
+  return prisma.roomAllocation.update({
+    where: { id: allocationId },
+    data: updateData,
+  });
+}
+
+export async function deleteRoomAllocation(weddingId: string, allocationId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  return prisma.roomAllocation.delete({ where: { id: allocationId } });
+}
+
+export async function batchCreateRoomAllocations(weddingId: string, items: any[]) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const maxOrder = await prisma.roomAllocation.aggregate({
+    where: { weddingId },
+    _max: { order: true },
+  });
+
+  let order = (maxOrder._max.order ?? -1) + 1;
+
+  for (const item of items) {
+    await prisma.roomAllocation.create({
+      data: {
+        weddingId,
+        order: order++,
+        guestName: item.guestName || "",
+        hotel: item.hotel || "",
+        roomNumber: item.roomNumber || "",
+        roomType: item.roomType || "Standard",
+        checkIn: item.checkIn || "",
+        checkOut: item.checkOut || "",
+        status: item.status || "Reserved",
+        notes: item.notes || "",
+      },
+    });
+  }
+}

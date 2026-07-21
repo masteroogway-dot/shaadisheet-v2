@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
 
-export type ImportType = "budget" | "vendors" | "guests";
+export type ImportType = "budget" | "vendors" | "guests" | "rooms";
 
 export interface FieldMapping {
   sourceColumn: string;
@@ -50,6 +50,16 @@ const FIELD_KEYWORDS: Record<ImportType, Record<string, string[]>> = {
     side: ["side", "bride", "groom", "family", "whose side"],
     rsvp: ["rsvp", "status", "response", "attending", "confirmed", "reply"],
     dietary: ["dietary", "food", "diet", "veg", "non-veg", "preference", "meal"],
+    notes: ["notes", "note", "remark", "comment", "memo", "info"],
+  },
+  rooms: {
+    guestName: ["guest", "guest name", "name", "who", "person", "invitee", "occupant", "allocated to"],
+    hotel: ["hotel", "property", "venue", "resort", "accommodation", "where"],
+    roomNumber: ["room", "room number", "room no", "room #", "unit", "suite"],
+    roomType: ["type", "room type", "category", "kind", "bed type", "AC", "non-AC", "deluxe", "standard"],
+    checkIn: ["check in", "checkin", "arrival", "arrive", "from", "start date"],
+    checkOut: ["check out", "checkout", "departure", "depart", "to", "end date"],
+    status: ["status", "state", "condition"],
     notes: ["notes", "note", "remark", "comment", "memo", "info"],
   },
 };
@@ -213,6 +223,8 @@ export function autoMapColumns(
     ? ["item"]
     : type === "vendors"
     ? ["name"]
+    : type === "rooms"
+    ? ["guestName"]
     : ["name"];
 
   for (const field of requiredFields) {
@@ -228,6 +240,8 @@ export function autoMapColumns(
     ? ["estimated", "category"]
     : type === "vendors"
     ? ["category", "quote"]
+    : type === "rooms"
+    ? ["hotel", "roomNumber"]
     : ["relation", "side"];
 
   for (const field of importantFields) {
@@ -298,6 +312,15 @@ export function applyMappings(
         if (!result.side) result.side = "Both";
         if (!result.rsvp) result.rsvp = "Pending";
         if (!result.dietary) result.dietary = "Veg";
+        if (!result.notes) result.notes = "";
+      } else if (type === "rooms") {
+        if (!result.guestName) result.guestName = "";
+        if (!result.hotel) result.hotel = "";
+        if (!result.roomNumber) result.roomNumber = "";
+        if (!result.roomType) result.roomType = "Standard";
+        if (!result.checkIn) result.checkIn = "";
+        if (!result.checkOut) result.checkOut = "";
+        if (!result.status) result.status = "Reserved";
         if (!result.notes) result.notes = "";
       }
 

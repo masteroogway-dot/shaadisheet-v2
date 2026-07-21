@@ -15,6 +15,7 @@ import EventsView from "@/components/views/EventsView";
 import TasksView from "@/components/views/TasksView";
 import SeatingView from "@/components/views/SeatingView";
 import TimelineView from "@/components/views/TimelineView";
+import RoomAllocationView from "@/components/views/RoomAllocationView";
 import AiPanel from "@/components/AiPanel";
 
 export default function WeddingDashboardPage() {
@@ -87,6 +88,7 @@ export default function WeddingDashboardPage() {
       case "events": return <EventsView wedding={wedding} weddingId={weddingId} />;
       case "tasks": return <TasksView wedding={wedding} weddingId={weddingId} onToggle={handleToggleTask} />;
       case "seating": return <SeatingView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} />;
+      case "rooms": return <RoomAllocationView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} />;
       case "timeline": return <TimelineView wedding={wedding} weddingId={weddingId} />;
       default: return <OverviewView wedding={wedding} />;
     }

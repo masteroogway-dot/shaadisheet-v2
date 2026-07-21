@@ -77,6 +77,23 @@ model Wedding {
   aiMessages      AiMessage[]
   events          WeddingEvent[]
   timelineItems   WeddingTimelineItem[]
+  roomAllocations RoomAllocation[]
+}
+
+model RoomAllocation {
+  id          String   @id @default(cuid())
+  weddingId   String
+  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  guestName   String   @default("")
+  hotel       String   @default("")
+  roomNumber  String   @default("")
+  roomType    String   @default("Standard")
+  checkIn     String   @default("")
+  checkOut    String   @default("")
+  status      String   @default("Reserved")
+  notes       String   @default("")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
 }
 
 model WeddingEvent {

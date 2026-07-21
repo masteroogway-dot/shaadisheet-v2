@@ -48,6 +48,16 @@ const FIELD_LABELS: Record<ImportType, Record<string, string>> = {
     dietary: "Dietary",
     notes: "Notes",
   },
+  rooms: {
+    guestName: "Guest Name",
+    hotel: "Hotel",
+    roomNumber: "Room Number",
+    roomType: "Room Type",
+    checkIn: "Check In",
+    checkOut: "Check Out",
+    status: "Status",
+    notes: "Notes",
+  },
 };
 
 type Step = "upload" | "mapping" | "preview" | "importing" | "done";
