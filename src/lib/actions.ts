@@ -1090,3 +1090,172 @@ export async function bulkAddRoomAllocations(weddingId: string, count: number) {
     });
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// AGENTIC BULK ACTIONS (AI Panel)
+// ═══════════════════════════════════════════════════════════════
+
+function matchGuest(guest: any, filter: any): boolean {
+  if (filter.relation && guest.relation?.toLowerCase() !== filter.relation.toLowerCase()) return false;
+  if (filter.side && guest.side?.toLowerCase() !== filter.side.toLowerCase()) return false;
+  if (filter.rsvp && guest.rsvp?.toLowerCase() !== filter.rsvp.toLowerCase()) return false;
+  if (filter.dietary && guest.dietary?.toLowerCase() !== filter.dietary.toLowerCase()) return false;
+  if (filter.name_contains && !guest.name?.toLowerCase().includes(filter.name_contains.toLowerCase())) return false;
+  return true;
+}
+
+function matchVendor(vendor: any, filter: any): boolean {
+  if (filter.category && vendor.category?.toLowerCase() !== filter.category.toLowerCase()) return false;
+  if (filter.contract && vendor.contract?.toLowerCase() !== filter.contract.toLowerCase()) return false;
+  if (filter.name_contains && !vendor.name?.toLowerCase().includes(filter.name_contains.toLowerCase())) return false;
+  if (filter.rating && vendor.rating !== filter.rating) return false;
+  return true;
+}
+
+function matchBudgetItem(item: any, filter: any): boolean {
+  if (filter.category && item.category?.toLowerCase() !== filter.category.toLowerCase()) return false;
+  if (filter.status && item.status?.toLowerCase() !== filter.status.toLowerCase()) return false;
+  if (filter.name_contains && !item.item?.toLowerCase().includes(filter.name_contains.toLowerCase())) return false;
+  return true;
+}
+
+function matchRoom(room: any, filter: any): boolean {
+  if (filter.hotel && room.hotel?.toLowerCase() !== filter.hotel.toLowerCase()) return false;
+  if (filter.status && room.status?.toLowerCase() !== filter.status.toLowerCase()) return false;
+  if (filter.roomType && room.roomType?.toLowerCase() !== filter.roomType.toLowerCase()) return false;
+  if (filter.name_contains && !room.guestName?.toLowerCase().includes(filter.name_contains.toLowerCase())) return false;
+  return true;
+}
+
+export async function previewBulkAction(weddingId: string, type: string, filter: any) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const wedding = await getCurrentWedding(weddingId);
+  let matches: any[] = [];
+
+  if (type === "guests") {
+    matches = (wedding.guests || []).filter((g: any) => matchGuest(g, filter));
+    return { count: matches.length, sample: matches.slice(0, 10).map((g: any) => ({ id: g.id, name: g.name, rsvp: g.rsvp, side: g.side, relation: g.relation, dietary: g.dietary })) };
+  }
+  if (type === "vendors") {
+    matches = (wedding.vendors || []).filter((v: any) => matchVendor(v, filter));
+    return { count: matches.length, sample: matches.slice(0, 10).map((v: any) => ({ id: v.id, name: v.name, category: v.category, contract: v.contract })) };
+  }
+  if (type === "budget") {
+    matches = (wedding.budgetItems || []).filter((i: any) => matchBudgetItem(i, filter));
+    return { count: matches.length, sample: matches.slice(0, 10).map((i: any) => ({ id: i.id, item: i.item, category: i.category, estimated: i.estimated, status: i.status })) };
+  }
+  if (type === "rooms") {
+    matches = (wedding.roomAllocations || []).filter((r: any) => matchRoom(r, filter));
+    return { count: matches.length, sample: matches.slice(0, 10).map((r: any) => ({ id: r.id, guestName: r.guestName, hotel: r.hotel, status: r.status, roomType: r.roomType })) };
+  }
+
+  return { count: 0, sample: [] };
+}
+
+export async function executeBulkUpdate(weddingId: string, type: string, filter: any, updates: any) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const wedding = await getCurrentWedding(weddingId);
+  let updated = 0;
+
+  if (type === "guests") {
+    const matches = (wedding.guests || []).filter((g: any) => matchGuest(g, filter));
+    for (const g of matches) {
+      await prisma.guest.update({ where: { id: g.id }, data: updates });
+      updated++;
+    }
+  } else if (type === "vendors") {
+    const matches = (wedding.vendors || []).filter((v: any) => matchVendor(v, filter));
+    for (const v of matches) {
+      await prisma.vendor.update({ where: { id: v.id }, data: updates });
+      updated++;
+    }
+  } else if (type === "budget") {
+    const matches = (wedding.budgetItems || []).filter((i: any) => matchBudgetItem(i, filter));
+    for (const i of matches) {
+      await prisma.budgetItem.update({ where: { id: i.id }, data: updates });
+      updated++;
+    }
+  } else if (type === "rooms") {
+    const matches = (wedding.roomAllocations || []).filter((r: any) => matchRoom(r, filter));
+    for (const r of matches) {
+      await prisma.roomAllocation.update({ where: { id: r.id }, data: updates });
+      updated++;
+    }
+  } else if (type === "tasks") {
+    if (updates.done !== undefined) {
+      const matches = (wedding.tasks || []).filter((t: any) => {
+        if (filter.period && t.period !== filter.period) return false;
+        if (filter.done !== undefined && t.done !== filter.done) return false;
+        return true;
+      });
+      for (const t of matches) {
+        await prisma.task.update({ where: { id: t.id }, data: { done: updates.done } });
+        updated++;
+      }
+    }
+  } else if (type === "delete_guests") {
+    const matches = (wedding.guests || []).filter((g: any) => matchGuest(g, filter));
+    for (const g of matches) {
+      await prisma.guest.delete({ where: { id: g.id } });
+      updated++;
+    }
+  } else if (type === "delete_vendors") {
+    const matches = (wedding.vendors || []).filter((v: any) => matchVendor(v, filter));
+    for (const v of matches) {
+      await prisma.vendor.delete({ where: { id: v.id } });
+      updated++;
+    }
+  } else if (type === "delete_budget") {
+    const matches = (wedding.budgetItems || []).filter((i: any) => matchBudgetItem(i, filter));
+    for (const i of matches) {
+      await prisma.budgetItem.delete({ where: { id: i.id } });
+      updated++;
+    }
+  } else if (type === "delete_rooms") {
+    const matches = (wedding.roomAllocations || []).filter((r: any) => matchRoom(r, filter));
+    for (const r of matches) {
+      await prisma.roomAllocation.delete({ where: { id: r.id } });
+      updated++;
+    }
+  }
+
+  return { updated };
+}
+
+export async function getWeddingSummary(weddingId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const w = await getCurrentWedding(weddingId);
+  const budgetSpent = (w.budgetItems || []).reduce((s: number, i: any) => s + (i.paid || 0), 0);
+  const budgetAllocated = (w.budgetItems || []).reduce((s: number, i: any) => s + (i.estimated || 0), 0);
+  const rsvpYes = (w.guests || []).filter((g: any) => g.rsvp === "Yes").length;
+  const rsvpPending = (w.guests || []).filter((g: any) => g.rsvp === "Pending").length;
+  const vendorsBooked = (w.vendors || []).filter((v: any) => v.contract === "Signed").length;
+  const tasksDone = (w.tasks || []).filter((t: any) => t.done).length;
+
+  return {
+    name: w.name,
+    religion: w.religion,
+    budget: w.budget,
+    budgetAllocated,
+    budgetSpent,
+    budgetRemaining: (w.budget || 0) - budgetAllocated,
+    guestCount: (w.guests || []).length,
+    rsvpYes,
+    rsvpPending,
+    rsvpDeclined: (w.guests || []).length - rsvpYes - rsvpPending,
+    vendorCount: (w.vendors || []).length,
+    vendorsBooked,
+    taskCount: (w.tasks || []).length,
+    tasksDone,
+    roomCount: (w.roomAllocations || []).length,
+    weddingDate: w.weddingDate,
+    weddingCity: w.weddingCity,
+    weddingDays: w.weddingDays,
+  };
+}

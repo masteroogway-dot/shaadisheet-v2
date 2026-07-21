@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { addAiMessage, getAiMessages } from "@/lib/actions";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { addAiMessage, getAiMessages, previewBulkAction, executeBulkUpdate, getWeddingSummary } from "@/lib/actions";
 
 function formatINR(n: number) {
   if (n >= 10000000) return (n / 10000000).toFixed(1) + " Cr";
@@ -10,45 +10,13 @@ function formatINR(n: number) {
   return n.toString();
 }
 
-function generateResponse(query: string, wedding: any): string {
-  const q = query.toLowerCase();
-  const totalBudget = wedding.budget || 4000000;
-  const totalGuests = wedding.guestCount || 200;
-
-  if (q.includes("budget") || q.includes("cost") || q.includes("spend") || q.includes("money")) {
-    const spent = wedding.budgetItems?.reduce((s: number, i: any) => s + (i.paid || 0), 0) || 0;
-    return `Your total budget is \u20B9${formatINR(totalBudget)}. You've spent \u20B9${formatINR(spent)} so far, with \u20B9${formatINR(totalBudget - spent)} remaining.\n\nYour biggest expense is Venue & Decor at 30% (\u20B9${formatINR(Math.round(totalBudget * 0.3))}).`;
-  }
-
-  if (q.includes("guest") || q.includes("rsvp") || q.includes("invite")) {
-    const rsvpYes = wedding.guests?.filter((g: any) => g.rsvp === "Yes").length || 0;
-    return `You have ${totalGuests} total guests. ${rsvpYes} have confirmed so far. For ${totalGuests} guests, you'll need approximately ${Math.ceil(totalGuests / 8)} tables.`;
-  }
-
-  if (q.includes("vendor") || q.includes("book")) {
-    const booked = wedding.vendors?.filter((v: any) => v.contract === "Signed").length || 0;
-    const total = wedding.vendors?.length || 0;
-    return `You've booked ${booked} out of ${total} vendors. Priority: Book venue & caterer 9-12 months ahead, photographer 6-9 months, decorator 3-6 months.`;
-  }
-
-  if (q.includes("ritual") || q.includes("ceremony")) {
-    const religion = wedding.religion || "hindu";
-    const rituals: Record<string, string> = {
-      hindu: "Roka \u2192 Engagement \u2192 Mehendi \u2192 Sangeet \u2192 Haldi \u2192 Wedding (Baraat, Jaimala, Kanyadaan, Pheras) \u2192 Reception",
-      muslim: "Mangni \u2192 Mehendi \u2192 Nikah (signing Nikahnama) \u2192 Walima",
-      sikh: "Kurmai \u2192 Mehendi \u2192 Sangeet \u2192 Chooda \u2192 Anand Karaj (4 Lavaan) \u2192 Langar \u2192 Reception",
-      christian: "Engagement \u2192 Roce \u2192 Church Wedding (vows, rings) \u2192 Reception",
-    };
-    return `For a ${religion} wedding, the key rituals are:\n\n${rituals[religion] || rituals.hindu}`;
-  }
-
-  if (q.includes("food") || q.includes("menu")) {
-    const perPlate = Math.round((totalBudget * 0.25) / totalGuests);
-    return `With a catering budget of \u20B9${formatINR(Math.round(totalBudget * 0.25))} for ${totalGuests} guests:\n\nPer plate: ~\u20B9${perPlate.toLocaleString("en-IN")}\nRecommended: Mix of veg + non-veg options.`;
-  }
-
-  return `I can help with your ${wedding.religion || "Hindu"} wedding! Try asking about:\n\u2022 Budget breakdown\n\u2022 Guest RSVP status\n\u2022 Vendor bookings\n\u2022 Ritual explanations\n\u2022 Day-of timeline`;
-}
+type PendingAction = {
+  type: string;
+  filter: any;
+  updates: any;
+  description: string;
+  preview: { count: number; sample: any[] };
+};
 
 interface Props {
   open: boolean;
@@ -60,10 +28,10 @@ interface Props {
 
 export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }: Props) {
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([
-    { role: "bot", content: "Hi! I'm your wedding planning assistant. Ask me about budget, guests, vendors, rituals, or timeline." },
-  ]);
+  const [messages, setMessages] = useState<Array<{ role: string; content: string; action?: PendingAction }>>([]);
   const [loaded, setLoaded] = useState(false);
+  const [executing, setExecuting] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const messagesEnd = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -75,7 +43,7 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
       getAiMessages(weddingId).then((dbMessages) => {
         if (dbMessages && dbMessages.length > 0) {
           setMessages([
-            { role: "bot", content: "Hi! I'm your wedding planning assistant. Ask me about budget, guests, vendors, rituals, or timeline." },
+            { role: "bot", content: getWelcomeMessage() },
             ...dbMessages.map((m: any) => ({ role: m.role, content: m.content })),
           ]);
         }
@@ -84,27 +52,361 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
     }
   }, [open, loaded, weddingId]);
 
+  const getWelcomeMessage = () => {
+    return `Hi! I'm your ShaadiSheet assistant. I can help with:\n\n**Quick Actions:**\n- "Mark all Sharma guests as RSVP Yes"\n- "Set all Bride side guests dietary to Veg"\n- "Delete all guests with Declined RSVP"\n- "What's my total vendor spend?"\n\n**Bulk Operations:**\n- Update RSVP, dietary, side for guests\n- Update contract status for vendors\n- Delete items by category or status\n- Assign rooms by hotel or type\n\nJust type what you need in plain English!`;
+  };
+
+  const parseCommand = useCallback(async (userMsg: string): Promise<{ response: string; action?: PendingAction }> => {
+    const q = userMsg.toLowerCase().trim();
+    const summary = await getWeddingSummary(weddingId);
+
+    // ── Delete commands ──
+    if (q.includes("delete") || q.includes("remove")) {
+      return parseDeleteCommand(q, summary);
+    }
+
+    // ── Update / Set commands ──
+    if (q.includes("mark") || q.includes("set") || q.includes("change") || q.includes("update") || q.includes("move")) {
+      return parseUpdateCommand(q, summary);
+    }
+
+    // ── Query commands ──
+    if (q.includes("how many") || q.includes("what") || q.includes("show") || q.includes("list") || q.includes("count")) {
+      return parseQueryCommand(q, summary);
+    }
+
+    // ── Add commands ──
+    if (q.includes("add") || q.includes("create")) {
+      return parseAddCommand(q, summary);
+    }
+
+    // ── Help ──
+    if (q.includes("help") || q.includes("what can you do")) {
+      return { response: getWelcomeMessage() };
+    }
+
+    // ── Budget queries ──
+    if (q.includes("budget") || q.includes("spend") || q.includes("cost")) {
+      return { response: `Your total budget is **${formatINR(summary.budget)}**.\n\n- Allocated: ${formatINR(summary.budgetAllocated)}\n- Spent: ${formatINR(summary.budgetSpent)}\n- Remaining: ${formatINR(summary.budgetRemaining)}` };
+    }
+
+    // ── Guest queries ──
+    if (q.includes("guest") || q.includes("rsvp")) {
+      return { response: `You have **${summary.guestCount}** guests.\n\n- RSVP'd Yes: ${summary.rsvpYes}\n- Pending: ${summary.rsvpPending}\n- Declined: ${summary.rsvpDeclined}` };
+    }
+
+    // ── Vendor queries ──
+    if (q.includes("vendor")) {
+      return { response: `You have **${summary.vendorCount}** vendors.\n\n- Booked: ${summary.vendorsBooked}\n- Remaining: ${summary.vendorCount - summary.vendorsBooked}` };
+    }
+
+    // ── Task queries ──
+    if (q.includes("task")) {
+      return { response: `You have **${summary.taskCount}** tasks.\n\n- Done: ${summary.tasksDone}\n- Remaining: ${summary.taskCount - summary.tasksDone}` };
+    }
+
+    return { response: `I can help with your wedding! Try:\n\n- "Mark all Sharma guests as RSVP Yes"\n- "Set dietary to Veg for all Bride side"\n- "Delete all Declined guests"\n- "How many vendors are booked?"\n- "What's my budget remaining?"` };
+  }, [weddingId]);
+
+  const parseDeleteCommand = (q: string, summary: any): { response: string; action?: PendingAction } => {
+    // Determine target type
+    let type = "";
+    let filter: any = {};
+    let targetLabel = "";
+
+    if (q.includes("guest")) {
+      type = "delete_guests";
+      targetLabel = "guests";
+    } else if (q.includes("vendor")) {
+      type = "delete_vendors";
+      targetLabel = "vendors";
+    } else if (q.includes("budget") || q.includes("item")) {
+      type = "delete_budget";
+      targetLabel = "budget items";
+    } else if (q.includes("room")) {
+      type = "delete_rooms";
+      targetLabel = "room allocations";
+    } else {
+      return { response: "What would you like to delete? You can say:\n- \"Delete all Declined guests\"\n- \"Delete all Pending vendors\"\n- \"Delete all budget items in Venue category\"" };
+    }
+
+    // Parse filter conditions
+    if (q.includes("declined") || q.includes("reject")) {
+      if (targetLabel === "guests") filter.rsvp = "Declined";
+      else filter.status = "Cancelled";
+    } else if (q.includes("pending")) {
+      if (targetLabel === "guests") filter.rsvp = "Pending";
+      else if (targetLabel === "vendors") filter.contract = "Pending";
+      else filter.status = "Pending";
+    } else if (q.includes("signed") || q.includes("booked")) {
+      filter.contract = "Signed";
+    }
+
+    // Parse side
+    if (q.includes("bride")) filter.side = "Bride";
+    if (q.includes("groom")) filter.side = "Groom";
+
+    // Parse relation/family
+    const familyMatch = q.match(/(?:family|family of|from|named?|surname)\s+(\w+)/i);
+    if (familyMatch) filter.name_contains = familyMatch[1];
+    const sharmaMatch = q.match(/sharma|patel|gupta|singh|kumar|verma|jain| agarwal|mittal|reddy|nair|pillai|desai|rao/i);
+    if (sharmaMatch && !filter.name_contains) filter.name_contains = sharmaMatch[0];
+
+    // Parse dietary
+    if (q.includes("veg") && !q.includes("non")) filter.dietary = "Veg";
+    if (q.includes("non-veg") || q.includes("nonveg")) filter.dietary = "Non-Veg";
+    if (q.includes("vegan")) filter.dietary = "Vegan";
+    if (q.includes("jain")) filter.dietary = "Jain";
+
+    const filterDesc = describeFilter(filter, targetLabel);
+
+    return {
+      response: `I'll delete ${targetLabel}${filterDesc}. Please confirm below.`,
+      action: { type, filter, updates: {}, description: `Delete ${targetLabel}${filterDesc}`, preview: { count: 0, sample: [] } },
+    };
+  };
+
+  const parseUpdateCommand = (q: string, summary: any): { response: string; action?: PendingAction } => {
+    let type = "";
+    let filter: any = {};
+    let updates: any = {};
+    let targetLabel = "";
+
+    // Determine target
+    if (q.includes("guest")) {
+      type = "guests";
+      targetLabel = "guests";
+    } else if (q.includes("vendor")) {
+      type = "vendors";
+      targetLabel = "vendors";
+    } else if (q.includes("budget") || q.includes("item")) {
+      type = "budget";
+      targetLabel = "budget items";
+    } else if (q.includes("room")) {
+      type = "rooms";
+      targetLabel = "rooms";
+    } else if (q.includes("task")) {
+      type = "tasks";
+      targetLabel = "tasks";
+    } else {
+      // Try to infer from context
+      if (q.includes("rsvp") || q.includes("dietary") || q.includes("side")) {
+        type = "guests";
+        targetLabel = "guests";
+      } else if (q.includes("contract") || q.includes("rating")) {
+        type = "vendors";
+        targetLabel = "vendors";
+      } else if (q.includes("status") && q.includes("room")) {
+        type = "rooms";
+        targetLabel = "rooms";
+      } else {
+        return { response: "What would you like to update? Specify the target:\n- \"Mark all Sharma **guests** as RSVP Yes\"\n- \"Set **vendor** contract to Signed\"\n- \"Update **room** status to Checked In\"" };
+      }
+    }
+
+    // Parse filter conditions
+    if (q.includes("bride")) filter.side = "Bride";
+    if (q.includes("groom")) filter.side = "Groom";
+
+    const familyMatch = q.match(/(?:family|family of|from|named?|surname)\s+(\w+)/i);
+    if (familyMatch) filter.name_contains = familyMatch[1];
+    const sharmaMatch = q.match(/sharma|patel|gupta|singh|kumar|verma|jain| agarwal|mittal|reddy|nair|pillai|desai|rao/i);
+    if (sharmaMatch && !filter.name_contains) filter.name_contains = sharmaMatch[0];
+
+    if (q.includes("veg") && !q.includes("non")) filter.dietary = "Veg";
+    if (q.includes("non-veg") || q.includes("nonveg")) filter.dietary = "Non-Veg";
+    if (q.includes("jain")) filter.dietary = "Jain";
+
+    if (q.includes("pending")) {
+      if (targetLabel === "guests") filter.rsvp = "Pending";
+      else if (targetLabel === "vendors") filter.contract = "Pending";
+      else if (targetLabel === "rooms") filter.status = "Reserved";
+    }
+    if (q.includes("confirmed") || q.includes("confirm")) {
+      if (targetLabel === "guests") filter.rsvp = "Yes";
+    }
+    if (q.includes("declined")) {
+      filter.rsvp = "Declined";
+    }
+
+    // Parse category
+    const catMatch = q.match(/(?:in|category)\s+(\w[\w\s&]*?)(?:\s+to|\s+as|\s*$)/i);
+    if (catMatch) filter.category = catMatch[1].trim();
+
+    // Parse updates
+    if (q.includes("rsvp") && (q.includes("yes") || q.includes("confirm"))) updates.rsvp = "Yes";
+    else if (q.includes("rsvp") && q.includes("pending")) updates.rsvp = "Pending";
+    else if (q.includes("rsvp") && q.includes("decline")) updates.rsvp = "Declined";
+
+    if (q.includes("dietary") || q.includes("food")) {
+      if (q.includes("non-veg") || q.includes("nonveg")) updates.dietary = "Non-Veg";
+      else if (q.includes("vegan")) updates.dietary = "Vegan";
+      else if (q.includes("jain")) updates.dietary = "Jain";
+      else if (q.includes("veg")) updates.dietary = "Veg";
+    }
+
+    if (q.includes("side")) {
+      if (q.includes("bride")) updates.side = "Bride";
+      else if (q.includes("groom")) updates.side = "Groom";
+    }
+
+    if (q.includes("contract")) {
+      if (q.includes("signed") || q.includes("book")) updates.contract = "Signed";
+      else if (q.includes("pending")) updates.contract = "Pending";
+      else if (q.includes("complete")) updates.contract = "Completed";
+    }
+
+    if (q.includes("status")) {
+      if (q.includes("checked in")) updates.status = "Checked In";
+      else if (q.includes("checked out")) updates.status = "Checked Out";
+      else if (q.includes("reserved")) updates.status = "Reserved";
+      else if (q.includes("cancelled")) updates.status = "Cancelled";
+    }
+
+    if (type === "tasks" && (q.includes("done") || q.includes("complete") || q.includes("mark"))) {
+      if (q.includes("undo") || q.includes("uncomplete")) updates.done = false;
+      else updates.done = true;
+      if (q.includes("all")) filter.done = false;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return { response: `What should I change? For example:\n- "Set RSVP to Yes for all Sharma guests"\n- "Change dietary to Veg for Bride side"\n- "Set vendor contract to Signed"\n- "Mark all tasks as done"` };
+    }
+
+    const filterDesc = describeFilter(filter, targetLabel);
+    const updateDesc = describeUpdates(updates);
+
+    return {
+      response: `I'll ${updateDesc} for ${targetLabel}${filterDesc}. Please confirm below.`,
+      action: { type, filter, updates, description: `${updateDesc} for ${targetLabel}${filterDesc}`, preview: { count: 0, sample: [] } },
+    };
+  };
+
+  const parseQueryCommand = (q: string, summary: any): { response: string; action?: PendingAction } => {
+    if (q.includes("budget") || q.includes("spend")) {
+      return { response: `**Budget Summary:**\n- Total: ${formatINR(summary.budget)}\n- Allocated: ${formatINR(summary.budgetAllocated)}\n- Spent: ${formatINR(summary.budgetSpent)}\n- Remaining: ${formatINR(summary.budgetRemaining)}` };
+    }
+    if (q.includes("guest")) {
+      return { response: `**Guest Summary:**\n- Total: ${summary.guestCount}\n- RSVP Yes: ${summary.rsvpYes}\n- Pending: ${summary.rsvpPending}\n- Declined: ${summary.rsvpDeclined}` };
+    }
+    if (q.includes("vendor")) {
+      return { response: `**Vendor Summary:**\n- Total: ${summary.vendorCount}\n- Booked: ${summary.vendorsBooked}\n- Remaining: ${summary.vendorCount - summary.vendorsBooked}` };
+    }
+    if (q.includes("task")) {
+      return { response: `**Task Summary:**\n- Total: ${summary.taskCount}\n- Done: ${summary.tasksDone}\n- Remaining: ${summary.taskCount - summary.tasksDone}` };
+    }
+    if (q.includes("room")) {
+      return { response: `**Room Summary:**\n- Total: ${summary.roomCount}` };
+    }
+    return { response: `**Wedding Overview:**\n- Date: ${summary.weddingDate ? new Date(summary.weddingDate).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }) : "TBD"}\n- City: ${summary.weddingCity || "TBD"}\n- Budget: ${formatINR(summary.budget)}\n- Guests: ${summary.guestCount}\n- Vendors: ${summary.vendorCount}` };
+  };
+
+  const parseAddCommand = (q: string, summary: any): { response: string; action?: PendingAction } => {
+    if (q.includes("guest")) {
+      const countMatch = q.match(/(\d+)/);
+      const count = countMatch ? parseInt(countMatch[1]) : 1;
+      return { response: `I can add ${count} guest(s). Use the **Guests** section and click **Add Guest** or **Add Multiple Rows** to add ${count} rows at once.` };
+    }
+    if (q.includes("vendor")) {
+      return { response: `Use the **Vendors** section and click **Add Vendor** to add a new vendor entry.` };
+    }
+    if (q.includes("budget") || q.includes("item")) {
+      const countMatch = q.match(/(\d+)/);
+      const count = countMatch ? parseInt(countMatch[1]) : 1;
+      return { response: `Use the **Budget** section and click **Add Item** or **Add More Items** to add ${count} budget entries.` };
+    }
+    if (q.includes("table")) {
+      return { response: `Use the **Seating** section and click **Add Table** to create a new seating table.` };
+    }
+    if (q.includes("room")) {
+      return { response: `Use the **Room Allocation** section and click **Add Room** to add a new room allocation.` };
+    }
+    return { response: `What would you like to add? I can help with:\n- Guests\n- Vendors\n- Budget items\n- Seating tables\n- Room allocations` };
+  };
+
+  const describeFilter = (filter: any, target: string): string => {
+    const parts: string[] = [];
+    if (filter.side) parts.push(`${filter.side}'s side`);
+    if (filter.relation) parts.push(`${filter.relation} family`);
+    if (filter.name_contains) parts.push(`named "${filter.name_contains}"`);
+    if (filter.rsvp) parts.push(`with RSVP "${filter.rsvp}"`);
+    if (filter.dietary) parts.push(`dietary "${filter.dietary}"`);
+    if (filter.contract) parts.push(`contract "${filter.contract}"`);
+    if (filter.status) parts.push(`status "${filter.status}"`);
+    if (filter.category) parts.push(`in "${filter.category}" category`);
+    if (filter.hotel) parts.push(`at "${filter.hotel}"`);
+    if (filter.roomType) parts.push(`type "${filter.roomType}"`);
+    if (parts.length === 0) return "";
+    return ` where ${parts.join(", ")}`;
+  };
+
+  const describeUpdates = (updates: any): string => {
+    const parts: string[] = [];
+    if (updates.rsvp) parts.push(`RSVP to "${updates.rsvp}"`);
+    if (updates.dietary) parts.push(`dietary to "${updates.dietary}"`);
+    if (updates.side) parts.push(`side to "${updates.side}"`);
+    if (updates.contract) parts.push(`contract to "${updates.contract}"`);
+    if (updates.status) parts.push(`status to "${updates.status}"`);
+    if (updates.done !== undefined) parts.push(`mark as ${updates.done ? "done" : "undone"}`);
+    return "set " + parts.join(", ");
+  };
+
+  const handleConfirmAction = async () => {
+    if (!pendingAction) return;
+    setExecuting(true);
+    try {
+      const result = await executeBulkUpdate(weddingId, pendingAction.type, pendingAction.filter, pendingAction.updates);
+      const confirmMsg = `Done! Updated **${result.updated}** ${pendingAction.description.split(" for ")[1] || pendingAction.description}.`;
+      setMessages((prev) => [...prev, { role: "bot", content: confirmMsg }]);
+      await addAiMessage(weddingId, "bot", confirmMsg);
+      setPendingAction(null);
+      onUpdate();
+    } catch (e) {
+      const errMsg = `Failed to execute: ${(e as Error).message}`;
+      setMessages((prev) => [...prev, { role: "bot", content: errMsg }]);
+    } finally {
+      setExecuting(false);
+    }
+  };
+
+  const handleCancelAction = () => {
+    setPendingAction(null);
+    setMessages((prev) => [...prev, { role: "bot", content: "Action cancelled." }]);
+  };
+
   const send = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || executing) return;
     const userMsg = input.trim();
     setInput("");
     setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
 
-    const response = generateResponse(userMsg, wedding);
-    setMessages((prev) => [...prev, { role: "bot", content: response }]);
-
     try {
       await addAiMessage(weddingId, "user", userMsg);
+      const { response, action } = await parseCommand(userMsg);
+
+      if (action) {
+        // Fetch preview
+        const preview = await previewBulkAction(weddingId, action.type, action.filter);
+        action.preview = preview;
+        setPendingAction(action);
+        setMessages((prev) => [...prev, { role: "bot", content: response, action }]);
+      } else {
+        setMessages((prev) => [...prev, { role: "bot", content: response }]);
+      }
+
       await addAiMessage(weddingId, "bot", response);
       onUpdate();
-    } catch {}
+    } catch (e) {
+      const errMsg = `Sorry, I couldn't process that. ${(e as Error).message}`;
+      setMessages((prev) => [...prev, { role: "bot", content: errMsg }]);
+    }
   };
 
   return (
-    <div className={`fixed top-[60px] right-0 w-[400px] h-[calc(100vh-60px)] bg-white border-l border-gray-200 shadow-[-4px_0_20px_rgba(0,0,0,0.1)] flex flex-col z-[90] transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}>
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gradient-to-br from-maroon to-maroon-light text-white">
+    <div className={`fixed top-[60px] right-0 w-[420px] h-[calc(100vh-60px)] bg-white border-l border-gray-200 shadow-[-4px_0_20px_rgba(0,0,0,0.1)] flex flex-col z-[90] transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gradient-to-br from-maroon to-maroon-light text-white shrink-0">
         <div className="flex items-center gap-2.5 font-bold">
-          <i className="fas fa-robot" /> ShaadiSheet AI
+          <i className="fas fa-wand-magic-sparkles" /> ShaadiSheet AI
         </div>
         <button onClick={onClose} className="text-white/80 hover:text-white cursor-pointer"><i className="fas fa-times text-lg" /></button>
       </div>
@@ -113,27 +415,82 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
         {messages.map((msg, i) => (
           <div key={i} className={`flex gap-2.5 items-start ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs shrink-0 ${msg.role === "bot" ? "bg-gradient-to-br from-maroon to-gold text-white" : "bg-gray-200 text-gray-700"}`}>
-              {msg.role === "bot" ? <i className="fas fa-robot" /> : (wedding.name?.charAt(0) || "U")}
+              {msg.role === "bot" ? <i className="fas fa-wand-magic-sparkles" /> : (wedding.name?.charAt(0) || "U")}
             </div>
             <div className={`max-w-[85%] px-4 py-3 rounded-xl text-sm leading-relaxed whitespace-pre-line ${msg.role === "bot" ? "bg-gray-100 rounded-tl-sm" : "bg-gradient-to-br from-maroon to-maroon-light text-white rounded-tr-sm"}`}>
               {msg.content}
             </div>
           </div>
         ))}
+
+        {pendingAction && (
+          <div className="bg-white border-2 border-maroon/20 rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-maroon">
+              <i className="fas fa-exclamation-triangle" /> Confirm Bulk Action
+            </div>
+
+            <p className="text-sm text-gray-600">{pendingAction.description}</p>
+
+            <div className="bg-gray-50 rounded-lg p-3">
+              <div className="text-xs font-semibold text-gray-500 uppercase mb-2">
+                {pendingAction.preview.count} items will be affected
+              </div>
+              {pendingAction.preview.count === 0 ? (
+                <p className="text-xs text-gray-400">No matching items found.</p>
+              ) : (
+                <div className="space-y-1">
+                  {pendingAction.preview.sample.slice(0, 5).map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-center gap-2 text-xs">
+                      <i className="fas fa-circle text-[0.3rem] text-gray-400" />
+                      <span className="font-medium">{item.name || item.guestName || item.item || item.category}</span>
+                      {item.rsvp && <span className="text-gray-400">({item.rsvp})</span>}
+                      {item.side && <span className="text-gray-400">({item.side})</span>}
+                      {item.contract && <span className="text-gray-400">({item.contract})</span>}
+                      {item.status && <span className="text-gray-400">({item.status})</span>}
+                    </div>
+                  ))}
+                  {pendingAction.preview.count > 5 && (
+                    <p className="text-xs text-gray-400">...and {pendingAction.preview.count - 5} more</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={handleConfirmAction}
+                disabled={executing || pendingAction.preview.count === 0}
+                className="flex-1 px-4 py-2.5 bg-gradient-to-br from-maroon to-maroon-light text-white text-sm font-semibold rounded-lg hover:shadow-md disabled:opacity-50 transition-all cursor-pointer"
+              >
+                {executing ? <><i className="fas fa-spinner fa-spin mr-1.5" /> Executing...</> : <><i className="fas fa-check mr-1.5" /> Confirm</>}
+              </button>
+              <button
+                onClick={handleCancelAction}
+                disabled={executing}
+                className="px-4 py-2.5 bg-gray-100 text-gray-600 text-sm font-semibold rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
         <div ref={messagesEnd} />
       </div>
 
-      <div className="flex gap-2 p-4 border-t border-gray-200">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && send()}
-          placeholder="Ask about your wedding..."
-          className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon transition-colors"
-        />
-        <button onClick={send} className="w-11 h-11 rounded-lg bg-gradient-to-br from-maroon to-maroon-light text-white flex items-center justify-center hover:scale-105 transition-transform cursor-pointer">
-          <i className="fas fa-paper-plane" />
-        </button>
+      <div className="p-4 border-t border-gray-200 shrink-0">
+        <div className="flex gap-2">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && send()}
+            placeholder="Type a command..."
+            className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon transition-colors"
+          />
+          <button onClick={send} className="w-11 h-11 rounded-lg bg-gradient-to-br from-maroon to-maroon-light text-white flex items-center justify-center hover:scale-105 transition-transform cursor-pointer">
+            <i className="fas fa-paper-plane" />
+          </button>
+        </div>
       </div>
     </div>
   );
