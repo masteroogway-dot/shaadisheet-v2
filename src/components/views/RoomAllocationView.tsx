@@ -259,7 +259,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Check In</label>
                     {isEditing ? (
-                      <input type="date" value={editData.checkIn ?? a.checkIn} onChange={(e) => setEditData({ ...editData, checkIn: e.target.value })} className="card-input" />
+                      <input type="date" value={editData.checkIn ?? a.checkIn} min={new Date().toISOString().split("T")[0]} onChange={(e) => setEditData({ ...editData, checkIn: e.target.value })} className="card-input" />
                     ) : (
                       <p className="text-sm text-gray-600">{a.checkIn || '\u2014'}</p>
                     )}
@@ -267,7 +267,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Check Out</label>
                     {isEditing ? (
-                      <input type="date" value={editData.checkOut ?? a.checkOut} onChange={(e) => setEditData({ ...editData, checkOut: e.target.value })} className="card-input" />
+                      <input type="date" value={editData.checkOut ?? a.checkOut} min={editData.checkIn || a.checkIn || new Date().toISOString().split("T")[0]} onChange={(e) => setEditData({ ...editData, checkOut: e.target.value })} className="card-input" />
                     ) : (
                       <p className="text-sm text-gray-600">{a.checkOut || '\u2014'}</p>
                     )}

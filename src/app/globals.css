@@ -173,6 +173,49 @@ input[type="range"]::-moz-range-track {
   color: #9ca3af;
 }
 
+/* Remove number input spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* ₹ prefix wrapper */
+.input-currency {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-currency .currency-symbol {
+  position: absolute;
+  left: 14px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  pointer-events: none;
+  z-index: 1;
+}
+.input-currency input {
+  padding-left: 28px !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Date input styling */
+input[type="date"] {
+  font-variant-numeric: tabular-nums;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.5;
+  cursor: pointer;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.8;
+}
+
 .card-select {
   width: 100%;
   padding: 10px 14px;

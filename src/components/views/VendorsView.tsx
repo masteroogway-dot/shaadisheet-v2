@@ -250,17 +250,17 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast }: {
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Quote ({'\u20B9'})</label>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Quote</label>
                     {isEditing ? (
-                      <input type="number" value={editData.quote ?? v.quote} onChange={(e) => setEditData({ ...editData, quote: parseInt(e.target.value) || 0 })} className="card-input text-right" />
+                      <div className="input-currency"><span className="currency-symbol">{'\u20B9'}</span><input type="number" value={editData.quote ?? v.quote} onChange={(e) => setEditData({ ...editData, quote: parseInt(e.target.value) || 0 })} className="card-input" /></div>
                     ) : (
                       <p className="text-sm font-semibold">{'\u20B9'}{v.quote.toLocaleString("en-IN")}</p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Paid ({'\u20B9'})</label>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Paid</label>
                     {isEditing ? (
-                      <input type="number" value={editData.paid ?? v.paid} onChange={(e) => setEditData({ ...editData, paid: parseInt(e.target.value) || 0 })} className="card-input text-right" />
+                      <div className="input-currency"><span className="currency-symbol">{'\u20B9'}</span><input type="number" value={editData.paid ?? v.paid} onChange={(e) => setEditData({ ...editData, paid: parseInt(e.target.value) || 0 })} className="card-input" /></div>
                     ) : (
                       <p className="text-sm font-semibold text-green">{'\u20B9'}{v.paid.toLocaleString("en-IN")}</p>
                     )}

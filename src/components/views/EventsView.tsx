@@ -118,9 +118,10 @@ export default function EventsView({ wedding, weddingId }: { wedding: any; weddi
     loadEvents();
   }, [weddingId]);
 
+  const today = new Date().toISOString().split("T")[0];
   const weddingStart = wedding.weddingDate
     ? new Date(wedding.weddingDate).toISOString().split("T")[0]
-    : "";
+    : today;
   const weddingEnd = (() => {
     if (!weddingStart) return "";
     const d = new Date(weddingStart);
