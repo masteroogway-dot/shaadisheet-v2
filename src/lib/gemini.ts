@@ -78,15 +78,14 @@ ${weddingCtx}`;
 
     const chat = model.startChat({
       history: [
-        { role: "user", parts: [{ text: "Hello, I'm your ShaadiSheet AI assistant. Respond with just 'ready'." }] },
-        { role: "model", parts: [{ text: "ready" }] },
+        { role: "user", parts: [{ text: systemPrompt }] },
+        { role: "model", parts: [{ text: "Understood. I'm ready to help with this wedding." }] },
         ...history,
       ],
       generationConfig: {
         maxOutputTokens: 1024,
         temperature: 0.7,
       },
-      systemInstruction: systemPrompt,
     });
 
     const result = await chat.sendMessage(question);
