@@ -62,7 +62,8 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast }: {
       await createSeatingTable(weddingId, { name: "New Table", capacity: 8, guests: "[]" });
       onUpdate();
       onToast("Table added", "success");
-    } catch {
+    } catch (e) {
+      console.error("Failed to add table:", e);
       onToast("Failed to add table", "error");
     }
   };
@@ -71,6 +72,7 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast }: {
     try {
       await updateSeatingTable(weddingId, id, editData);
       setEditing(null);
+      setEditData({});
       onUpdate();
       onToast("Table updated", "success");
     } catch {
@@ -81,6 +83,7 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast }: {
   const handleDeleteTable = async (id: string) => {
     try {
       await deleteSeatingTable(weddingId, id);
+      setSelected((prev) => { const next = new Set(prev); next.delete(id); return next; });
       onUpdate();
       onToast("Table deleted", "success");
     } catch {
@@ -126,6 +129,13 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast }: {
     return true;
   });
 
+  const totalSeats = tables.reduce((s: number, t: any) => s + (t.capacity || 0), 0);
+  const filledSeats = tables.reduce((s: number, t: any) => {
+    let g: string[] = [];
+    try { g = JSON.parse(t.guests || "[]"); } catch { g = []; }
+    return s + g.length;
+  }, 0);
+
   return (
     <div>
       <div className="flex justify-between items-start mb-7">
@@ -133,36 +143,43 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast }: {
           <h2 className="text-2xl font-bold">Seating Chart</h2>
           <p className="text-gray-500 text-sm">Plan where every guest sits</p>
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2.5 items-center">
           {selected.size > 0 && (
-            <button onClick={handleBulkDelete} className="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors cursor-pointer">
+            <button onClick={handleBulkDelete} className="btn-delete">
               <i className="fas fa-trash mr-1.5" /> Delete Selected ({selected.size})
             </button>
           )}
-          {showBulkInput ? (
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                min={1}
-                value={bulkCount}
-                onChange={(e) => setBulkCount(parseInt(e.target.value) || 1)}
-                className="w-20 px-2 py-1 border rounded text-sm"
-                autoFocus
-                onKeyDown={(e) => e.key === "Enter" && handleBulkAdd()}
-              />
-              <button onClick={handleBulkAdd} className="px-3 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors cursor-pointer">Add</button>
-              <button onClick={() => { setShowBulkInput(false); setBulkCount(1); }} className="px-3 py-2 text-sm font-semibold bg-gray-200 rounded-lg transition-colors cursor-pointer">Cancel</button>
-            </div>
-          ) : (
-            <button onClick={() => setShowBulkInput(true)} className="px-4 py-2 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
-              <i className="fas fa-layer-group mr-1.5" /> Add Multiple
-            </button>
-          )}
-          <button onClick={handleAddTable} className="px-4 py-2 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
-            <i className="fas fa-plus mr-1.5" /> Add Table
+          <button onClick={handleAddTable} className="btn-maroon">
+            <i className="fas fa-plus" /> Add Table
           </button>
         </div>
       </div>
+
+      {tables.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+            <span className="text-2xl font-extrabold block">{tables.length}</span>
+            <span className="text-xs text-gray-500">Tables</span>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+            <span className="text-2xl font-extrabold block">{filledSeats} / {totalSeats}</span>
+            <span className="text-xs text-gray-500">Seats Filled</span>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+            <span className="text-2xl font-extrabold text-yellow block">{unassignedGuests.length}</span>
+            <span className="text-xs text-gray-500">Unassigned</span>
+          </div>
+        </div>
+      )}
+
+      {showBulkInput && (
+        <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
+          <span className="text-sm font-medium">Add how many tables?</span>
+          <input type="number" min={1} value={bulkCount} onChange={(e) => setBulkCount(parseInt(e.target.value) || 1)} className="card-input w-20 py-1.5 text-center" autoFocus onKeyDown={(e) => e.key === "Enter" && handleBulkAdd()} />
+          <button onClick={handleBulkAdd} className="btn-maroon text-xs py-1.5 px-3">Add</button>
+          <button onClick={() => { setShowBulkInput(false); setBulkCount(1); }} className="btn-cancel text-xs py-1.5 px-3">Cancel</button>
+        </div>
+      )}
 
       {unassignedGuests.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-xl p-5 mb-5">
@@ -179,29 +196,40 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast }: {
         {tables.map((table: any) => {
           let tableGuests: string[] = [];
           try { tableGuests = JSON.parse(table.guests || "[]"); } catch { tableGuests = []; }
+          const isEditing = editing === table.id;
+          const fillPct = table.capacity > 0 ? Math.round((tableGuests.length / table.capacity) * 100) : 0;
+
           return (
-            <div key={table.id} className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow relative">
-              <div className="absolute top-3 left-3">
+            <div key={table.id} className={`item-card ${isEditing ? "editing" : ""} relative`}>
+              <div className="absolute top-4 left-4">
                 <input
                   type="checkbox"
                   checked={selected.has(table.id)}
                   onChange={() => toggleSelect(table.id)}
-                  className="w-4 h-4 cursor-pointer"
+                  className="w-4 h-4 rounded accent-maroon cursor-pointer"
                 />
               </div>
-              {editing === table.id ? (
-                <div className="space-y-2 mb-3 ml-6">
-                  <input value={editData.name ?? table.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="w-full px-2 py-1 border rounded text-sm font-bold" placeholder="Table name" />
-                  <input type="number" value={editData.capacity ?? table.capacity} onChange={(e) => setEditData({ ...editData, capacity: parseInt(e.target.value) || 8 })} className="w-full px-2 py-1 border rounded text-sm" placeholder="Capacity" />
+
+              {isEditing ? (
+                <div className="space-y-2 mb-4 ml-7">
+                  <input value={editData.name ?? table.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="card-input py-1.5 font-bold" placeholder="Table name" />
+                  <input type="number" value={editData.capacity ?? table.capacity} onChange={(e) => setEditData({ ...editData, capacity: parseInt(e.target.value) || 8 })} className="card-input py-1.5" placeholder="Capacity" />
                 </div>
               ) : (
-                <div className="flex items-center justify-between mb-1 ml-6">
-                  <h4 className="font-bold">{table.name}</h4>
-                  <span className="text-xs text-gray-400">{tableGuests.length} / {table.capacity}</span>
+                <div className="flex items-center justify-between mb-1 ml-7">
+                  <h4 className="font-bold text-base">{table.name}</h4>
+                  <span className="text-xs text-gray-400">{tableGuests.length}/{table.capacity}</span>
                 </div>
               )}
-              <div className="text-sm text-gray-500 mb-3 ml-6">{tableGuests.length} / {table.capacity} seats filled</div>
-              <div className="flex flex-wrap gap-1.5 mb-3 ml-6">
+
+              <div className="ml-7 mb-3">
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-maroon to-gold rounded-full transition-all" style={{ width: `${fillPct}%` }} />
+                </div>
+                <span className="text-xs text-gray-400 mt-1 block">{tableGuests.length} / {table.capacity} seats filled</span>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5 mb-3 ml-7">
                 {tableGuests.length > 0 ? (
                   tableGuests.map((g, i) => (
                     <span key={i} className="px-2.5 py-1 bg-gray-100 rounded-full text-xs font-medium flex items-center gap-1">
@@ -213,24 +241,25 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast }: {
                   <span className="px-2.5 py-1 bg-gray-50 rounded-full text-xs font-medium text-gray-400">Empty</span>
                 )}
               </div>
+
               {addingGuest === table.id ? (
-                <div className="flex gap-1.5 ml-6">
-                  <input value={newGuestName} onChange={(e) => setNewGuestName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleAddGuestToTable(table)} placeholder="Guest name" className="flex-1 px-2 py-1 border rounded text-xs" autoFocus />
-                  <button onClick={() => handleAddGuestToTable(table)} className="text-xs px-2 py-1 bg-green-500 text-white rounded cursor-pointer">Add</button>
-                  <button onClick={() => { setAddingGuest(null); setNewGuestName(""); }} className="text-xs px-2 py-1 bg-gray-200 rounded cursor-pointer">X</button>
+                <div className="flex gap-1.5 ml-7">
+                  <input value={newGuestName} onChange={(e) => setNewGuestName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleAddGuestToTable(table)} placeholder="Guest name" className="card-input flex-1 py-1 text-xs" autoFocus />
+                  <button onClick={() => handleAddGuestToTable(table)} className="btn-save text-xs py-1 px-2.5">Add</button>
+                  <button onClick={() => { setAddingGuest(null); setNewGuestName(""); }} className="btn-cancel text-xs py-1 px-2.5">X</button>
                 </div>
               ) : (
-                <div className="flex gap-1.5 mt-2 ml-6">
-                  {editing === table.id ? (
+                <div className="flex gap-1.5 mt-2 ml-7">
+                  {isEditing ? (
                     <>
-                      <button onClick={() => handleSaveTable(table.id)} className="text-xs px-3 py-1 bg-green-500 text-white rounded cursor-pointer">Save</button>
-                      <button onClick={() => setEditing(null)} className="text-xs px-3 py-1 bg-gray-200 rounded cursor-pointer">Cancel</button>
+                      <button onClick={() => handleSaveTable(table.id)} className="btn-save text-xs py-1 px-3">Save</button>
+                      <button onClick={() => setEditing(null)} className="btn-cancel text-xs py-1 px-3">Cancel</button>
                     </>
                   ) : (
                     <>
-                      <button onClick={() => setAddingGuest(table.id)} className="text-xs px-3 py-1 bg-blue-100 text-blue-700 rounded cursor-pointer"><i className="fas fa-plus mr-1" />Guest</button>
-                      <button onClick={() => { setEditing(table.id); setEditData({}); }} className="text-xs px-3 py-1 bg-blue-100 text-blue-700 rounded cursor-pointer">Edit</button>
-                      <button onClick={() => handleDeleteTable(table.id)} className="text-xs px-3 py-1 bg-red-100 text-red-700 rounded cursor-pointer">Del</button>
+                      <button onClick={() => setAddingGuest(table.id)} className="btn-edit text-xs py-1 px-3"><i className="fas fa-plus mr-1" />Guest</button>
+                      <button onClick={() => { setEditing(table.id); setEditData({}); }} className="btn-edit text-xs py-1 px-3">Edit</button>
+                      <button onClick={() => handleDeleteTable(table.id)} className="btn-delete text-xs py-1 px-3">Del</button>
                     </>
                   )}
                 </div>
@@ -238,17 +267,38 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast }: {
             </div>
           );
         })}
+
+        {tables.length > 0 && (
+          <>
+            <button onClick={handleAddTable} className="border-2 border-dashed border-gray-300 rounded-xl p-5 flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-maroon hover:text-maroon transition-colors cursor-pointer min-h-[120px]">
+              <i className="fas fa-plus text-xl" />
+              <span className="text-sm font-semibold">Add Table</span>
+            </button>
+            {showBulkInput ? null : (
+              <button onClick={() => setShowBulkInput(true)} className="border-2 border-dashed border-gray-300 rounded-xl p-5 flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-maroon hover:text-maroon transition-colors cursor-pointer min-h-[120px]">
+                <i className="fas fa-layer-group text-xl" />
+                <span className="text-sm font-semibold">Add Multiple</span>
+              </button>
+            )}
+          </>
+        )}
       </div>
 
-      {tables.length > 0 && (
-        <div className="mt-4 flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={tables.length > 0 && selected.size === tables.length}
-            onChange={toggleSelectAll}
-            className="w-4 h-4 cursor-pointer"
-          />
-          <span className="text-sm text-gray-500">Select all ({tables.length})</span>
+      {tables.length === 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+          <div className="w-16 h-16 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-4">
+            <i className="fas fa-chair text-maroon text-xl" />
+          </div>
+          <h3 className="font-bold text-lg mb-2">No tables yet</h3>
+          <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">Create seating tables and assign guests for your wedding.</p>
+          <div className="flex gap-3 justify-center">
+            <button onClick={handleAddTable} className="btn-maroon">
+              <i className="fas fa-plus" /> Add First Table
+            </button>
+            <button onClick={() => setShowBulkInput(true)} className="btn-cancel">
+              <i className="fas fa-layer-group mr-1.5" /> Add Multiple
+            </button>
+          </div>
         </div>
       )}
     </div>

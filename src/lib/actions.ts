@@ -402,7 +402,8 @@ export async function createSeatingTable(weddingId: string, data: {
   guests?: string;
 }) {
   const wedding = await getCurrentWedding(weddingId);
-  const maxOrder = Math.max(...wedding.seatingTables.map((s: any) => s.order), -1);
+  const tables = wedding.seatingTables || [];
+  const maxOrder = tables.length > 0 ? Math.max(...tables.map((s: any) => s.order)) : -1;
   return prisma.seatingTable.create({
     data: { weddingId: wedding.id, ...data, order: maxOrder + 1 },
   });
