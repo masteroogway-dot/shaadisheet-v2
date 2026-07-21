@@ -48,6 +48,7 @@ async function getCurrentWedding(weddingId?: string) {
         tasks: { orderBy: { order: "asc" } },
         seatingTables: { orderBy: { order: "asc" } },
         aiMessages: { orderBy: { createdAt: "asc" } },
+        roomAllocations: { orderBy: { order: "asc" } },
       },
     });
     if (!wedding) throw new Error("Wedding not found");
@@ -62,6 +63,7 @@ async function getCurrentWedding(weddingId?: string) {
         tasks: { orderBy: { order: "asc" } },
         seatingTables: { orderBy: { order: "asc" } },
         aiMessages: { orderBy: { createdAt: "asc" } },
+        roomAllocations: { orderBy: { order: "asc" } },
       },
     });
     if (!wedding) throw new Error("No wedding found");
