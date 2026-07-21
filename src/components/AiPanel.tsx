@@ -239,16 +239,7 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
     if (q.includes("non-veg") || q.includes("nonveg")) filter.dietary = "Non-Veg";
     if (q.includes("jain")) filter.dietary = "Jain";
 
-    if (q.includes("pending")) {
-      if (targetLabel === "guests") filter.rsvp = "Pending";
-      else if (targetLabel === "vendors") filter.contract = "Pending";
-      else if (targetLabel === "rooms") filter.status = "Reserved";
-    }
-    if (q.includes("confirmed") || q.includes("confirm")) {
-      if (targetLabel === "guests") filter.rsvp = "Yes";
-    }
-    if (q.includes("declined")) filter.rsvp = "Declined";
-
+    // Parse category
     const catMatch = q.match(/(?:in|category)\s+(\w[\w\s&]*?)(?:\s+to|\s+as|\s*$)/i);
     if (catMatch) filter.category = catMatch[1].trim();
 
