@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import DatePicker from "@/components/DatePicker";
 
 const REGIONS: Record<string, string[]> = {
   hindu: ["North Indian", "South Indian", "Bengali", "Gujarati", "Maharashtrian", "Rajput", "Punjabi"],
@@ -353,8 +354,7 @@ export default function Onboarding({ onComplete }: Props) {
               <div className="max-w-[400px] space-y-5">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Wedding Date</label>
-                  <input type="date" value={data.weddingDate} min={new Date().toISOString().split("T")[0]} onChange={(e) => setData({ ...data, weddingDate: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-maroon transition-colors" />
+                  <DatePicker value={data.weddingDate} min={new Date().toISOString().split("T")[0]} onChange={(val) => setData({ ...data, weddingDate: val })} />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Wedding City</label>

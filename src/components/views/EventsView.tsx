@@ -8,6 +8,7 @@ import {
   deleteWeddingEvent,
   seedWeddingEvents,
 } from "@/lib/actions";
+import DatePicker from "@/components/DatePicker";
 
 interface WeddingEvent {
   id: string;
@@ -290,13 +291,11 @@ export default function EventsView({ wedding, weddingId }: { wedding: any; weddi
                             <div className="grid grid-cols-4 gap-4">
                               <div>
                                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Date</label>
-                                <input
-                                  type="date"
+                                <DatePicker
                                   value={editData.date ?? ""}
                                   min={weddingStart || undefined}
                                   max={weddingEnd || undefined}
-                                  onChange={(e) => setEditData({ ...editData, date: e.target.value })}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon"
+                                  onChange={(val) => setEditData({ ...editData, date: val })}
                                 />
                               </div>
                               <div>

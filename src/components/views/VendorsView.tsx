@@ -252,7 +252,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast }: {
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Quote</label>
                     {isEditing ? (
-                      <div className="input-currency"><span className="currency-symbol">{'\u20B9'}</span><input type="number" value={editData.quote ?? v.quote} onChange={(e) => setEditData({ ...editData, quote: parseInt(e.target.value) || 0 })} className="card-input" /></div>
+                      <div className="input-currency"><span className="currency-symbol">{'\u20B9'}</span><input type="number" value={editData.quote ?? ""} placeholder="0" onChange={(e) => setEditData({ ...editData, quote: e.target.value === "" ? "" : parseInt(e.target.value) || 0 })} className="card-input" /></div>
                     ) : (
                       <p className="text-sm font-semibold">{'\u20B9'}{v.quote.toLocaleString("en-IN")}</p>
                     )}
@@ -260,7 +260,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast }: {
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Paid</label>
                     {isEditing ? (
-                      <div className="input-currency"><span className="currency-symbol">{'\u20B9'}</span><input type="number" value={editData.paid ?? v.paid} onChange={(e) => setEditData({ ...editData, paid: parseInt(e.target.value) || 0 })} className="card-input" /></div>
+                      <div className="input-currency"><span className="currency-symbol">{'\u20B9'}</span><input type="number" value={editData.paid ?? ""} placeholder="0" onChange={(e) => setEditData({ ...editData, paid: e.target.value === "" ? "" : parseInt(e.target.value) || 0 })} className="card-input" /></div>
                     ) : (
                       <p className="text-sm font-semibold text-green">{'\u20B9'}{v.paid.toLocaleString("en-IN")}</p>
                     )}

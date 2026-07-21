@@ -216,6 +216,15 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   opacity: 0.8;
 }
 
+/* Number input placeholder */
+input[type="number"]:placeholder-shown {
+  font-variant-numeric: tabular-nums;
+}
+input[type="number"]::placeholder {
+  color: #9ca3af;
+  opacity: 1;
+}
+
 .card-select {
   width: 100%;
   padding: 10px 14px;

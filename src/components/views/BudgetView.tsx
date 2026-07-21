@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { updateBudgetItem, createBudgetItem, deleteBudgetItem, batchCreateBudgetItems, bulkDeleteBudgetItems, bulkAddBudgetItems } from "@/lib/actions";
 import ImportModal from "@/components/ImportModal";
+import DatePicker from "@/components/DatePicker";
 
 function formatINR(n: number): string {
   if (n === 0) return "0";
@@ -213,7 +214,7 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { 
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Estimated</label>
                     {isEditing ? (
-                      <div className="input-currency"><span className="currency-symbol">{'\u20B9'}</span><input type="number" value={editData.estimated ?? item.estimated} onChange={(e) => setEditData({ ...editData, estimated: parseInt(e.target.value) || 0 })} className="card-input" /></div>
+                      <div className="input-currency"><span className="currency-symbol">{'\u20B9'}</span><input type="number" value={editData.estimated ?? ""} placeholder="0" onChange={(e) => setEditData({ ...editData, estimated: e.target.value === "" ? "" : parseInt(e.target.value) || 0 })} className="card-input" /></div>
                     ) : (
                       <p className="text-sm font-bold">{'\u20B9'}{item.estimated.toLocaleString("en-IN")}</p>
                     )}
@@ -221,7 +222,7 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { 
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Actual</label>
                     {isEditing ? (
-                      <div className="input-currency"><span className="currency-symbol">{'\u20B9'}</span><input type="number" value={editData.actual ?? item.actual} onChange={(e) => setEditData({ ...editData, actual: parseInt(e.target.value) || 0 })} className="card-input" /></div>
+                      <div className="input-currency"><span className="currency-symbol">{'\u20B9'}</span><input type="number" value={editData.actual ?? ""} placeholder="0" onChange={(e) => setEditData({ ...editData, actual: e.target.value === "" ? "" : parseInt(e.target.value) || 0 })} className="card-input" /></div>
                     ) : (
                       <p className="text-sm">{'\u20B9'}{item.actual.toLocaleString("en-IN")}</p>
                     )}
@@ -229,7 +230,7 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { 
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Paid</label>
                     {isEditing ? (
-                      <div className="input-currency"><span className="currency-symbol">{'\u20B9'}</span><input type="number" value={editData.paid ?? item.paid} onChange={(e) => setEditData({ ...editData, paid: parseInt(e.target.value) || 0 })} className="card-input" /></div>
+                      <div className="input-currency"><span className="currency-symbol">{'\u20B9'}</span><input type="number" value={editData.paid ?? ""} placeholder="0" onChange={(e) => setEditData({ ...editData, paid: e.target.value === "" ? "" : parseInt(e.target.value) || 0 })} className="card-input" /></div>
                     ) : (
                       <p className="text-sm font-bold text-green">{'\u20B9'}{item.paid.toLocaleString("en-IN")}</p>
                     )}
@@ -244,7 +245,7 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { 
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Due Date</label>
                     {isEditing ? (
-                      <input type="date" value={editData.dueDate ?? item.dueDate} min={new Date().toISOString().split("T")[0]} onChange={(e) => setEditData({ ...editData, dueDate: e.target.value })} className="card-input" />
+                      <DatePicker value={editData.dueDate ?? item.dueDate} min={new Date().toISOString().split("T")[0]} onChange={(val) => setEditData({ ...editData, dueDate: val })} />
                     ) : (
                       <p className="text-sm text-gray-600">{item.dueDate || '\u2014'}</p>
                     )}
