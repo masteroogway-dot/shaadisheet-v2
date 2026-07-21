@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
-import { getWedding, updateWedding, updateTask } from "@/lib/actions";
+import { getWedding, updateWedding, updateTask, seedWeddingEvents } from "@/lib/actions";
 import Onboarding from "@/components/Onboarding";
 import Sidebar from "@/components/Sidebar";
 import OverviewView from "@/components/views/OverviewView";
@@ -45,6 +45,11 @@ export default function WeddingDashboardPage() {
     try {
       const w = await getWedding(weddingId);
       setWedding(w);
+      if (w.weddingDate) {
+        await seedWeddingEvents(weddingId);
+        const updated = await getWedding(weddingId);
+        setWedding(updated);
+      }
     } catch (e) {
       console.error(e);
       router.push("/dashboard");

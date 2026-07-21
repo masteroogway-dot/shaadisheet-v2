@@ -49,6 +49,8 @@ async function getCurrentWedding(weddingId?: string) {
         seatingTables: { orderBy: { order: "asc" } },
         aiMessages: { orderBy: { createdAt: "asc" } },
         roomAllocations: { orderBy: { order: "asc" } },
+        events: { orderBy: { order: "asc" } },
+        timelineItems: { orderBy: { order: "asc" } },
       },
     });
     if (!wedding) throw new Error("Wedding not found");
@@ -64,6 +66,8 @@ async function getCurrentWedding(weddingId?: string) {
         seatingTables: { orderBy: { order: "asc" } },
         aiMessages: { orderBy: { createdAt: "asc" } },
         roomAllocations: { orderBy: { order: "asc" } },
+        events: { orderBy: { order: "asc" } },
+        timelineItems: { orderBy: { order: "asc" } },
       },
     });
     if (!wedding) throw new Error("No wedding found");
@@ -654,74 +658,111 @@ export async function seedWeddingEvents(weddingId: string) {
   });
   if (!wedding) throw new Error("Wedding not found");
 
-  const existing = await prisma.weddingEvent.count({ where: { weddingId } });
-  if (existing > 0) return;
+  if (!wedding.weddingDate) return;
 
-  const EVENTS: Record<string, Array<{ name: string; description: string; startTime: string; duration: number; isRitual: boolean; isSimultaneous?: boolean }>> = {
+  const existing = await prisma.weddingEvent.findMany({
+    where: { weddingId },
+    orderBy: { order: "asc" },
+  });
+
+  const weddingDate = new Date(wedding.weddingDate);
+  weddingDate.setHours(0, 0, 0, 0);
+
+  // Each event has a dayOffset relative to the wedding date (0 = wedding day, negative = before, positive = after)
+  const EVENTS: Record<string, Array<{ name: string; description: string; startTime: string; duration: number; isRitual: boolean; dayOffset: number; isSimultaneous?: boolean }>> = {
     hindu: [
-      { name: "Roka", description: "Official engagement", startTime: "11:00", duration: 120, isRitual: true },
-      { name: "Engagement", description: "Ring exchange ceremony", startTime: "19:00", duration: 120, isRitual: true },
-      { name: "Mehendi", description: "Henna application", startTime: "16:00", duration: 180, isRitual: false },
-      { name: "Sangeet", description: "Music and dance night", startTime: "19:00", duration: 240, isRitual: false },
-      { name: "Haldi", description: "Turmeric ceremony", startTime: "09:00", duration: 120, isRitual: true },
-      { name: "Wedding", description: "Baraat, Jaimala, Pheras", startTime: "10:00", duration: 240, isRitual: true },
-      { name: "Reception", description: "Grand evening celebration", startTime: "19:00", duration: 240, isRitual: false },
+      { name: "Roka", description: "Official engagement ceremony between families", startTime: "11:00", duration: 120, isRitual: true, dayOffset: -5 },
+      { name: "Engagement", description: "Ring exchange ceremony", startTime: "19:00", duration: 120, isRitual: true, dayOffset: -4 },
+      { name: "Mehendi", description: "Henna application for bride and guests", startTime: "16:00", duration: 180, isRitual: false, dayOffset: -2 },
+      { name: "Sangeet", description: "Music and dance night", startTime: "19:00", duration: 240, isRitual: false, dayOffset: -1 },
+      { name: "Haldi", description: "Turmeric paste ceremony for bride and groom", startTime: "09:00", duration: 120, isRitual: true, dayOffset: 0 },
+      { name: "Wedding", description: "Baraat, Jaimala, Pheras — main wedding ceremony", startTime: "10:00", duration: 240, isRitual: true, dayOffset: 0, isSimultaneous: true },
+      { name: "Reception", description: "Grand evening celebration and dinner", startTime: "19:00", duration: 240, isRitual: false, dayOffset: 0 },
     ],
     muslim: [
-      { name: "Mangni", description: "Engagement", startTime: "19:00", duration: 120, isRitual: true },
-      { name: "Mehendi", description: "Henna night", startTime: "16:00", duration: 180, isRitual: false },
-      { name: "Nikah", description: "Wedding ceremony", startTime: "10:00", duration: 180, isRitual: true },
-      { name: "Walima", description: "Post-wedding reception", startTime: "19:00", duration: 240, isRitual: true },
+      { name: "Mangni", description: "Engagement ceremony", startTime: "19:00", duration: 120, isRitual: true, dayOffset: -3 },
+      { name: "Mehendi", description: "Henna night for bride", startTime: "16:00", duration: 180, isRitual: false, dayOffset: -1 },
+      { name: "Nikah", description: "Islamic wedding ceremony", startTime: "10:00", duration: 180, isRitual: true, dayOffset: 0 },
+      { name: "Walima", description: "Post-wedding reception hosted by groom's family", startTime: "19:00", duration: 240, isRitual: true, dayOffset: 0, isSimultaneous: true },
     ],
     sikh: [
-      { name: "Kurmai", description: "Engagement", startTime: "11:00", duration: 120, isRitual: true },
-      { name: "Mehendi", description: "Henna", startTime: "16:00", duration: 180, isRitual: false },
-      { name: "Sangeet", description: "Dance night", startTime: "19:00", duration: 240, isRitual: false },
-      { name: "Anand Karaj", description: "Wedding at Gurdwara", startTime: "10:00", duration: 180, isRitual: true },
-      { name: "Langar", description: "Community meal", startTime: "13:00", duration: 120, isRitual: true },
-      { name: "Reception", description: "Evening party", startTime: "19:00", duration: 240, isRitual: false },
+      { name: "Kurmai", description: "Engagement ceremony", startTime: "11:00", duration: 120, isRitual: true, dayOffset: -3 },
+      { name: "Mehendi", description: "Henna application", startTime: "16:00", duration: 180, isRitual: false, dayOffset: -2 },
+      { name: "Sangeet", description: "Dance and music night", startTime: "19:00", duration: 240, isRitual: false, dayOffset: -1 },
+      { name: "Anand Karaj", description: "Wedding ceremony at Gurdwara", startTime: "10:00", duration: 180, isRitual: true, dayOffset: 0 },
+      { name: "Langar", description: "Community meal at Gurdwara", startTime: "13:00", duration: 120, isRitual: true, dayOffset: 0, isSimultaneous: true },
+      { name: "Reception", description: "Evening celebration party", startTime: "19:00", duration: 240, isRitual: false, dayOffset: 0 },
     ],
     christian: [
-      { name: "Engagement", description: "Formal engagement", startTime: "19:00", duration: 120, isRitual: true },
-      { name: "Roce Ceremony", description: "Turmeric ceremony", startTime: "17:00", duration: 120, isRitual: true },
-      { name: "Church Wedding", description: "Wedding ceremony", startTime: "10:00", duration: 120, isRitual: true },
-      { name: "Reception", description: "Celebration", startTime: "19:00", duration: 240, isRitual: false },
+      { name: "Engagement", description: "Formal engagement ceremony", startTime: "19:00", duration: 120, isRitual: true, dayOffset: -2 },
+      { name: "Roce Ceremony", description: "Pre-wedding turmeric ceremony", startTime: "17:00", duration: 120, isRitual: true, dayOffset: -1 },
+      { name: "Church Wedding", description: "Wedding ceremony at church", startTime: "10:00", duration: 120, isRitual: true, dayOffset: 0 },
+      { name: "Reception", description: "Celebration and reception", startTime: "19:00", duration: 240, isRitual: false, dayOffset: 0 },
     ],
     jain: [
-      { name: "Roka", description: "Official engagement", startTime: "11:00", duration: 120, isRitual: true },
-      { name: "Engagement", description: "Ring exchange", startTime: "19:00", duration: 120, isRitual: true },
-      { name: "Mehendi", description: "Henna application", startTime: "16:00", duration: 180, isRitual: false },
-      { name: "Sangeet", description: "Dance night", startTime: "19:00", duration: 240, isRitual: false },
-      { name: "Wedding", description: "Jain wedding rituals", startTime: "10:00", duration: 180, isRitual: true },
-      { name: "Reception", description: "Grand celebration", startTime: "19:00", duration: 240, isRitual: false },
+      { name: "Roka", description: "Official engagement between families", startTime: "11:00", duration: 120, isRitual: true, dayOffset: -4 },
+      { name: "Engagement", description: "Ring exchange ceremony", startTime: "19:00", duration: 120, isRitual: true, dayOffset: -3 },
+      { name: "Mehendi", description: "Henna application", startTime: "16:00", duration: 180, isRitual: false, dayOffset: -1 },
+      { name: "Sangeet", description: "Dance and music night", startTime: "19:00", duration: 240, isRitual: false, dayOffset: -1, isSimultaneous: true },
+      { name: "Wedding", description: "Jain wedding rituals and ceremonies", startTime: "10:00", duration: 180, isRitual: true, dayOffset: 0 },
+      { name: "Reception", description: "Grand celebration and dinner", startTime: "19:00", duration: 240, isRitual: false, dayOffset: 0 },
     ],
   };
 
   const template = EVENTS[wedding.religion] || EVENTS.hindu;
-  const weddingDate = wedding.weddingDate ? new Date(wedding.weddingDate) : new Date();
-  const days = wedding.weddingDays || 1;
 
-  const eventsPerDay = Math.ceil(template.length / days);
+  // If events already exist, check if dates match the wedding date. If not, update them.
+  if (existing.length > 0) {
+    let needsUpdate = false;
+    for (const evt of existing) {
+      const expectedDate = new Date(weddingDate);
+      const templateEntry = template.find((t) => t.name === evt.name);
+      if (templateEntry) {
+        expectedDate.setDate(expectedDate.getDate() + templateEntry.dayOffset);
+        const expectedStr = expectedDate.toISOString().split("T")[0];
+        if (evt.date !== expectedStr) {
+          needsUpdate = true;
+          break;
+        }
+      }
+    }
+
+    if (!needsUpdate) return;
+
+    // Update dates for existing events
+    for (const evt of existing) {
+      const templateEntry = template.find((t) => t.name === evt.name);
+      if (templateEntry) {
+        const newDate = new Date(weddingDate);
+        newDate.setDate(newDate.getDate() + templateEntry.dayOffset);
+        await prisma.weddingEvent.update({
+          where: { id: evt.id },
+          data: { date: newDate.toISOString().split("T")[0] },
+        });
+      }
+    }
+    return;
+  }
+
+  // Create events from template
   let order = 0;
-
-  for (let i = 0; i < template.length; i++) {
-    const dayIndex = Math.floor(i / eventsPerDay);
+  for (const t of template) {
     const date = new Date(weddingDate);
-    date.setDate(date.getDate() + dayIndex);
+    date.setDate(date.getDate() + t.dayOffset);
     const dateStr = date.toISOString().split("T")[0];
 
     await prisma.weddingEvent.create({
       data: {
         weddingId,
         order: order++,
-        name: template[i].name,
-        description: template[i].description,
+        name: t.name,
+        description: t.description,
         date: dateStr,
-        startTime: template[i].startTime,
-        duration: template[i].duration,
+        startTime: t.startTime,
+        duration: t.duration,
         location: wedding.weddingCity || "",
-        isRitual: template[i].isRitual,
-        isSimultaneous: template[i].isSimultaneous || false,
+        isRitual: t.isRitual,
+        isSimultaneous: t.isSimultaneous || false,
       },
     });
   }
