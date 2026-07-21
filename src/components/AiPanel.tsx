@@ -12,7 +12,7 @@ import {
   learnCommand,
   getLearnedPatterns,
 } from "@/lib/actions";
-import { shouldUseAI } from "@/lib/ai";
+import { shouldUseAI } from "@/lib/ai-helpers";
 
 function formatINR(n: number) {
   if (n >= 10000000) return (n / 10000000).toFixed(1) + " Cr";
