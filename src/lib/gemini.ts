@@ -86,7 +86,7 @@ ${weddingCtx}`;
         maxOutputTokens: 1024,
         temperature: 0.7,
       },
-      systemInstruction: { role: "system", parts: [{ text: systemPrompt }] },
+      systemInstruction: systemPrompt,
     });
 
     const result = await chat.sendMessage(question);

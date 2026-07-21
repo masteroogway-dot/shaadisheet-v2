@@ -1374,7 +1374,7 @@ export async function askGeminiAI(
   question: string,
   conversationHistory: { role: string; content: string }[]
 ) {
-  const { askGemini } = await import("@/lib/gemini");
+  const { askGemini } = await import("../lib/gemini");
   const summary = await getWeddingSummary(weddingId);
   const learned = await getLearnedPatterns(weddingId);
   return askGemini(question, summary, learned, conversationHistory);
