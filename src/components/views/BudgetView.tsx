@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { updateBudgetItem, createBudgetItem, deleteBudgetItem } from "@/lib/actions";
 
-export default function BudgetView({ wedding, onUpdate }: { wedding: any; onUpdate: () => void }) {
+export default function BudgetView({ wedding, weddingId, onUpdate }: { wedding: any; weddingId: string; onUpdate: () => void }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
 
@@ -18,18 +18,18 @@ export default function BudgetView({ wedding, onUpdate }: { wedding: any; onUpda
       else if (paid > 0) data.status = "Partial";
       else data.status = "Pending";
     }
-    await updateBudgetItem(id, data);
+    await updateBudgetItem(weddingId, id, data);
     setEditing(null);
     onUpdate();
   };
 
   const handleAdd = async () => {
-    await createBudgetItem({ category: "", item: "New Item", estimated: 0, actual: 0, paid: 0, balance: 0, status: "Pending", dueDate: "", notes: "" });
+    await createBudgetItem(weddingId, { category: "", item: "New Item", estimated: 0, actual: 0, paid: 0, balance: 0, status: "Pending", dueDate: "", notes: "" });
     onUpdate();
   };
 
   const handleDelete = async (id: string) => {
-    await deleteBudgetItem(id);
+    await deleteBudgetItem(weddingId, id);
     onUpdate();
   };
 
@@ -41,18 +41,18 @@ export default function BudgetView({ wedding, onUpdate }: { wedding: any; onUpda
       <div className="flex justify-between items-start mb-7">
         <div>
           <h2 className="text-2xl font-bold">Budget Tracker</h2>
-          <p className="text-gray-500 text-sm">Track every rupee — from estimate to final payment</p>
+          <p className="text-gray-500 text-sm">Track every rupee {'\u2014'} from estimate to final payment</p>
         </div>
         <div className="flex gap-2.5 items-center">
           {wedding.budgetItems?.length > 0 && (
             <>
               <div className="text-right mr-4">
                 <div className="text-xs text-gray-500">Total Estimated</div>
-                <div className="font-bold">₹{totalEstimated.toLocaleString("en-IN")}</div>
+                <div className="font-bold">{'\u20B9'}{totalEstimated.toLocaleString("en-IN")}</div>
               </div>
               <div className="text-right mr-4">
                 <div className="text-xs text-gray-500">Total Paid</div>
-                <div className="font-bold text-green">₹{totalPaid.toLocaleString("en-IN")}</div>
+                <div className="font-bold text-green">{'\u20B9'}{totalPaid.toLocaleString("en-IN")}</div>
               </div>
             </>
           )}
@@ -81,10 +81,10 @@ export default function BudgetView({ wedding, onUpdate }: { wedding: any; onUpda
               <th className="w-12 text-center">#</th>
               <th>Category</th>
               <th>Item</th>
-              <th className="text-right">Estimated (₹)</th>
-              <th className="text-right">Actual (₹)</th>
-              <th className="text-right">Paid (₹)</th>
-              <th className="text-right">Balance (₹)</th>
+              <th className="text-right">Estimated ({'\u20B9'})</th>
+              <th className="text-right">Actual ({'\u20B9'})</th>
+              <th className="text-right">Paid ({'\u20B9'})</th>
+              <th className="text-right">Balance ({'\u20B9'})</th>
               <th>Status</th>
               <th>Due Date</th>
               <th>Notes</th>
@@ -101,15 +101,15 @@ export default function BudgetView({ wedding, onUpdate }: { wedding: any; onUpda
                   <td className="text-center text-gray-400">{item.order + 1}</td>
                   <td className="font-semibold">{editing === item.id ? <input value={editData.category ?? item.category} onChange={(e) => setEditData({ ...editData, category: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" /> : item.category}</td>
                   <td>{editing === item.id ? <input value={editData.item ?? item.item} onChange={(e) => setEditData({ ...editData, item: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" /> : item.item}</td>
-                  <td className="text-right">{editing === item.id ? <input type="number" value={editData.estimated ?? item.estimated} onChange={(e) => setEditData({ ...editData, estimated: parseInt(e.target.value) || 0 })} className="w-24 px-2 py-1 border rounded text-sm text-right" /> : `₹${item.estimated.toLocaleString("en-IN")}`}</td>
-                  <td className="text-right">{editing === item.id ? <input type="number" value={editData.actual ?? item.actual} onChange={(e) => setEditData({ ...editData, actual: parseInt(e.target.value) || 0 })} className="w-24 px-2 py-1 border rounded text-sm text-right" /> : `₹${item.actual.toLocaleString("en-IN")}`}</td>
-                  <td className="text-right">{editing === item.id ? <input type="number" value={editData.paid ?? item.paid} onChange={(e) => setEditData({ ...editData, paid: parseInt(e.target.value) || 0 })} className="w-24 px-2 py-1 border rounded text-sm text-right" /> : `₹${item.paid.toLocaleString("en-IN")}`}</td>
-                  <td className="text-right font-medium">₹{balance.toLocaleString("en-IN")}</td>
+                  <td className="text-right">{editing === item.id ? <input type="number" value={editData.estimated ?? item.estimated} onChange={(e) => setEditData({ ...editData, estimated: parseInt(e.target.value) || 0 })} className="w-24 px-2 py-1 border rounded text-sm text-right" /> : `{'\u20B9'}${item.estimated.toLocaleString("en-IN")}`}</td>
+                  <td className="text-right">{editing === item.id ? <input type="number" value={editData.actual ?? item.actual} onChange={(e) => setEditData({ ...editData, actual: parseInt(e.target.value) || 0 })} className="w-24 px-2 py-1 border rounded text-sm text-right" /> : `{'\u20B9'}${item.actual.toLocaleString("en-IN")}`}</td>
+                  <td className="text-right">{editing === item.id ? <input type="number" value={editData.paid ?? item.paid} onChange={(e) => setEditData({ ...editData, paid: parseInt(e.target.value) || 0 })} className="w-24 px-2 py-1 border rounded text-sm text-right" /> : `{'\u20B9'}${item.paid.toLocaleString("en-IN")}`}</td>
+                  <td className="text-right font-medium">{'\u20B9'}{balance.toLocaleString("en-IN")}</td>
                   <td>
                     <span className={`status-badge ${item.status === "Paid" ? "paid" : item.status === "Partial" ? "partial" : "pending"}`}>{item.status}</span>
                   </td>
-                  <td>{editing === item.id ? <input value={editData.dueDate ?? item.dueDate} onChange={(e) => setEditData({ ...editData, dueDate: e.target.value })} className="w-24 px-2 py-1 border rounded text-sm" /> : (item.dueDate || "—")}</td>
-                  <td>{editing === item.id ? <input value={editData.notes ?? item.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} className="w-24 px-2 py-1 border rounded text-sm" /> : (item.notes || "—")}</td>
+                  <td>{editing === item.id ? <input value={editData.dueDate ?? item.dueDate} onChange={(e) => setEditData({ ...editData, dueDate: e.target.value })} className="w-24 px-2 py-1 border rounded text-sm" /> : (item.dueDate || "\u2014")}</td>
+                  <td>{editing === item.id ? <input value={editData.notes ?? item.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} className="w-24 px-2 py-1 border rounded text-sm" /> : (item.notes || "\u2014")}</td>
                   <td>
                     {editing === item.id ? (
                       <div className="flex gap-1">

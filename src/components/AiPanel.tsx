@@ -3,10 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { addAiMessage, getAiMessages } from "@/lib/actions";
 
-const BUDGET_RANGES: Record<string, number> = {
-  under10: 800000, "10to30": 2000000, "30to50": 4000000, "50to1cr": 7500000, above1cr: 15000000,
-};
-
 function formatINR(n: number) {
   if (n >= 10000000) return (n / 10000000).toFixed(1) + " Cr";
   if (n >= 100000) return (n / 100000).toFixed(1) + " L";
@@ -16,12 +12,12 @@ function formatINR(n: number) {
 
 function generateResponse(query: string, wedding: any): string {
   const q = query.toLowerCase();
-  const totalBudget = BUDGET_RANGES[wedding.budget] || 4000000;
-  const totalGuests = wedding.guestCount === "small" ? 80 : wedding.guestCount === "medium" ? 200 : wedding.guestCount === "large" ? 400 : 600;
+  const totalBudget = wedding.budget || 4000000;
+  const totalGuests = wedding.guestCount || 200;
 
   if (q.includes("budget") || q.includes("cost") || q.includes("spend") || q.includes("money")) {
     const spent = wedding.budgetItems?.reduce((s: number, i: any) => s + (i.paid || 0), 0) || 0;
-    return `Your total budget is ₹${formatINR(totalBudget)}. You've spent ₹${formatINR(spent)} so far, with ₹${formatINR(totalBudget - spent)} remaining.\n\nYour biggest expense is Venue & Decor at 30% (₹${formatINR(Math.round(totalBudget * 0.3))}).`;
+    return `Your total budget is \u20B9${formatINR(totalBudget)}. You've spent \u20B9${formatINR(spent)} so far, with \u20B9${formatINR(totalBudget - spent)} remaining.\n\nYour biggest expense is Venue & Decor at 30% (\u20B9${formatINR(Math.round(totalBudget * 0.3))}).`;
   }
 
   if (q.includes("guest") || q.includes("rsvp") || q.includes("invite")) {
@@ -38,30 +34,31 @@ function generateResponse(query: string, wedding: any): string {
   if (q.includes("ritual") || q.includes("ceremony")) {
     const religion = wedding.religion || "hindu";
     const rituals: Record<string, string> = {
-      hindu: "Roka → Engagement → Mehendi → Sangeet → Haldi → Wedding (Baraat, Jaimala, Kanyadaan, Pheras) → Reception",
-      muslim: "Mangni → Mehendi → Nikah (signing Nikahnama) → Walima",
-      sikh: "Kurmai → Mehendi → Sangeet → Chooda → Anand Karaj (4 Lavaan) → Langar → Reception",
-      christian: "Engagement → Roce → Church Wedding (vows, rings) → Reception",
+      hindu: "Roka \u2192 Engagement \u2192 Mehendi \u2192 Sangeet \u2192 Haldi \u2192 Wedding (Baraat, Jaimala, Kanyadaan, Pheras) \u2192 Reception",
+      muslim: "Mangni \u2192 Mehendi \u2192 Nikah (signing Nikahnama) \u2192 Walima",
+      sikh: "Kurmai \u2192 Mehendi \u2192 Sangeet \u2192 Chooda \u2192 Anand Karaj (4 Lavaan) \u2192 Langar \u2192 Reception",
+      christian: "Engagement \u2192 Roce \u2192 Church Wedding (vows, rings) \u2192 Reception",
     };
     return `For a ${religion} wedding, the key rituals are:\n\n${rituals[religion] || rituals.hindu}`;
   }
 
   if (q.includes("food") || q.includes("menu")) {
     const perPlate = Math.round((totalBudget * 0.25) / totalGuests);
-    return `With a catering budget of ₹${formatINR(Math.round(totalBudget * 0.25))} for ${totalGuests} guests:\n\nPer plate: ~₹${perPlate.toLocaleString("en-IN")}\nRecommended: Mix of veg + non-veg options.`;
+    return `With a catering budget of \u20B9${formatINR(Math.round(totalBudget * 0.25))} for ${totalGuests} guests:\n\nPer plate: ~\u20B9${perPlate.toLocaleString("en-IN")}\nRecommended: Mix of veg + non-veg options.`;
   }
 
-  return `I can help with your ${wedding.religion || "Hindu"} wedding! Try asking about:\n• Budget breakdown\n• Guest RSVP status\n• Vendor bookings\n• Ritual explanations\n• Day-of timeline`;
+  return `I can help with your ${wedding.religion || "Hindu"} wedding! Try asking about:\n\u2022 Budget breakdown\n\u2022 Guest RSVP status\n\u2022 Vendor bookings\n\u2022 Ritual explanations\n\u2022 Day-of timeline`;
 }
 
 interface Props {
   open: boolean;
   onClose: () => void;
   wedding: any;
+  weddingId: string;
   onUpdate: () => void;
 }
 
-export default function AiPanel({ open, onClose, wedding, onUpdate }: Props) {
+export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }: Props) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([
     { role: "bot", content: "Hi! I'm your wedding planning assistant. Ask me about budget, guests, vendors, rituals, or timeline." },
@@ -75,7 +72,7 @@ export default function AiPanel({ open, onClose, wedding, onUpdate }: Props) {
 
   useEffect(() => {
     if (open && !loaded) {
-      getAiMessages().then((dbMessages) => {
+      getAiMessages(weddingId).then((dbMessages) => {
         if (dbMessages && dbMessages.length > 0) {
           setMessages([
             { role: "bot", content: "Hi! I'm your wedding planning assistant. Ask me about budget, guests, vendors, rituals, or timeline." },
@@ -85,7 +82,7 @@ export default function AiPanel({ open, onClose, wedding, onUpdate }: Props) {
         setLoaded(true);
       }).catch(() => setLoaded(true));
     }
-  }, [open, loaded]);
+  }, [open, loaded, weddingId]);
 
   const send = async () => {
     if (!input.trim()) return;
@@ -93,14 +90,12 @@ export default function AiPanel({ open, onClose, wedding, onUpdate }: Props) {
     setInput("");
     setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
 
-    // Generate response
     const response = generateResponse(userMsg, wedding);
     setMessages((prev) => [...prev, { role: "bot", content: response }]);
 
-    // Save to DB
     try {
-      await addAiMessage("user", userMsg);
-      await addAiMessage("bot", response);
+      await addAiMessage(weddingId, "user", userMsg);
+      await addAiMessage(weddingId, "bot", response);
       onUpdate();
     } catch {}
   };

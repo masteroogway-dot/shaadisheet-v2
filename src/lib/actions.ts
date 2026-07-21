@@ -33,25 +33,14 @@ export async function signup(name: string, email: string, password: string) {
 // HELPER: Get current user's wedding
 // ═══════════════════════════════════════════════════════════════
 
-async function getCurrentWedding() {
+async function getCurrentWedding(weddingId?: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Not authenticated");
 
-  let wedding = await prisma.wedding.findFirst({
-    where: { userId: session.user.id },
-    include: {
-      budgetItems: { orderBy: { order: "asc" } },
-      vendors: { orderBy: { order: "asc" } },
-      guests: { orderBy: { order: "asc" } },
-      tasks: { orderBy: { order: "asc" } },
-      seatingTables: { orderBy: { order: "asc" } },
-      aiMessages: { orderBy: { createdAt: "asc" } },
-    },
-  });
-
-  if (!wedding) {
-    wedding = await prisma.wedding.create({
-      data: { userId: session.user.id },
+  let wedding;
+  if (weddingId) {
+    wedding = await prisma.wedding.findFirst({
+      where: { id: weddingId, userId: session.user.id },
       include: {
         budgetItems: { orderBy: { order: "asc" } },
         vendors: { orderBy: { order: "asc" } },
@@ -61,6 +50,21 @@ async function getCurrentWedding() {
         aiMessages: { orderBy: { createdAt: "asc" } },
       },
     });
+    if (!wedding) throw new Error("Wedding not found");
+  } else {
+    wedding = await prisma.wedding.findFirst({
+      where: { userId: session.user.id },
+      orderBy: { updatedAt: "desc" },
+      include: {
+        budgetItems: { orderBy: { order: "asc" } },
+        vendors: { orderBy: { order: "asc" } },
+        guests: { orderBy: { order: "asc" } },
+        tasks: { orderBy: { order: "asc" } },
+        seatingTables: { orderBy: { order: "asc" } },
+        aiMessages: { orderBy: { createdAt: "asc" } },
+      },
+    });
+    if (!wedding) throw new Error("No wedding found");
   }
 
   return wedding;
@@ -70,23 +74,31 @@ async function getCurrentWedding() {
 // WEDDING
 // ═══════════════════════════════════════════════════════════════
 
-export async function getWedding() {
-  return getCurrentWedding();
+export async function getWedding(weddingId?: string) {
+  return getCurrentWedding(weddingId);
 }
 
 export async function updateWedding(data: {
+  weddingId: string;
   name?: string;
   religion?: string;
   region?: string;
-  budget?: string;
-  guestCount?: string;
+  budget?: number;
+  guestCount?: number;
   weddingDate?: Date;
   weddingCity?: string;
   selectedEvents?: string[];
 }) {
-  const wedding = await getCurrentWedding();
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const wedding = await prisma.wedding.findFirst({
+    where: { id: data.weddingId, userId: session.user.id },
+  });
+  if (!wedding) throw new Error("Wedding not found");
+
   return prisma.wedding.update({
-    where: { id: wedding.id },
+    where: { id: data.weddingId },
     data: {
       ...data,
       selectedEvents: data.selectedEvents ? JSON.stringify(data.selectedEvents) : undefined,
@@ -98,12 +110,12 @@ export async function updateWedding(data: {
 // BUDGET ITEMS
 // ═══════════════════════════════════════════════════════════════
 
-export async function getBudgetItems() {
-  const wedding = await getCurrentWedding();
+export async function getBudgetItems(weddingId: string) {
+  const wedding = await getCurrentWedding(weddingId);
   return wedding.budgetItems;
 }
 
-export async function createBudgetItem(data: {
+export async function createBudgetItem(weddingId: string, data: {
   category: string;
   item: string;
   estimated: number;
@@ -114,7 +126,7 @@ export async function createBudgetItem(data: {
   dueDate?: string;
   notes?: string;
 }) {
-  const wedding = await getCurrentWedding();
+  const wedding = await getCurrentWedding(weddingId);
   const maxOrder = Math.max(...wedding.budgetItems.map((b: any) => b.order), -1);
   return prisma.budgetItem.create({
     data: { weddingId: wedding.id, ...data, order: maxOrder + 1 },
@@ -122,6 +134,7 @@ export async function createBudgetItem(data: {
 }
 
 export async function updateBudgetItem(
+  weddingId: string,
   id: string,
   data: {
     category?: string;
@@ -135,20 +148,20 @@ export async function updateBudgetItem(
     notes?: string;
   }
 ) {
-  const wedding = await getCurrentWedding();
+  const wedding = await getCurrentWedding(weddingId);
   const item = await prisma.budgetItem.findUnique({ where: { id } });
   if (!item || item.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.budgetItem.update({ where: { id }, data });
 }
 
-export async function deleteBudgetItem(id: string) {
-  const wedding = await getCurrentWedding();
+export async function deleteBudgetItem(weddingId: string, id: string) {
+  const wedding = await getCurrentWedding(weddingId);
   const item = await prisma.budgetItem.findUnique({ where: { id } });
   if (!item || item.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.budgetItem.delete({ where: { id } });
 }
 
-export async function bulkCreateBudgetItems(items: Array<{
+export async function bulkCreateBudgetItems(weddingId: string, items: Array<{
   category: string;
   item: string;
   estimated: number;
@@ -160,10 +173,8 @@ export async function bulkCreateBudgetItems(items: Array<{
   notes?: string;
   order: number;
 }>) {
-  const wedding = await getCurrentWedding();
-  // Delete existing items
+  const wedding = await getCurrentWedding(weddingId);
   await prisma.budgetItem.deleteMany({ where: { weddingId: wedding.id } });
-  // Create new items
   return prisma.budgetItem.createMany({
     data: items.map((item) => ({ ...item, weddingId: wedding.id })),
   });
@@ -173,12 +184,12 @@ export async function bulkCreateBudgetItems(items: Array<{
 // VENDORS
 // ═══════════════════════════════════════════════════════════════
 
-export async function getVendors() {
-  const wedding = await getCurrentWedding();
+export async function getVendors(weddingId: string) {
+  const wedding = await getCurrentWedding(weddingId);
   return wedding.vendors;
 }
 
-export async function createVendor(data: {
+export async function createVendor(weddingId: string, data: {
   category: string;
   name: string;
   contact?: string;
@@ -189,7 +200,7 @@ export async function createVendor(data: {
   contract?: string;
   notes?: string;
 }) {
-  const wedding = await getCurrentWedding();
+  const wedding = await getCurrentWedding(weddingId);
   const maxOrder = Math.max(...wedding.vendors.map((v: any) => v.order), -1);
   return prisma.vendor.create({
     data: { weddingId: wedding.id, ...data, order: maxOrder + 1 },
@@ -197,6 +208,7 @@ export async function createVendor(data: {
 }
 
 export async function updateVendor(
+  weddingId: string,
   id: string,
   data: {
     category?: string;
@@ -210,20 +222,20 @@ export async function updateVendor(
     notes?: string;
   }
 ) {
-  const wedding = await getCurrentWedding();
+  const wedding = await getCurrentWedding(weddingId);
   const vendor = await prisma.vendor.findUnique({ where: { id } });
   if (!vendor || vendor.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.vendor.update({ where: { id }, data });
 }
 
-export async function deleteVendor(id: string) {
-  const wedding = await getCurrentWedding();
+export async function deleteVendor(weddingId: string, id: string) {
+  const wedding = await getCurrentWedding(weddingId);
   const vendor = await prisma.vendor.findUnique({ where: { id } });
   if (!vendor || vendor.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.vendor.delete({ where: { id } });
 }
 
-export async function bulkCreateVendors(vendors: Array<{
+export async function bulkCreateVendors(weddingId: string, vendors: Array<{
   category: string;
   name: string;
   contact?: string;
@@ -235,7 +247,7 @@ export async function bulkCreateVendors(vendors: Array<{
   notes?: string;
   order: number;
 }>) {
-  const wedding = await getCurrentWedding();
+  const wedding = await getCurrentWedding(weddingId);
   await prisma.vendor.deleteMany({ where: { weddingId: wedding.id } });
   return prisma.vendor.createMany({
     data: vendors.map((v) => ({ ...v, weddingId: wedding.id })),
@@ -246,12 +258,12 @@ export async function bulkCreateVendors(vendors: Array<{
 // GUESTS
 // ═══════════════════════════════════════════════════════════════
 
-export async function getGuests() {
-  const wedding = await getCurrentWedding();
+export async function getGuests(weddingId: string) {
+  const wedding = await getCurrentWedding(weddingId);
   return wedding.guests;
 }
 
-export async function createGuest(data: {
+export async function createGuest(weddingId: string, data: {
   name: string;
   relation?: string;
   side?: string;
@@ -262,7 +274,7 @@ export async function createGuest(data: {
   thankYou?: string;
   notes?: string;
 }) {
-  const wedding = await getCurrentWedding();
+  const wedding = await getCurrentWedding(weddingId);
   const maxOrder = Math.max(...wedding.guests.map((g: any) => g.order), -1);
   return prisma.guest.create({
     data: { weddingId: wedding.id, ...data, order: maxOrder + 1 },
@@ -270,6 +282,7 @@ export async function createGuest(data: {
 }
 
 export async function updateGuest(
+  weddingId: string,
   id: string,
   data: {
     name?: string;
@@ -283,20 +296,20 @@ export async function updateGuest(
     notes?: string;
   }
 ) {
-  const wedding = await getCurrentWedding();
+  const wedding = await getCurrentWedding(weddingId);
   const guest = await prisma.guest.findUnique({ where: { id } });
   if (!guest || guest.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.guest.update({ where: { id }, data });
 }
 
-export async function deleteGuest(id: string) {
-  const wedding = await getCurrentWedding();
+export async function deleteGuest(weddingId: string, id: string) {
+  const wedding = await getCurrentWedding(weddingId);
   const guest = await prisma.guest.findUnique({ where: { id } });
   if (!guest || guest.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.guest.delete({ where: { id } });
 }
 
-export async function bulkCreateGuests(guests: Array<{
+export async function bulkCreateGuests(weddingId: string, guests: Array<{
   name: string;
   relation?: string;
   side?: string;
@@ -308,7 +321,7 @@ export async function bulkCreateGuests(guests: Array<{
   notes?: string;
   order: number;
 }>) {
-  const wedding = await getCurrentWedding();
+  const wedding = await getCurrentWedding(weddingId);
   await prisma.guest.deleteMany({ where: { weddingId: wedding.id } });
   return prisma.guest.createMany({
     data: guests.map((g) => ({ ...g, weddingId: wedding.id })),
@@ -319,17 +332,17 @@ export async function bulkCreateGuests(guests: Array<{
 // TASKS
 // ═══════════════════════════════════════════════════════════════
 
-export async function getTasks() {
-  const wedding = await getCurrentWedding();
+export async function getTasks(weddingId: string) {
+  const wedding = await getCurrentWedding(weddingId);
   return wedding.tasks;
 }
 
-export async function createTask(data: {
+export async function createTask(weddingId: string, data: {
   period: string;
   text: string;
   done?: boolean;
 }) {
-  const wedding = await getCurrentWedding();
+  const wedding = await getCurrentWedding(weddingId);
   const maxOrder = Math.max(
     ...wedding.tasks.filter((t: any) => t.period === data.period).map((t: any) => t.order),
     -1
@@ -339,27 +352,27 @@ export async function createTask(data: {
   });
 }
 
-export async function updateTask(id: string, data: { done?: boolean; text?: string }) {
-  const wedding = await getCurrentWedding();
+export async function updateTask(weddingId: string, id: string, data: { done?: boolean; text?: string }) {
+  const wedding = await getCurrentWedding(weddingId);
   const task = await prisma.task.findUnique({ where: { id } });
   if (!task || task.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.task.update({ where: { id }, data });
 }
 
-export async function deleteTask(id: string) {
-  const wedding = await getCurrentWedding();
+export async function deleteTask(weddingId: string, id: string) {
+  const wedding = await getCurrentWedding(weddingId);
   const task = await prisma.task.findUnique({ where: { id } });
   if (!task || task.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.task.delete({ where: { id } });
 }
 
-export async function bulkCreateTasks(tasks: Array<{
+export async function bulkCreateTasks(weddingId: string, tasks: Array<{
   period: string;
   text: string;
   done?: boolean;
   order: number;
 }>) {
-  const wedding = await getCurrentWedding();
+  const wedding = await getCurrentWedding(weddingId);
   await prisma.task.deleteMany({ where: { weddingId: wedding.id } });
   return prisma.task.createMany({
     data: tasks.map((t) => ({ ...t, weddingId: wedding.id })),
@@ -370,17 +383,17 @@ export async function bulkCreateTasks(tasks: Array<{
 // SEATING
 // ═══════════════════════════════════════════════════════════════
 
-export async function getSeatingTables() {
-  const wedding = await getCurrentWedding();
+export async function getSeatingTables(weddingId: string) {
+  const wedding = await getCurrentWedding(weddingId);
   return wedding.seatingTables;
 }
 
-export async function createSeatingTable(data: {
+export async function createSeatingTable(weddingId: string, data: {
   name: string;
   capacity?: number;
   guests?: string;
 }) {
-  const wedding = await getCurrentWedding();
+  const wedding = await getCurrentWedding(weddingId);
   const maxOrder = Math.max(...wedding.seatingTables.map((s: any) => s.order), -1);
   return prisma.seatingTable.create({
     data: { weddingId: wedding.id, ...data, order: maxOrder + 1 },
@@ -388,17 +401,18 @@ export async function createSeatingTable(data: {
 }
 
 export async function updateSeatingTable(
+  weddingId: string,
   id: string,
   data: { name?: string; capacity?: number; guests?: string }
 ) {
-  const wedding = await getCurrentWedding();
+  const wedding = await getCurrentWedding(weddingId);
   const table = await prisma.seatingTable.findUnique({ where: { id } });
   if (!table || table.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.seatingTable.update({ where: { id }, data });
 }
 
-export async function deleteSeatingTable(id: string) {
-  const wedding = await getCurrentWedding();
+export async function deleteSeatingTable(weddingId: string, id: string) {
+  const wedding = await getCurrentWedding(weddingId);
   const table = await prisma.seatingTable.findUnique({ where: { id } });
   if (!table || table.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.seatingTable.delete({ where: { id } });
@@ -408,46 +422,48 @@ export async function deleteSeatingTable(id: string) {
 // AI MESSAGES
 // ═══════════════════════════════════════════════════════════════
 
-export async function getAiMessages() {
-  const wedding = await getCurrentWedding();
+export async function getAiMessages(weddingId: string) {
+  const wedding = await getCurrentWedding(weddingId);
   return wedding.aiMessages;
 }
 
-export async function addAiMessage(role: string, content: string) {
-  const wedding = await getCurrentWedding();
+export async function addAiMessage(weddingId: string, role: string, content: string) {
+  const wedding = await getCurrentWedding(weddingId);
   return prisma.aiMessage.create({
     data: { weddingId: wedding.id, role, content },
   });
 }
 
-export async function clearAiMessages() {
-  const wedding = await getCurrentWedding();
+export async function clearAiMessages(weddingId: string) {
+  const wedding = await getCurrentWedding(weddingId);
   return prisma.aiMessage.deleteMany({ where: { weddingId: wedding.id } });
 }
 
 // ═══════════════════════════════════════════════════════════════
-// RESET WEDDING
+// USER WEDDINGS
 // ═══════════════════════════════════════════════════════════════
 
-export async function resetWedding() {
-  const wedding = await getCurrentWedding();
-  await prisma.budgetItem.deleteMany({ where: { weddingId: wedding.id } });
-  await prisma.vendor.deleteMany({ where: { weddingId: wedding.id } });
-  await prisma.guest.deleteMany({ where: { weddingId: wedding.id } });
-  await prisma.task.deleteMany({ where: { weddingId: wedding.id } });
-  await prisma.seatingTable.deleteMany({ where: { weddingId: wedding.id } });
-  await prisma.aiMessage.deleteMany({ where: { weddingId: wedding.id } });
-  return prisma.wedding.update({
-    where: { id: wedding.id },
-    data: {
-      name: "",
-      religion: "",
-      region: "",
-      budget: "",
-      guestCount: "",
-      weddingDate: null,
-      weddingCity: "",
-      selectedEvents: "[]",
+export async function getUserWeddings() {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  return prisma.wedding.findMany({
+    where: { userId: session.user.id },
+    orderBy: { updatedAt: "desc" },
+    include: {
+      _count: {
+        select: { budgetItems: true, vendors: true, guests: true, tasks: true },
+      },
     },
   });
+}
+
+export async function createWedding() {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const wedding = await prisma.wedding.create({
+    data: { userId: session.user.id },
+  });
+  return wedding;
 }

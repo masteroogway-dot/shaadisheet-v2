@@ -98,6 +98,58 @@ body {
   color: #a16207;
 }
 
+/* ── Toast Animation ── */
+@keyframes toastSlideIn {
+  from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+/* ── Custom Range Slider ── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #8B0000, #D4AF37);
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #8B0000;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(139, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 3px 12px rgba(139, 0, 0, 0.4);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #8B0000;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(139, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-track {
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #8B0000, #D4AF37);
+}
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar {
   width: 6px;

@@ -5,7 +5,7 @@ import { createTask, deleteTask } from "@/lib/actions";
 
 const PERIODS = ["12+ Months", "9-12 Months", "6-9 Months", "3-6 Months", "1-3 Months", "Last Month"];
 
-export default function TasksView({ wedding, onToggle }: { wedding: any; onToggle: (id: string, done: boolean) => void }) {
+export default function TasksView({ wedding, weddingId, onToggle }: { wedding: any; weddingId: string; onToggle: (id: string, done: boolean) => void }) {
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [newTaskText, setNewTaskText] = useState("");
 
@@ -18,14 +18,14 @@ export default function TasksView({ wedding, onToggle }: { wedding: any; onToggl
 
   const handleAddTask = async (period: string) => {
     if (!newTaskText.trim()) return;
-    await createTask({ period, text: newTaskText.trim() });
+    await createTask(weddingId, { period, text: newTaskText.trim() });
     setNewTaskText("");
     setAddingTo(null);
     window.location.reload();
   };
 
   const handleDeleteTask = async (id: string) => {
-    await deleteTask(id);
+    await deleteTask(weddingId, id);
     window.location.reload();
   };
 
@@ -35,7 +35,7 @@ export default function TasksView({ wedding, onToggle }: { wedding: any; onToggl
     <div>
       <div className="mb-7">
         <h2 className="text-2xl font-bold">Task Checklist</h2>
-        <p className="text-gray-500 text-sm">12-month countdown — nothing gets missed</p>
+        <p className="text-gray-500 text-sm">12-month countdown {'\u2014'} nothing gets missed</p>
       </div>
 
       {!hasTasks ? (

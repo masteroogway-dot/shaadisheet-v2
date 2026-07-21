@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { updateGuest, createGuest, deleteGuest } from "@/lib/actions";
 
-export default function GuestsView({ wedding, onUpdate }: { wedding: any; onUpdate: () => void }) {
+export default function GuestsView({ wedding, weddingId, onUpdate }: { wedding: any; weddingId: string; onUpdate: () => void }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
 
@@ -13,18 +13,18 @@ export default function GuestsView({ wedding, onUpdate }: { wedding: any; onUpda
   const declined = wedding.guests?.filter((g: any) => g.rsvp === "Declined").length || 0;
 
   const handleSave = async (id: string) => {
-    await updateGuest(id, editData);
+    await updateGuest(weddingId, id, editData);
     setEditing(null);
     onUpdate();
   };
 
   const handleAdd = async () => {
-    await createGuest({ name: "New Guest", relation: "Friend", side: "Bride", rsvp: "Pending", dietary: "Veg", tableNum: 0, giftGiven: "No", thankYou: "No", notes: "" });
+    await createGuest(weddingId, { name: "New Guest", relation: "Friend", side: "Bride", rsvp: "Pending", dietary: "Veg", tableNum: 0, giftGiven: "No", thankYou: "No", notes: "" });
     onUpdate();
   };
 
   const handleDelete = async (id: string) => {
-    await deleteGuest(id);
+    await deleteGuest(weddingId, id);
     onUpdate();
   };
 
@@ -33,7 +33,7 @@ export default function GuestsView({ wedding, onUpdate }: { wedding: any; onUpda
       <div className="flex justify-between items-start mb-7">
         <div>
           <h2 className="text-2xl font-bold">Guest List & RSVP</h2>
-          <p className="text-gray-500 text-sm">Track every guest — RSVP, dietary needs, gifts</p>
+          <p className="text-gray-500 text-sm">Track every guest {'\u2014'} RSVP, dietary needs, gifts</p>
         </div>
         <button onClick={handleAdd} className="px-4 py-2 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
           <i className="fas fa-plus mr-1.5" /> Add Guest
@@ -101,7 +101,7 @@ export default function GuestsView({ wedding, onUpdate }: { wedding: any; onUpda
                     <option>Veg</option><option>Non-Veg</option><option>Vegan</option><option>Jain</option>
                   </select>
                 ) : g.dietary}</td>
-                <td>{editing === g.id ? <input value={editData.notes ?? g.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} className="w-24 px-2 py-1 border rounded text-sm" /> : (g.notes || "—")}</td>
+                <td>{editing === g.id ? <input value={editData.notes ?? g.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} className="w-24 px-2 py-1 border rounded text-sm" /> : (g.notes || "\u2014")}</td>
                 <td>
                   {editing === g.id ? (
                     <div className="flex gap-1">

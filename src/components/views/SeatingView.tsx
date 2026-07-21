@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createSeatingTable, updateSeatingTable, deleteSeatingTable } from "@/lib/actions";
 
-export default function SeatingView({ wedding, onUpdate }: { wedding: any; onUpdate: () => void }) {
+export default function SeatingView({ wedding, weddingId, onUpdate }: { wedding: any; weddingId: string; onUpdate: () => void }) {
   const tables = wedding.seatingTables || [];
   const guests = wedding.guests || [];
   const [editing, setEditing] = useState<string | null>(null);
@@ -12,18 +12,18 @@ export default function SeatingView({ wedding, onUpdate }: { wedding: any; onUpd
   const [newGuestName, setNewGuestName] = useState("");
 
   const handleAddTable = async () => {
-    await createSeatingTable({ name: "New Table", capacity: 8, guests: "[]" });
+    await createSeatingTable(weddingId, { name: "New Table", capacity: 8, guests: "[]" });
     onUpdate();
   };
 
   const handleSaveTable = async (id: string) => {
-    await updateSeatingTable(id, editData);
+    await updateSeatingTable(weddingId, id, editData);
     setEditing(null);
     onUpdate();
   };
 
   const handleDeleteTable = async (id: string) => {
-    await deleteSeatingTable(id);
+    await deleteSeatingTable(weddingId, id);
     onUpdate();
   };
 
@@ -32,7 +32,7 @@ export default function SeatingView({ wedding, onUpdate }: { wedding: any; onUpd
     let currentGuests: string[] = [];
     try { currentGuests = JSON.parse(table.guests || "[]"); } catch { currentGuests = []; }
     currentGuests.push(newGuestName.trim());
-    await updateSeatingTable(table.id, { guests: JSON.stringify(currentGuests) });
+    await updateSeatingTable(weddingId, table.id, { guests: JSON.stringify(currentGuests) });
     setNewGuestName("");
     setAddingGuest(null);
     onUpdate();
@@ -42,7 +42,7 @@ export default function SeatingView({ wedding, onUpdate }: { wedding: any; onUpd
     let currentGuests: string[] = [];
     try { currentGuests = JSON.parse(table.guests || "[]"); } catch { currentGuests = []; }
     currentGuests.splice(guestIdx, 1);
-    await updateSeatingTable(table.id, { guests: JSON.stringify(currentGuests) });
+    await updateSeatingTable(weddingId, table.id, { guests: JSON.stringify(currentGuests) });
     onUpdate();
   };
 
@@ -67,7 +67,6 @@ export default function SeatingView({ wedding, onUpdate }: { wedding: any; onUpd
         </button>
       </div>
 
-      {/* Unassigned guests */}
       {unassignedGuests.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-xl p-5 mb-5">
           <h4 className="font-bold text-sm mb-3">Unassigned Guests ({unassignedGuests.length})</h4>

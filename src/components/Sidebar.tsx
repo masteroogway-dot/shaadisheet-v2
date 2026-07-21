@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { resetWedding } from "@/lib/actions";
+import Link from "next/link";
 
 const NAV_ITEMS = [
   { id: "overview", icon: "fa-home", label: "Overview" },
@@ -17,25 +16,17 @@ const NAV_ITEMS = [
 interface Props {
   activeView: string;
   onViewChange: (view: string) => void;
-  onReset: () => void;
 }
 
-export default function Sidebar({ activeView, onViewChange, onReset }: Props) {
-  const [confirmReset, setConfirmReset] = useState(false);
-
-  const handleReset = async () => {
-    if (!confirmReset) {
-      setConfirmReset(true);
-      setTimeout(() => setConfirmReset(false), 3000);
-      return;
-    }
-    await resetWedding();
-    setConfirmReset(false);
-    onReset();
-  };
-
+export default function Sidebar({ activeView, onViewChange }: Props) {
   return (
     <aside className="w-[240px] bg-white border-r border-gray-200 flex flex-col shrink-0 overflow-y-auto">
+      <div className="p-3 border-b border-gray-200">
+        <Link href="/dashboard" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all">
+          <i className="fas fa-arrow-left w-5 text-center" />
+          <span>My Weddings</span>
+        </Link>
+      </div>
       <nav className="flex-1 p-3">
         {NAV_ITEMS.map((item) => (
           <button
@@ -52,19 +43,6 @@ export default function Sidebar({ activeView, onViewChange, onReset }: Props) {
           </button>
         ))}
       </nav>
-      <div className="p-4 border-t border-gray-200 space-y-3">
-        <button
-          onClick={handleReset}
-          className={`w-full flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-            confirmReset
-              ? "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
-              : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-          }`}
-        >
-          <i className={`fas ${confirmReset ? "fa-exclamation-triangle" : "fa-redo"} w-5 text-center`} />
-          <span>{confirmReset ? "Click again to reset" : "Reset Wedding"}</span>
-        </button>
-      </div>
     </aside>
   );
 }

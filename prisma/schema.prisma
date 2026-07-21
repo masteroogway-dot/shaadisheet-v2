@@ -61,8 +61,8 @@ model Wedding {
   name            String        @default("")
   religion        String        @default("")
   region          String        @default("")
-  budget          String        @default("")
-  guestCount      String        @default("")
+  budget          Int           @default(0)
+  guestCount      Int           @default(0)
   weddingDate     DateTime?
   weddingCity     String        @default("")
   selectedEvents  String        @default("[]")

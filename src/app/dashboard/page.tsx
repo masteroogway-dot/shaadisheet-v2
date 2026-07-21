@@ -3,71 +3,66 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
-import { getWedding, updateWedding, updateTask } from "@/lib/actions";
-import Onboarding from "@/components/Onboarding";
-import Sidebar from "@/components/Sidebar";
-import OverviewView from "@/components/views/OverviewView";
-import BudgetView from "@/components/views/BudgetView";
-import VendorsView from "@/components/views/VendorsView";
-import GuestsView from "@/components/views/GuestsView";
-import EventsView from "@/components/views/EventsView";
-import TasksView from "@/components/views/TasksView";
-import SeatingView from "@/components/views/SeatingView";
-import TimelineView from "@/components/views/TimelineView";
-import AiPanel from "@/components/AiPanel";
+import { useState, useEffect } from "react";
+import { getUserWeddings, createWedding } from "@/lib/actions";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [weddings, setWeddings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [wedding, setWedding] = useState<any>(null);
-  const [activeView, setActiveView] = useState("overview");
-  const [aiOpen, setAiOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
 
-  const loadWedding = useCallback(async () => {
+  useEffect(() => {
+    if (status === "unauthenticated") router.push("/auth");
+    if (status === "authenticated") loadWeddings();
+  }, [status, router]);
+
+  const loadWeddings = async () => {
     try {
-      const w = await getWedding();
-      setWedding(w);
+      const data = await getUserWeddings();
+      setWeddings(data);
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/auth");
-    if (status === "authenticated") loadWedding();
-  }, [status, router, loadWedding]);
-
-  const handleOnboardingComplete = async (data: any) => {
-    await updateWedding({
-      name: data.userName,
-      religion: data.religion,
-      region: data.region,
-      budget: data.budget,
-      guestCount: data.guests,
-      weddingDate: data.weddingDate ? new Date(data.weddingDate) : undefined,
-      weddingCity: data.weddingCity,
-      selectedEvents: data.selectedEvents,
-    });
-    await loadWedding();
   };
 
-  const handleToggleTask = async (id: string, done: boolean) => {
-    setWedding((prev: any) => ({
-      ...prev,
-      tasks: prev.tasks.map((t: any) => t.id === id ? { ...t, done } : t),
-    }));
+  const handleCreateWedding = async () => {
+    setCreating(true);
     try {
-      await updateTask(id, { done });
-    } catch {
-      setWedding((prev: any) => ({
-        ...prev,
-        tasks: prev.tasks.map((t: any) => t.id === id ? { ...t, done: !done } : t),
-      }));
+      const wedding = await createWedding();
+      router.push(`/dashboard/${wedding.id}`);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setCreating(false);
     }
+  };
+
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return "Not set";
+    return new Date(dateStr).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const formatBudget = (budget: number) => {
+    if (budget === 0) return "Not set";
+    if (budget >= 10000000) {
+      const c = budget / 10000000;
+      return c % 1 === 0 ? `\u20B9${c} Cr` : `\u20B9${c.toFixed(1)} Cr`;
+    }
+    const l = budget / 100000;
+    return l % 1 === 0 ? `\u20B9${l}L` : `\u20B9${l.toFixed(1)}L`;
+  };
+
+  const formatGuestCount = (count: number) => {
+    if (count === 0) return "Not set";
+    return count.toLocaleString("en-IN");
   };
 
   if (status === "loading" || loading) {
@@ -75,71 +70,127 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-cream flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-maroon border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500">Loading ShaadiSheet...</p>
+          <p className="text-gray-500">Loading your weddings...</p>
         </div>
       </div>
     );
   }
 
-  if (!wedding) return null;
-
-  const onboardingComplete = wedding.religion && wedding.religion !== "";
-
-  if (!onboardingComplete) {
-    return <Onboarding onComplete={handleOnboardingComplete} />;
-  }
-
-  const renderView = () => {
-    switch (activeView) {
-      case "overview": return <OverviewView wedding={wedding} />;
-      case "budget": return <BudgetView wedding={wedding} onUpdate={loadWedding} />;
-      case "vendors": return <VendorsView wedding={wedding} onUpdate={loadWedding} />;
-      case "guests": return <GuestsView wedding={wedding} onUpdate={loadWedding} />;
-      case "events": return <EventsView wedding={wedding} />;
-      case "tasks": return <TasksView wedding={wedding} onToggle={handleToggleTask} />;
-      case "seating": return <SeatingView wedding={wedding} onUpdate={loadWedding} />;
-      case "timeline": return <TimelineView wedding={wedding} />;
-      default: return <OverviewView wedding={wedding} />;
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Top Bar */}
-      <div className="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-50 shrink-0">
-        <div className="flex items-center gap-4">
-          <Link href="/" className="flex items-center gap-2.5 text-lg font-extrabold">
-            <span className="text-maroon text-xl">|||</span>
-            <span>ShaadiSheet</span>
-          </Link>
-        </div>
-        <div className="text-center">
-          <div className="font-bold text-sm">{wedding.name || "My Wedding"}</div>
-          <div className="text-xs text-gray-500">
-            {wedding.weddingDate ? new Date(wedding.weddingDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Date TBD"} • {wedding.weddingCity || "City TBD"}
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        <div className="flex items-center justify-between mb-10">
+          <div>
+            <h1 className="text-3xl font-extrabold text-gray-900">My Weddings</h1>
+            <p className="text-gray-500 mt-1">Manage all your wedding plans in one place</p>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setAiOpen(!aiOpen)} className="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-maroon transition-all" title="AI Assistant">
-            <i className="fas fa-robot text-lg" />
+          <button
+            onClick={handleCreateWedding}
+            disabled={creating}
+            className="px-6 py-3 bg-maroon text-white font-semibold rounded-lg hover:bg-maroon-dark transition-colors flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            {creating ? "Creating..." : "New Wedding"}
           </button>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500 hidden md:block">{session?.user?.email}</span>
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-maroon to-gold text-white text-sm font-bold flex items-center justify-center cursor-pointer">
-              {session?.user?.name?.charAt(0) || "U"}
-            </div>
-          </div>
         </div>
-      </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar activeView={activeView} onViewChange={setActiveView} onReset={loadWedding} />
-        <main className="flex-1 overflow-y-auto p-8">
-          {renderView()}
-        </main>
-      </div>
+        {weddings.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-gray-200 p-16 text-center">
+            <div className="w-20 h-20 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-maroon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">No weddings yet</h2>
+            <p className="text-gray-500 mb-6 max-w-md mx-auto">Start planning your first wedding by creating a new wedding planner.</p>
+            <button
+              onClick={handleCreateWedding}
+              disabled={creating}
+              className="px-8 py-3 bg-maroon text-white font-semibold rounded-lg hover:bg-maroon-dark transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              {creating ? "Creating..." : "Create Your First Wedding"}
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {weddings.map((wedding) => (
+              <Link
+                key={wedding.id}
+                href={`/dashboard/${wedding.id}`}
+                className="bg-white rounded-2xl border border-gray-200 hover:border-maroon/30 hover:shadow-xl transition-all duration-300 overflow-hidden"
+              >
+                <div className="h-3 bg-gradient-to-r from-maroon to-gold" />
+                <div className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">{wedding.name || "Unnamed Wedding"}</h3>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {wedding.religion ? wedding.religion.charAt(0).toUpperCase() + wedding.religion.slice(1) : "Not set"}
+                        {wedding.region && " \u2022 " + wedding.region}
+                      </p>
+                    </div>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      wedding.religion ? "bg-maroon/10 text-maroon" : "bg-gray-100 text-gray-500"
+                    }`}>
+                      {wedding.religion ? "Configured" : "Setup needed"}
+                    </span>
+                  </div>
 
-      <AiPanel open={aiOpen} onClose={() => setAiOpen(false)} wedding={wedding} onUpdate={loadWedding} />
+                  <div className="space-y-3 text-sm">
+                    <div className="flex items-center gap-3 text-gray-600">
+                      <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span>{formatDate(wedding.weddingDate)}</span>
+                      {wedding.weddingCity && (
+                        <>
+                          <span className="text-gray-300">{'\u2022'}</span>
+                          <span>{wedding.weddingCity}</span>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-3 text-gray-600">
+                      <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>Budget: {formatBudget(wedding.budget)}</span>
+                    </div>
+
+                    <div className="flex items-center gap-3 text-gray-600">
+                      <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <span>Guests: {formatGuestCount(wedding.guestCount)}</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 pt-4 border-t border-gray-100 grid grid-cols-4 gap-4 text-center">
+                    <div className="bg-gray-50 rounded-xl p-3">
+                      <div className="text-2xl font-bold text-maroon">{wedding._count?.budgetItems || 0}</div>
+                      <div className="text-xs text-gray-500">Budget Items</div>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-3">
+                      <div className="text-2xl font-bold text-maroon">{wedding._count?.vendors || 0}</div>
+                      <div className="text-xs text-gray-500">Vendors</div>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-3">
+                      <div className="text-2xl font-bold text-maroon">{wedding._count?.guests || 0}</div>
+                      <div className="text-xs text-gray-500">Guests</div>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-3">
+                      <div className="text-2xl font-bold text-maroon">{wedding._count?.tasks || 0}</div>
+                      <div className="text-xs text-gray-500">Tasks</div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

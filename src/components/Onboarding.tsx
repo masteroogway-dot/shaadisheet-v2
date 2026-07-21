@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const REGIONS: Record<string, string[]> = {
   hindu: ["North Indian", "South Indian", "Bengali", "Gujarati", "Maharashtrian", "Rajput", "Punjabi"],
@@ -18,25 +18,68 @@ const EVENTS: Record<string, string[]> = {
   jain: ["Roka", "Engagement", "Mehendi", "Sangeet", "Wedding Ceremony", "Reception"],
 };
 
+function formatBudgetDisplay(value: number): string {
+  if (value >= 10000000) {
+    const c = value / 10000000;
+    return c % 1 === 0 ? `\u20B9${c} Crore` : `\u20B9${c.toFixed(1)} Crore`;
+  }
+  const l = value / 100000;
+  return l % 1 === 0 ? `\u20B9${l} Lakh` : `\u20B9${l.toFixed(1)} Lakh`;
+}
+
 interface Props {
   onComplete: (data: any) => void;
 }
 
 export default function Onboarding({ onComplete }: Props) {
   const [step, setStep] = useState(1);
+  const [toast, setToast] = useState("");
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [data, setData] = useState({
     religion: "",
     region: "",
-    budget: "",
-    guests: "",
+    budget: 1000000,
+    guestCount: 200,
     selectedEvents: [] as string[],
     weddingDate: "",
     weddingCity: "",
     userName: "",
   });
+  const [budgetInput, setBudgetInput] = useState("1000000");
+  const [guestInput, setGuestInput] = useState("200");
 
   const totalSteps = 6;
   const progress = (step / totalSteps) * 100;
+
+  useEffect(() => {
+    return () => { if (toastTimer.current) clearTimeout(toastTimer.current); };
+  }, []);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(""), 3000);
+  };
+
+  const canContinue = (): boolean => {
+    switch (step) {
+      case 1: return !!data.religion;
+      case 2: return !!data.region;
+      case 3: return data.budget >= 1000000;
+      case 4: return data.guestCount >= 50;
+      case 5: return data.selectedEvents.length > 0;
+      case 6: return true;
+      default: return false;
+    }
+  };
+
+  const handleContinue = () => {
+    if (!canContinue()) {
+      showToast("Please pick an option to move to the next section");
+      return;
+    }
+    setStep(step + 1);
+  };
 
   const selectReligion = (r: string) => {
     setData({ ...data, religion: r, region: "", selectedEvents: EVENTS[r] || [] });
@@ -51,9 +94,44 @@ export default function Onboarding({ onComplete }: Props) {
     });
   };
 
+  const handleBudgetChange = (value: number) => {
+    const clamped = Math.max(1000000, Math.min(100000000, value));
+    setData({ ...data, budget: clamped });
+    setBudgetInput(clamped.toString());
+  };
+
+  const handleBudgetInputChange = (val: string) => {
+    setBudgetInput(val);
+    const num = parseInt(val.replace(/[^\d]/g, ""), 10);
+    if (!isNaN(num)) {
+      const clamped = Math.max(1000000, Math.min(100000000, num));
+      setData({ ...data, budget: clamped });
+    }
+  };
+
+  const handleGuestChange = (value: number) => {
+    const clamped = Math.max(50, Math.min(5000, value));
+    setData({ ...data, guestCount: clamped });
+    setGuestInput(clamped.toString());
+  };
+
+  const handleGuestInputChange = (val: string) => {
+    setGuestInput(val);
+    const num = parseInt(val.replace(/[^\d]/g, ""), 10);
+    if (!isNaN(num)) {
+      const clamped = Math.max(50, Math.min(5000, num));
+      setData({ ...data, guestCount: clamped });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-cream flex flex-col">
-      {/* Header */}
+    <div className="min-h-screen bg-cream flex flex-col relative">
+      {toast && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 bg-gray-900 text-white text-sm font-medium rounded-lg shadow-lg" style={{ animation: "toastSlideIn 0.3s ease" }}>
+          {toast}
+        </div>
+      )}
+
       <div className="flex items-center justify-between px-10 py-5">
         <div className="flex items-center gap-2.5 text-xl font-extrabold">
           <span className="text-maroon text-2xl tracking-tight">|||</span>
@@ -69,22 +147,23 @@ export default function Onboarding({ onComplete }: Props) {
 
       <div className="flex-1 flex items-center justify-center px-6">
         <div className="w-full max-w-[720px]">
-          {/* Step 1: Religion */}
           {step === 1 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-3xl font-bold mb-2">What type of wedding are you planning?</h2>
               <p className="text-gray-500 mb-8">This helps us load the right rituals, templates, and budget categories.</p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {[
-                  { id: "hindu", icon: "🕉️", label: "Hindu Wedding" },
-                  { id: "muslim", icon: "☪️", label: "Muslim Wedding" },
-                  { id: "sikh", icon: "🙏", label: "Sikh Wedding" },
-                  { id: "christian", icon: "✝️", label: "Christian Wedding" },
-                  { id: "jain", icon: "🙏", label: "Jain Wedding" },
+                  { id: "hindu", label: "Hindu Wedding", icon: <DiyaIcon /> },
+                  { id: "muslim", label: "Muslim Wedding", icon: <CrescentIcon /> },
+                  { id: "sikh", label: "Sikh Wedding", icon: <KhandaIcon /> },
+                  { id: "christian", label: "Christian Wedding", icon: <CrossIcon /> },
+                  { id: "jain", label: "Jain Wedding", icon: <AhimsaIcon /> },
                 ].map((r) => (
                   <button key={r.id} onClick={() => selectReligion(r.id)}
                     className={`flex flex-col items-center gap-3 p-7 bg-white border-2 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md ${data.religion === r.id ? "border-maroon shadow-[0_0_0_3px_rgba(139,0,0,0.1)] bg-gradient-to-br from-maroon/5 to-gold/5" : "border-gray-200"}`}>
-                    <span className="text-3xl w-14 h-14 flex items-center justify-center bg-gray-100 rounded-full">{r.icon}</span>
+                    <div className={`w-14 h-14 flex items-center justify-center rounded-full transition-colors ${data.religion === r.id ? "bg-maroon text-white" : "bg-gradient-to-br from-maroon/10 to-gold/10 text-maroon"}`}>
+                      {r.icon}
+                    </div>
                     <span className="font-semibold text-sm">{r.label}</span>
                   </button>
                 ))}
@@ -92,7 +171,6 @@ export default function Onboarding({ onComplete }: Props) {
             </div>
           )}
 
-          {/* Step 2: Region */}
           {step === 2 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-3xl font-bold mb-2">Which region/community?</h2>
@@ -100,8 +178,10 @@ export default function Onboarding({ onComplete }: Props) {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {(REGIONS[data.religion] || REGIONS.hindu).map((r) => (
                   <button key={r} onClick={() => setData({ ...data, region: r })}
-                    className={`flex flex-col items-center gap-3 p-7 bg-white border-2 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md ${data.region === r ? "border-maroon shadow-[0_0_0_3px_rgba(139,0,0,0.1)]" : "border-gray-200"}`}>
-                    <span className="text-3xl w-14 h-14 flex items-center justify-center bg-gray-100 rounded-full">📍</span>
+                    className={`flex flex-col items-center gap-3 p-7 bg-white border-2 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md ${data.region === r ? "border-maroon shadow-[0_0_0_3px_rgba(139,0,0,0.1)] bg-gradient-to-br from-maroon/5 to-gold/5" : "border-gray-200"}`}>
+                    <div className={`w-14 h-14 flex items-center justify-center rounded-full transition-colors ${data.region === r ? "bg-maroon text-white" : "bg-gradient-to-br from-maroon/10 to-gold/10 text-maroon"}`}>
+                      <MapPinIcon />
+                    </div>
                     <span className="font-semibold text-sm">{r}</span>
                   </button>
                 ))}
@@ -109,61 +189,103 @@ export default function Onboarding({ onComplete }: Props) {
             </div>
           )}
 
-          {/* Step 3: Budget */}
           {step === 3 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-3xl font-bold mb-2">What&apos;s your wedding budget?</h2>
-              <p className="text-gray-500 mb-8">This helps us suggest realistic allocations.</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  { id: "under10", icon: "💰", label: "Under ₹10 Lakhs" },
-                  { id: "10to30", icon: "💰💰", label: "₹10 - 30 Lakhs" },
-                  { id: "30to50", icon: "💰💰💰", label: "₹30 - 50 Lakhs" },
-                  { id: "50to1cr", icon: "💎", label: "₹50 Lakhs - 1 Crore" },
-                  { id: "above1cr", icon: "👑", label: "Above ₹1 Crore" },
-                ].map((b) => (
-                  <button key={b.id} onClick={() => setData({ ...data, budget: b.id })}
-                    className={`flex items-center gap-4 p-5 bg-white border-2 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md ${data.budget === b.id ? "border-maroon shadow-[0_0_0_3px_rgba(139,0,0,0.1)]" : "border-gray-200"}`}>
-                    <span className="text-2xl">{b.icon}</span>
-                    <span className="font-semibold">{b.label}</span>
-                  </button>
-                ))}
+              <p className="text-gray-500 mb-1">This helps us suggest realistic allocations.</p>
+              <p className="text-sm text-gray-400 mb-8 italic">Can always be changed later</p>
+              <div className="bg-white border border-gray-200 rounded-2xl p-8">
+                <div className="text-center mb-8">
+                  <span className="text-5xl font-extrabold text-maroon">{formatBudgetDisplay(data.budget)}</span>
+                </div>
+                <input
+                  type="range"
+                  min={1000000}
+                  max={100000000}
+                  step={50000}
+                  value={data.budget}
+                  onChange={(e) => handleBudgetChange(parseInt(e.target.value))}
+                  className="w-full mb-4"
+                />
+                <div className="flex justify-between text-xs text-gray-400 font-medium mb-6">
+                  <span>{'\u20B9'}10 Lakh</span>
+                  <span>{'\u20B9'}10 Crore</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-semibold text-gray-600">Or type amount:</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">{'\u20B9'}</span>
+                    <input
+                      type="text"
+                      value={budgetInput}
+                      onChange={(e) => handleBudgetInputChange(e.target.value)}
+                      onBlur={() => {
+                        const num = parseInt(budgetInput.replace(/[^\d]/g, ""), 10);
+                        handleBudgetChange(isNaN(num) ? 1000000 : Math.max(1000000, Math.min(100000000, num)));
+                      }}
+                      className="w-48 pl-8 pr-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon transition-colors text-right font-mono"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Step 4: Guests */}
           {step === 4 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-3xl font-bold mb-2">How many guests are you expecting?</h2>
               <p className="text-gray-500 mb-8">This affects your catering budget and venue selection.</p>
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { id: "small", icon: "👥", label: "Under 100 (Intimate)" },
-                  { id: "medium", icon: "👥👥", label: "100 - 300 (Medium)" },
-                  { id: "large", icon: "👥👥👥", label: "300 - 500 (Large)" },
-                  { id: "grand", icon: "🏟️", label: "500+ (Grand)" },
-                ].map((g) => (
-                  <button key={g.id} onClick={() => setData({ ...data, guests: g.id })}
-                    className={`flex items-center gap-4 p-5 bg-white border-2 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md ${data.guests === g.id ? "border-maroon shadow-[0_0_0_3px_rgba(139,0,0,0.1)]" : "border-gray-200"}`}>
-                    <span className="text-2xl">{g.icon}</span>
-                    <span className="font-semibold">{g.label}</span>
-                  </button>
-                ))}
+              <div className="bg-white border border-gray-200 rounded-2xl p-8">
+                <div className="text-center mb-8">
+                  <span className="text-5xl font-extrabold text-maroon">{data.guestCount.toLocaleString("en-IN")}</span>
+                  <span className="text-lg text-gray-500 ml-2">guests</span>
+                </div>
+                <input
+                  type="range"
+                  min={50}
+                  max={5000}
+                  step={10}
+                  value={data.guestCount}
+                  onChange={(e) => handleGuestChange(parseInt(e.target.value))}
+                  className="w-full mb-4"
+                />
+                <div className="flex justify-between text-xs text-gray-400 font-medium mb-6">
+                  <span>50</span>
+                  <span>5,000</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-semibold text-gray-600">Or type number:</label>
+                  <input
+                    type="text"
+                    value={guestInput}
+                    onChange={(e) => handleGuestInputChange(e.target.value)}
+                    onBlur={() => {
+                      const num = parseInt(guestInput.replace(/[^\d]/g, ""), 10);
+                      handleGuestChange(isNaN(num) ? 50 : Math.max(50, Math.min(5000, num)));
+                    }}
+                    className="w-32 px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon transition-colors text-right font-mono"
+                  />
+                </div>
               </div>
             </div>
           )}
 
-          {/* Step 5: Events */}
           {step === 5 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-3xl font-bold mb-2">Which events are you planning?</h2>
-              <p className="text-gray-500 mb-8">Select all that apply. We&apos;ll create a timeline for each.</p>
+              <p className="text-gray-500 mb-1">Select all that apply. We&apos;ll create a timeline for each.</p>
+              <p className="text-sm text-gray-400 mb-6 italic">You can add more events later</p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {(EVENTS[data.religion] || EVENTS.hindu).map((e) => (
                   <button key={e} onClick={() => toggleEvent(e)}
                     className={`flex items-center gap-3 p-4 bg-white border-2 rounded-lg cursor-pointer transition-all ${data.selectedEvents.includes(e) ? "border-maroon bg-maroon/5" : "border-gray-200"}`}>
-                    <input type="checkbox" checked={data.selectedEvents.includes(e)} readOnly className="w-4 h-4 accent-maroon" />
+                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${data.selectedEvents.includes(e) ? "border-maroon bg-maroon" : "border-gray-300"}`}>
+                      {data.selectedEvents.includes(e) && (
+                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
                     <span className="font-medium text-sm">{e}</span>
                   </button>
                 ))}
@@ -171,7 +293,6 @@ export default function Onboarding({ onComplete }: Props) {
             </div>
           )}
 
-          {/* Step 6: Date & City */}
           {step === 6 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-3xl font-bold mb-2">Almost done! When and where?</h2>
@@ -201,34 +322,100 @@ export default function Onboarding({ onComplete }: Props) {
             </div>
           )}
 
-          {/* Navigation */}
           <div className="flex justify-between items-center mt-10 pt-6 border-t border-gray-200">
             {step > 1 ? (
               <button onClick={() => setStep(step - 1)} className="flex items-center gap-2 text-gray-600 hover:text-maroon font-medium transition-colors">
-                <i className="fas fa-arrow-left" /> Back
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+                Back
               </button>
             ) : <div />}
             {step < totalSteps ? (
-              <button onClick={() => {
-                if (step === 1 && !data.religion) return;
-                if (step === 2 && !data.region) return;
-                if (step === 3 && !data.budget) return;
-                if (step === 4 && !data.guests) return;
-                if (step === 5 && data.selectedEvents.length === 0) return;
-                setStep(step + 1);
-              }}
-                className={`flex items-center gap-2 px-8 py-4 text-lg font-bold text-white bg-gradient-to-br from-maroon to-maroon-light rounded-lg shadow-[0_4px_15px_rgba(139,0,0,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(139,0,0,0.4)] transition-all`}>
-                Continue <i className="fas fa-arrow-right" />
+              <button onClick={handleContinue}
+                className={`flex items-center gap-2 px-8 py-4 text-lg font-bold rounded-lg transition-all ${
+                  canContinue()
+                    ? "text-white bg-gradient-to-br from-maroon to-maroon-light shadow-[0_4px_15px_rgba(139,0,0,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(139,0,0,0.4)] cursor-pointer"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                }`}>
+                Continue
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
               </button>
             ) : (
               <button onClick={() => onComplete(data)}
-                className="flex items-center gap-2 px-8 py-4 text-lg font-bold text-white bg-gradient-to-br from-maroon to-maroon-light rounded-lg shadow-[0_4px_15px_rgba(139,0,0,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(139,0,0,0.4)] transition-all">
-                Create My Wedding Plan <i className="fas fa-check" />
+                className="flex items-center gap-2 px-8 py-4 text-lg font-bold text-white bg-gradient-to-br from-maroon to-maroon-light rounded-lg shadow-[0_4px_15px_rgba(139,0,0,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(139,0,0,0.4)] transition-all cursor-pointer">
+                Create My Wedding Plan
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
               </button>
             )}
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function DiyaIcon() {
+  return (
+    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3c-1.5 2-3.5 3-3.5 6 0 1.8 1.3 3 3.5 3s3.5-1.2 3.5-3c0-3-2-4-3.5-6z" fill="currentColor" opacity="0.15" />
+      <path d="M12 3c-1.5 2-3.5 3-3.5 6 0 1.8 1.3 3 3.5 3s3.5-1.2 3.5-3c0-3-2-4-3.5-6z" />
+      <path d="M8.5 12h7l1 4H7.5l1-4z" />
+      <path d="M7 16h10v1c0 1.5-2 3-5 3s-5-1.5-5-3v-1z" />
+    </svg>
+  );
+}
+
+function CrescentIcon() {
+  return (
+    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M15.5 3.5a8 8 0 1 0 0 17 8 8 0 0 1 0-17z" opacity="0.15" />
+      <path d="M15.5 3.5a8 8 0 1 0 0 17 8 8 0 0 1 0-17zm-3.5 4a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+    </svg>
+  );
+}
+
+function KhandaIcon() {
+  return (
+    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <line x1="12" y1="3" x2="12" y2="21" />
+      <circle cx="12" cy="13" r="4" />
+      <path d="M8 5.5c1.5 1.5 2.5 3.5 2.5 7.5" />
+      <path d="M16 5.5c-1.5 1.5-2.5 3.5-2.5 7.5" />
+      <path d="M8.5 4h7" />
+    </svg>
+  );
+}
+
+function CrossIcon() {
+  return (
+    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3v18" />
+      <path d="M5 8h14" />
+      <circle cx="12" cy="5.5" r="1" fill="currentColor" opacity="0.2" />
+    </svg>
+  );
+}
+
+function AhimsaIcon() {
+  return (
+    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 21c-4 0-7-3-7-7 0-3 2-5 4-6l3-6 3 6c2 1 4 3 4 6 0 4-3 7-7 7z" opacity="0.1" fill="currentColor" />
+      <path d="M12 21c-4 0-7-3-7-7 0-3 2-5 4-6l3-6 3 6c2 1 4 3 4 6 0 4-3 7-7 7z" />
+      <circle cx="12" cy="14" r="2" />
+    </svg>
+  );
+}
+
+function MapPinIcon() {
+  return (
+    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+      <circle cx="12" cy="9" r="2.5" />
+    </svg>
   );
 }

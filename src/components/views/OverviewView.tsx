@@ -1,9 +1,5 @@
 "use client";
 
-const BUDGET_RANGES: Record<string, number> = {
-  under10: 800000, "10to30": 2000000, "30to50": 4000000, "50to1cr": 7500000, above1cr: 15000000,
-};
-
 const EVENTS_BY_RELIGION: Record<string, Array<{ name: string; desc: string; time: string; ritual: boolean }>> = {
   hindu: [
     { name: "Roka", desc: "Official engagement", time: "11:00 AM", ritual: true },
@@ -52,7 +48,7 @@ function formatINR(n: number) {
 }
 
 export default function OverviewView({ wedding }: { wedding: any }) {
-  const totalBudget = BUDGET_RANGES[wedding.budget] || 4000000;
+  const totalBudget = wedding.budget || 4000000;
   const totalSpent = wedding.budgetItems?.reduce((s: number, i: any) => s + (i.paid || 0), 0) || 0;
   const totalGuests = wedding.guests?.length || 0;
   const rsvpYes = wedding.guests?.filter((g: any) => g.rsvp === "Yes").length || 0;
@@ -106,17 +102,16 @@ export default function OverviewView({ wedding }: { wedding: any }) {
           <h3 className="font-bold text-lg mb-2">Welcome to ShaadiSheet!</h3>
           <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">Your wedding dashboard is ready. Start by adding budget items, vendors, or guests from the sidebar.</p>
           <div className="flex gap-3 justify-center">
-            <span className="px-4 py-2 bg-maroon/5 rounded-lg text-sm text-maroon font-medium">Budget →</span>
-            <span className="px-4 py-2 bg-maroon/5 rounded-lg text-sm text-maroon font-medium">Vendors →</span>
-            <span className="px-4 py-2 bg-maroon/5 rounded-lg text-sm text-maroon font-medium">Guests →</span>
+            <span className="px-4 py-2 bg-maroon/5 rounded-lg text-sm text-maroon font-medium">Budget {'\u2192'}</span>
+            <span className="px-4 py-2 bg-maroon/5 rounded-lg text-sm text-maroon font-medium">Vendors {'\u2192'}</span>
+            <span className="px-4 py-2 bg-maroon/5 rounded-lg text-sm text-maroon font-medium">Guests {'\u2192'}</span>
           </div>
         </div>
       ) : (
         <>
-          {/* Stat Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
             {[
-              { label: "Total Budget", value: `₹${formatINR(totalBudget)}`, sub: totalSpent > 0 ? `₹${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
+              { label: "Total Budget", value: `\u20B9${formatINR(totalBudget)}`, sub: totalSpent > 0 ? `\u20B9${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
               { label: "Guests", value: totalGuests.toString(), sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : "No guests added", icon: "fa-users", gradient: "from-green to-green/80" },
               { label: "Vendors", value: `${vendorsBooked} / ${totalVendors}`, sub: `${totalVendors - vendorsBooked} remaining`, icon: "fa-store", gradient: "from-blue to-blue/80" },
               { label: "Tasks", value: `${tasksDone} / ${totalTasks}`, sub: `${totalTasks - tasksDone} remaining`, icon: "fa-tasks", gradient: "from-orange-600 to-red-700" },
@@ -135,7 +130,6 @@ export default function OverviewView({ wedding }: { wedding: any }) {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Upcoming Events */}
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="flex items-center justify-between px-6 pt-5 pb-0">
                 <h3 className="font-bold">Upcoming Events</h3>
@@ -155,7 +149,7 @@ export default function OverviewView({ wedding }: { wedding: any }) {
                       </div>
                       <div className="flex-1 min-w-0">
                         <strong className="text-sm">{event.name}</strong>
-                        <span className="block text-xs text-gray-500">{wedding.weddingCity || "Venue TBD"} • {event.time}</span>
+                        <span className="block text-xs text-gray-500">{wedding.weddingCity || "Venue TBD"} {'\u2022'} {event.time}</span>
                       </div>
                       <span className={`status-badge ${event.date.getTime() - today.getTime() < 30 * 86400000 ? "planning" : "pending"}`}>
                         {event.date.getTime() - today.getTime() < 30 * 86400000 ? "Planning" : "Upcoming"}
@@ -166,7 +160,6 @@ export default function OverviewView({ wedding }: { wedding: any }) {
               </div>
             </div>
 
-            {/* Quick Tips */}
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="px-6 pt-5 pb-0">
                 <h3 className="font-bold">Quick Tips</h3>
@@ -187,7 +180,6 @@ export default function OverviewView({ wedding }: { wedding: any }) {
             </div>
           </div>
 
-          {/* Budget Bars */}
           {wedding.budgetItems && wedding.budgetItems.length > 0 && (
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="flex items-center justify-between px-6 pt-5 pb-0">
@@ -203,7 +195,7 @@ export default function OverviewView({ wedding }: { wedding: any }) {
                       <div key={cat.name}>
                         <div className="flex justify-between text-sm mb-1.5">
                           <span className="font-medium">{cat.name}</span>
-                          <span className="text-gray-500">₹{formatINR(catSpent)} / ₹{formatINR(catBudget)}</span>
+                          <span className="text-gray-500">{'\u20B9'}{formatINR(catSpent)} / {'\u20B9'}{formatINR(catBudget)}</span>
                         </div>
                         <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
                           <div className={`h-full bg-gradient-to-r ${cat.color} rounded-full transition-all duration-700`} style={{ width: `${pct}%` }} />
