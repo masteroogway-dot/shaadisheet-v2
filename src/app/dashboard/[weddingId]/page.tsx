@@ -45,8 +45,21 @@ export default function WeddingDashboardPage() {
   }, [status, router, loadWedding]);
 
   const handleOnboardingComplete = async (data: any) => {
-    await updateWedding({ weddingId, ...data });
-    await loadWedding();
+    try {
+      await updateWedding({
+        weddingId,
+        religion: data.religion,
+        region: data.region,
+        budget: data.budget,
+        guestCount: data.guestCount,
+        selectedEvents: data.selectedEvents,
+        weddingDate: data.weddingDate ? new Date(data.weddingDate) : undefined,
+        weddingCity: data.weddingCity,
+      });
+      await loadWedding();
+    } catch (e) {
+      console.error("Failed to save wedding:", e);
+    }
   };
 
   const handleToggleTask = async (id: string, done: boolean) => {
