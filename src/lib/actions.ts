@@ -940,3 +940,111 @@ export async function batchCreateRoomAllocations(weddingId: string, items: any[]
     });
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// BULK DELETE
+// ═══════════════════════════════════════════════════════════════
+
+export async function bulkDeleteBudgetItems(weddingId: string, ids: string[]) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+  return prisma.budgetItem.deleteMany({ where: { id: { in: ids }, weddingId } });
+}
+
+export async function bulkDeleteVendors(weddingId: string, ids: string[]) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+  return prisma.vendor.deleteMany({ where: { id: { in: ids }, weddingId } });
+}
+
+export async function bulkDeleteGuests(weddingId: string, ids: string[]) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+  return prisma.guest.deleteMany({ where: { id: { in: ids }, weddingId } });
+}
+
+export async function bulkDeleteSeatingTables(weddingId: string, ids: string[]) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+  return prisma.seatingTable.deleteMany({ where: { id: { in: ids }, weddingId } });
+}
+
+export async function bulkDeleteRoomAllocations(weddingId: string, ids: string[]) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+  return prisma.roomAllocation.deleteMany({ where: { id: { in: ids }, weddingId } });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BULK ADD (create multiple empty rows)
+// ═══════════════════════════════════════════════════════════════
+
+export async function bulkAddBudgetItems(weddingId: string, count: number) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const maxOrder = await prisma.budgetItem.aggregate({ where: { weddingId }, _max: { order: true } });
+  let order = (maxOrder._max.order ?? -1) + 1;
+
+  for (let i = 0; i < count; i++) {
+    await prisma.budgetItem.create({
+      data: { weddingId, order: order++, category: "", item: "", estimated: 0, actual: 0, paid: 0, balance: 0, status: "Pending", dueDate: "", notes: "" },
+    });
+  }
+}
+
+export async function bulkAddVendors(weddingId: string, count: number) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const maxOrder = await prisma.vendor.aggregate({ where: { weddingId }, _max: { order: true } });
+  let order = (maxOrder._max.order ?? -1) + 1;
+
+  for (let i = 0; i < count; i++) {
+    await prisma.vendor.create({
+      data: { weddingId, order: order++, category: "", name: "", contact: "", quote: 0, paid: 0, balance: 0, rating: "\u2605\u2605\u2605\u2605\u2606", contract: "Pending", notes: "" },
+    });
+  }
+}
+
+export async function bulkAddGuests(weddingId: string, count: number) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const maxOrder = await prisma.guest.aggregate({ where: { weddingId }, _max: { order: true } });
+  let order = (maxOrder._max.order ?? -1) + 1;
+
+  for (let i = 0; i < count; i++) {
+    await prisma.guest.create({
+      data: { weddingId, order: order++, name: "", relation: "", side: "Both", rsvp: "Pending", dietary: "Veg", tableNum: 0, giftGiven: "No", thankYou: "No", notes: "" },
+    });
+  }
+}
+
+export async function bulkAddSeatingTables(weddingId: string, count: number) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const maxOrder = await prisma.seatingTable.aggregate({ where: { weddingId }, _max: { order: true } });
+  let order = (maxOrder._max.order ?? -1) + 1;
+
+  for (let i = 0; i < count; i++) {
+    await prisma.seatingTable.create({
+      data: { weddingId, order: order++, name: "", capacity: 8, guests: "[]" },
+    });
+  }
+}
+
+export async function bulkAddRoomAllocations(weddingId: string, count: number) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const maxOrder = await prisma.roomAllocation.aggregate({ where: { weddingId }, _max: { order: true } });
+  let order = (maxOrder._max.order ?? -1) + 1;
+
+  for (let i = 0; i < count; i++) {
+    await prisma.roomAllocation.create({
+      data: { weddingId, order: order++, guestName: "", hotel: "", roomNumber: "", roomType: "Standard", checkIn: "", checkOut: "", status: "Reserved", notes: "" },
+    });
+  }
+}

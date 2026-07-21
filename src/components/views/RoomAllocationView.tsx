@@ -6,14 +6,19 @@ import {
   updateRoomAllocation,
   deleteRoomAllocation,
   batchCreateRoomAllocations,
+  bulkDeleteRoomAllocations,
+  bulkAddRoomAllocations,
 } from "@/lib/actions";
 import ImportModal from "@/components/ImportModal";
 
-export default function RoomAllocationView({ wedding, weddingId, onUpdate }: { wedding: any; weddingId: string; onUpdate: () => void }) {
+export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToast }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
   const [showImport, setShowImport] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [showBulkAdd, setShowBulkAdd] = useState(false);
+  const [bulkAddCount, setBulkAddCount] = useState(1);
 
   const allocations = wedding.roomAllocations || [];
   const totalRooms = allocations.length;
@@ -21,11 +26,29 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate }: { w
   const checkedIn = allocations.filter((a: any) => a.status === "Checked In").length;
   const cancelled = allocations.filter((a: any) => a.status === "Cancelled").length;
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.size === allocations.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(allocations.map((a: any) => a.id)));
+    }
+  };
+
   const handleSave = async (id: string) => {
     await updateRoomAllocation(weddingId, id, editData);
     setEditing(null);
     setEditData({});
     onUpdate();
+    onToast("Room allocation updated", "success");
   };
 
   const handleAdd = async () => {
@@ -40,12 +63,31 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate }: { w
       notes: "",
     });
     onUpdate();
+    onToast("Room allocation added", "success");
   };
 
   const handleDelete = async (id: string) => {
     await deleteRoomAllocation(weddingId, id);
     setDeleteConfirm(null);
     onUpdate();
+    onToast("Room allocation deleted", "success");
+  };
+
+  const handleBulkDelete = async () => {
+    if (selected.size === 0) return;
+    await bulkDeleteRoomAllocations(weddingId, Array.from(selected));
+    setSelected(new Set());
+    onUpdate();
+    onToast(`${selected.size} room allocation(s) deleted`, "success");
+  };
+
+  const handleBulkAdd = async () => {
+    const count = Math.max(1, bulkAddCount);
+    await bulkAddRoomAllocations(weddingId, count);
+    setShowBulkAdd(false);
+    setBulkAddCount(1);
+    onUpdate();
+    onToast(`${count} row(s) added`, "success");
   };
 
   return (
@@ -56,6 +98,11 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate }: { w
           <p className="text-gray-500 text-sm">Assign guests to hotel rooms and track check-ins</p>
         </div>
         <div className="flex gap-2.5">
+          {selected.size > 0 && (
+            <button onClick={handleBulkDelete} className="px-4 py-2 text-sm font-semibold text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors cursor-pointer">
+              <i className="fas fa-trash mr-1.5" /> Delete Selected ({selected.size})
+            </button>
+          )}
           <button onClick={() => setShowImport(true)} className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-br from-maroon to-maroon-light rounded-lg hover:shadow-md transition-all cursor-pointer">
             <i className="fas fa-file-import mr-1.5" /> Import Excel
           </button>
@@ -95,6 +142,14 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate }: { w
           <table className="spreadsheet">
             <thead>
               <tr>
+                <th className="w-12 text-center">
+                  <input
+                    type="checkbox"
+                    checked={allocations.length > 0 && selected.size === allocations.length}
+                    onChange={toggleSelectAll}
+                    className="cursor-pointer"
+                  />
+                </th>
                 <th className="w-12 text-center">#</th>
                 <th>Guest Name</th>
                 <th>Hotel</th>
@@ -110,6 +165,14 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate }: { w
             <tbody>
               {allocations.map((a: any) => (
                 <tr key={a.id}>
+                  <td className="text-center">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(a.id)}
+                      onChange={() => toggleSelect(a.id)}
+                      className="cursor-pointer"
+                    />
+                  </td>
                   <td className="text-center text-gray-400">{a.order + 1}</td>
                   <td className="font-semibold">
                     {editing === a.id ? (
@@ -191,6 +254,29 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate }: { w
               ))}
             </tbody>
           </table>
+
+          <div className="px-4 py-3 border-t border-gray-200">
+            {showBulkAdd ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-600">Add</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={bulkAddCount}
+                  onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 1)}
+                  className="w-20 px-2 py-1 border rounded text-sm"
+                />
+                <span className="text-sm text-gray-600">row(s)</span>
+                <button onClick={handleBulkAdd} className="text-xs px-3 py-1 bg-maroon text-white rounded cursor-pointer">Add</button>
+                <button onClick={() => { setShowBulkAdd(false); setBulkAddCount(1); }} className="text-xs px-3 py-1 bg-gray-200 text-gray-700 rounded cursor-pointer">Cancel</button>
+              </div>
+            ) : (
+              <button onClick={() => setShowBulkAdd(true)} className="text-sm text-maroon hover:text-maroon-light font-semibold cursor-pointer">
+                <i className="fas fa-plus mr-1.5" /> Add Multiple Rows
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -201,6 +287,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate }: { w
         onImport={async (items: any[]) => {
           await batchCreateRoomAllocations(weddingId, items);
           onUpdate();
+          onToast(`${items.length} room allocation(s) imported`, "success");
         }}
       />
     </div>

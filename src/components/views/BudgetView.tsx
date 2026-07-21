@@ -1,18 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { updateBudgetItem, createBudgetItem, deleteBudgetItem, batchCreateBudgetItems } from "@/lib/actions";
+import { updateBudgetItem, createBudgetItem, deleteBudgetItem, batchCreateBudgetItems, bulkDeleteBudgetItems, bulkAddBudgetItems } from "@/lib/actions";
 import ImportModal from "@/components/ImportModal";
 
-export default function BudgetView({ wedding, weddingId, onUpdate }: { wedding: any; weddingId: string; onUpdate: () => void }) {
+export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
   const [showImport, setShowImport] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkAddCount, setBulkAddCount] = useState(5);
+  const [showBulkAdd, setShowBulkAdd] = useState(false);
+
+  const items = wedding.budgetItems || [];
 
   const handleSave = async (id: string) => {
     const data = { ...editData };
     if (data.estimated !== undefined || data.paid !== undefined) {
-      const item = wedding.budgetItems?.find((i: any) => i.id === id);
+      const item = items.find((i: any) => i.id === id);
       const estimated = data.estimated ?? item?.estimated ?? 0;
       const paid = data.paid ?? item?.paid ?? 0;
       data.balance = estimated - paid;
@@ -22,21 +27,59 @@ export default function BudgetView({ wedding, weddingId, onUpdate }: { wedding: 
     }
     await updateBudgetItem(weddingId, id, data);
     setEditing(null);
+    setEditData({});
     onUpdate();
+    const row = items.find((i: any) => i.id === id);
+    onToast(`Row ${(row?.order ?? 0) + 1} updated`);
   };
 
   const handleAdd = async () => {
     await createBudgetItem(weddingId, { category: "", item: "New Item", estimated: 0, actual: 0, paid: 0, balance: 0, status: "Pending", dueDate: "", notes: "" });
     onUpdate();
+    onToast("Row created");
   };
 
   const handleDelete = async (id: string) => {
+    const row = items.find((i: any) => i.id === id);
     await deleteBudgetItem(weddingId, id);
     onUpdate();
+    onToast(`Row ${(row?.order ?? 0) + 1} deleted`);
   };
 
-  const totalEstimated = wedding.budgetItems?.reduce((s: number, i: any) => s + (i.estimated || 0), 0) || 0;
-  const totalPaid = wedding.budgetItems?.reduce((s: number, i: any) => s + (i.paid || 0), 0) || 0;
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.size === items.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(items.map((i: any) => i.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const count = selected.size;
+    await bulkDeleteBudgetItems(weddingId, Array.from(selected));
+    setSelected(new Set());
+    onUpdate();
+    onToast(`${count} row${count > 1 ? "s" : ""} deleted`);
+  };
+
+  const handleBulkAdd = async () => {
+    await bulkAddBudgetItems(weddingId, bulkAddCount);
+    setShowBulkAdd(false);
+    onUpdate();
+    onToast(`${bulkAddCount} row${bulkAddCount > 1 ? "s" : ""} created`);
+  };
+
+  const totalEstimated = items.reduce((s: number, i: any) => s + (i.estimated || 0), 0) || 0;
+  const totalPaid = items.reduce((s: number, i: any) => s + (i.paid || 0), 0) || 0;
 
   return (
     <div>
@@ -49,7 +92,7 @@ export default function BudgetView({ wedding, weddingId, onUpdate }: { wedding: 
           <button onClick={() => setShowImport(true)} className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-br from-maroon to-maroon-light rounded-lg hover:shadow-md transition-all cursor-pointer">
             <i className="fas fa-file-import mr-1.5" /> Import Excel
           </button>
-          {wedding.budgetItems?.length > 0 && (
+          {items.length > 0 && (
             <>
               <div className="text-right mr-4">
                 <div className="text-xs text-gray-500">Total Estimated</div>
@@ -67,7 +110,26 @@ export default function BudgetView({ wedding, weddingId, onUpdate }: { wedding: 
         </div>
       </div>
 
-      {!wedding.budgetItems || wedding.budgetItems.length === 0 ? (
+      {selected.size > 0 && (
+        <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
+          <span className="text-sm font-medium">{selected.size} selected</span>
+          <button onClick={handleBulkDelete} className="px-3 py-1 text-xs font-semibold text-white bg-red-500 rounded-lg hover:bg-red-600 cursor-pointer">
+            <i className="fas fa-trash mr-1" /> Delete Selected
+          </button>
+          <button onClick={() => setSelected(new Set())} className="text-xs text-gray-500 hover:text-gray-700 cursor-pointer">Clear</button>
+        </div>
+      )}
+
+      {showBulkAdd && (
+        <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
+          <span className="text-sm font-medium">Add how many rows?</span>
+          <input type="number" min={1} max={50} value={bulkAddCount} onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 1)} className="w-16 px-2 py-1 border border-gray-300 rounded text-sm text-center" />
+          <button onClick={handleBulkAdd} className="px-3 py-1 text-xs font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light cursor-pointer">Add</button>
+          <button onClick={() => setShowBulkAdd(false)} className="text-xs text-gray-500 hover:text-gray-700 cursor-pointer">Cancel</button>
+        </div>
+      )}
+
+      {!items || items.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
           <div className="w-16 h-16 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-4">
             <i className="fas fa-rupee-sign text-maroon text-xl" />
@@ -83,7 +145,10 @@ export default function BudgetView({ wedding, weddingId, onUpdate }: { wedding: 
         <table className="spreadsheet">
           <thead>
             <tr>
-              <th className="w-12 text-center">#</th>
+              <th className="w-12 text-center">
+                <input type="checkbox" checked={selected.size === items.length && items.length > 0} onChange={toggleSelectAll} className="accent-maroon cursor-pointer" />
+              </th>
+              <th>#</th>
               <th>Category</th>
               <th>Item</th>
               <th className="text-right">Estimated ({'\u20B9'})</th>
@@ -97,12 +162,15 @@ export default function BudgetView({ wedding, weddingId, onUpdate }: { wedding: 
             </tr>
           </thead>
           <tbody>
-            {wedding.budgetItems?.map((item: any) => {
+            {items.map((item: any) => {
               const est = editData.estimated ?? item.estimated;
               const paid = editData.paid ?? item.paid;
               const balance = est - paid;
               return (
-                <tr key={item.id}>
+                <tr key={item.id} className={selected.has(item.id) ? "bg-maroon/5" : ""}>
+                  <td className="text-center">
+                    <input type="checkbox" checked={selected.has(item.id)} onChange={() => toggleSelect(item.id)} className="accent-maroon cursor-pointer" />
+                  </td>
                   <td className="text-center text-gray-400">{item.order + 1}</td>
                   <td className="font-semibold">{editing === item.id ? <input value={editData.category ?? item.category} onChange={(e) => setEditData({ ...editData, category: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" /> : item.category}</td>
                   <td>{editing === item.id ? <input value={editData.item ?? item.item} onChange={(e) => setEditData({ ...editData, item: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" /> : item.item}</td>
@@ -133,15 +201,21 @@ export default function BudgetView({ wedding, weddingId, onUpdate }: { wedding: 
             })}
           </tbody>
         </table>
+        <div className="px-4 py-3 border-t border-gray-200 flex justify-end">
+          <button onClick={() => setShowBulkAdd(true)} className="text-sm font-medium text-maroon hover:underline cursor-pointer">
+            <i className="fas fa-plus mr-1" /> Add Multiple Rows
+          </button>
+        </div>
         </div>
       )}
       <ImportModal
         open={showImport}
         onClose={() => setShowImport(false)}
         type="budget"
-        onImport={async (items: any[]) => {
-          await batchCreateBudgetItems(weddingId, items);
+        onImport={async (imported: any[]) => {
+          await batchCreateBudgetItems(weddingId, imported);
           onUpdate();
+          onToast(`${imported.length} row${imported.length > 1 ? "s" : ""} imported`);
         }}
       />
     </div>

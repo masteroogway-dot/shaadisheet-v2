@@ -17,6 +17,9 @@ import SeatingView from "@/components/views/SeatingView";
 import TimelineView from "@/components/views/TimelineView";
 import RoomAllocationView from "@/components/views/RoomAllocationView";
 import AiPanel from "@/components/AiPanel";
+import ToastContainer, { Toast } from "@/components/Toast";
+
+let toastId = 0;
 
 export default function WeddingDashboardPage() {
   const { data: session, status } = useSession();
@@ -27,6 +30,16 @@ export default function WeddingDashboardPage() {
   const [wedding, setWedding] = useState<any>(null);
   const [activeView, setActiveView] = useState("overview");
   const [aiOpen, setAiOpen] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const addToast = useCallback((message: string, type: "success" | "error" = "success") => {
+    const id = ++toastId;
+    setToasts((prev) => [...prev, { id, message, type }]);
+  }, []);
+
+  const dismissToast = useCallback((id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
 
   const loadWedding = useCallback(async () => {
     try {
@@ -82,13 +95,13 @@ export default function WeddingDashboardPage() {
   const renderView = () => {
     switch (activeView) {
       case "overview": return <OverviewView wedding={wedding} />;
-      case "budget": return <BudgetView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} />;
-      case "vendors": return <VendorsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} />;
-      case "guests": return <GuestsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} />;
+      case "budget": return <BudgetView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
+      case "vendors": return <VendorsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
+      case "guests": return <GuestsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
       case "events": return <EventsView wedding={wedding} weddingId={weddingId} />;
       case "tasks": return <TasksView wedding={wedding} weddingId={weddingId} onToggle={handleToggleTask} />;
-      case "seating": return <SeatingView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} />;
-      case "rooms": return <RoomAllocationView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} />;
+      case "seating": return <SeatingView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
+      case "rooms": return <RoomAllocationView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
       case "timeline": return <TimelineView wedding={wedding} weddingId={weddingId} />;
       default: return <OverviewView wedding={wedding} />;
     }
@@ -115,6 +128,7 @@ export default function WeddingDashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
       <div className="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-50 shrink-0">
         <Link href="/dashboard" className="flex items-center gap-2.5 text-lg font-extrabold">
           <span className="text-maroon text-xl">|||</span>
