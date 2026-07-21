@@ -76,6 +76,7 @@ model Wedding {
   seatingTables   SeatingTable[]
   aiMessages      AiMessage[]
   events          WeddingEvent[]
+  timelineItems   WeddingTimelineItem[]
 }
 
 model WeddingEvent {
@@ -89,6 +90,19 @@ model WeddingEvent {
   duration    Int      @default(60)
   location    String   @default("")
   isRitual    Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model WeddingTimelineItem {
+  id          String   @id @default(cuid())
+  weddingId   String
+  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  title       String
+  description String   @default("")
+  startTime   String   @default("09:00")
+  duration    Int      @default(30)
+  isHighlight Boolean  @default(false)
   order       Int      @default(0)
   createdAt   DateTime @default(now())
 }

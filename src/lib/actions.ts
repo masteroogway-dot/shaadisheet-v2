@@ -721,3 +721,138 @@ export async function seedWeddingEvents(weddingId: string) {
     });
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// WEDDING TIMELINE ITEMS
+// ═══════════════════════════════════════════════════════════════
+
+export async function getWeddingTimelineItems(weddingId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  return prisma.weddingTimelineItem.findMany({
+    where: { weddingId },
+    orderBy: { order: "asc" },
+  });
+}
+
+export async function createWeddingTimelineItem(weddingId: string, data: any) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const maxOrder = await prisma.weddingTimelineItem.aggregate({
+    where: { weddingId },
+    _max: { order: true },
+  });
+
+  return prisma.weddingTimelineItem.create({
+    data: {
+      weddingId,
+      order: (maxOrder._max.order ?? -1) + 1,
+      title: data.title || "New Item",
+      description: data.description || "",
+      startTime: data.startTime || "09:00",
+      duration: data.duration || 30,
+      isHighlight: data.isHighlight || false,
+    },
+  });
+}
+
+export async function updateWeddingTimelineItem(weddingId: string, itemId: string, data: any) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const { weddingId: _, ...updateData } = data;
+
+  if (updateData.duration !== undefined) updateData.duration = Number(updateData.duration);
+  if (updateData.isHighlight !== undefined) updateData.isHighlight = Boolean(updateData.isHighlight);
+  if (updateData.order !== undefined) updateData.order = Number(updateData.order);
+
+  return prisma.weddingTimelineItem.update({
+    where: { id: itemId },
+    data: updateData,
+  });
+}
+
+export async function deleteWeddingTimelineItem(weddingId: string, itemId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  return prisma.weddingTimelineItem.delete({ where: { id: itemId } });
+}
+
+export async function seedWeddingTimeline(weddingId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const wedding = await prisma.wedding.findFirst({
+    where: { id: weddingId, userId: session.user.id },
+  });
+  if (!wedding) throw new Error("Wedding not found");
+
+  const existing = await prisma.weddingTimelineItem.count({ where: { weddingId } });
+  if (existing > 0) return;
+
+  const TIMELINE: Record<string, Array<{ title: string; description: string; startTime: string; duration: number; isHighlight: boolean }>> = {
+    hindu: [
+      { title: "Bride's Getting Ready", description: "Hair, makeup, and dressing", startTime: "05:00", duration: 60, isHighlight: false },
+      { title: "Groom's Getting Ready", description: "Sherwani, sehra, accessories", startTime: "06:00", duration: 60, isHighlight: false },
+      { title: "Morning Puja", description: "Prayers and blessings", startTime: "07:00", duration: 60, isHighlight: false },
+      { title: "Baraat Assembly", description: "Groom's side gathers", startTime: "08:00", duration: 60, isHighlight: false },
+      { title: "Baraat Procession", description: "Band, DJ, dancing", startTime: "09:00", duration: 60, isHighlight: true },
+      { title: "Milni & Welcome", description: "Groom welcomed by bride's family", startTime: "10:00", duration: 30, isHighlight: false },
+      { title: "Jaimala", description: "Exchange of garlands", startTime: "10:30", duration: 30, isHighlight: true },
+      { title: "Kanyadaan", description: "Father gives away the bride", startTime: "11:00", duration: 30, isHighlight: true },
+      { title: "Mangal Pheras", description: "Seven rounds around sacred fire", startTime: "11:30", duration: 60, isHighlight: true },
+      { title: "Sindoor & Mangalsutra", description: "Groom applies sindoor", startTime: "12:30", duration: 30, isHighlight: true },
+      { title: "Vidaai", description: "Bride's farewell", startTime: "13:00", duration: 30, isHighlight: true },
+      { title: "Lunch", description: "Wedding lunch", startTime: "13:30", duration: 60, isHighlight: false },
+      { title: "Griha Pravesh", description: "Bride enters groom's home", startTime: "16:00", duration: 30, isHighlight: false },
+      { title: "Reception", description: "Evening celebration", startTime: "18:00", duration: 180, isHighlight: true },
+    ],
+    muslim: [
+      { title: "Mehendi", description: "Henna for bride", startTime: "08:00", duration: 120, isHighlight: false },
+      { title: "Nikah", description: "Signing of Nikahnama", startTime: "10:00", duration: 60, isHighlight: true },
+      { title: "Mehr Exchange", description: "Groom presents Mahr", startTime: "11:00", duration: 30, isHighlight: true },
+      { title: "Blessings & Photos", description: "Family blessings", startTime: "12:00", duration: 60, isHighlight: false },
+      { title: "Lunch", description: "Wedding feast", startTime: "13:00", duration: 60, isHighlight: false },
+      { title: "Ruksati", description: "Bride's farewell", startTime: "16:00", duration: 30, isHighlight: true },
+      { title: "Walima", description: "Grand reception", startTime: "18:00", duration: 180, isHighlight: true },
+    ],
+    sikh: [
+      { title: "Chooda Ceremony", description: "Maternal uncle sets chooda", startTime: "06:00", duration: 60, isHighlight: true },
+      { title: "Groom Gets Ready", description: "Sherwani, turban, kirpan", startTime: "08:00", duration: 120, isHighlight: false },
+      { title: "Anand Karaj Begins", description: "Groom enters Gurdwara", startTime: "10:00", duration: 30, isHighlight: true },
+      { title: "Lavaan", description: "Four rounds around Guru Granth Sahib", startTime: "10:30", duration: 120, isHighlight: true },
+      { title: "Ardas", description: "Final prayer", startTime: "12:30", duration: 30, isHighlight: false },
+      { title: "Langar", description: "Community meal", startTime: "13:00", duration: 60, isHighlight: false },
+      { title: "Reception", description: "Evening celebration", startTime: "18:00", duration: 180, isHighlight: true },
+    ],
+    christian: [
+      { title: "Bride Gets Ready", description: "White gown and veil", startTime: "08:00", duration: 120, isHighlight: false },
+      { title: "Church Ceremony", description: "Bride walks down the aisle", startTime: "10:00", duration: 30, isHighlight: true },
+      { title: "Exchange of Vows", description: "Wedding promises", startTime: "10:30", duration: 30, isHighlight: true },
+      { title: "Exchange of Rings", description: "Wedding rings", startTime: "11:00", duration: 30, isHighlight: true },
+      { title: "Signing Register", description: "Legal signing", startTime: "12:00", duration: 30, isHighlight: false },
+      { title: "Photos", description: "Group photographs", startTime: "13:00", duration: 60, isHighlight: false },
+      { title: "Reception", description: "Dinner, cake, first dance", startTime: "18:00", duration: 180, isHighlight: true },
+    ],
+  };
+
+  const template = TIMELINE[wedding.religion] || TIMELINE.hindu;
+  let order = 0;
+
+  for (const item of template) {
+    await prisma.weddingTimelineItem.create({
+      data: {
+        weddingId,
+        order: order++,
+        title: item.title,
+        description: item.description,
+        startTime: item.startTime,
+        duration: item.duration,
+        isHighlight: item.isHighlight,
+      },
+    });
+  }
+}
