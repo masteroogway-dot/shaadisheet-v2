@@ -52,6 +52,7 @@ export default function WeddingDashboardPage() {
         region: data.region,
         budget: data.budget,
         guestCount: data.guestCount,
+        weddingDays: data.weddingDays,
         selectedEvents: data.selectedEvents,
         weddingDate: data.weddingDate ? new Date(data.weddingDate) : undefined,
         weddingCity: data.weddingCity,

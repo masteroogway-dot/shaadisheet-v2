@@ -63,6 +63,7 @@ model Wedding {
   region          String        @default("")
   budget          Int           @default(0)
   guestCount      Int           @default(0)
+  weddingDays     Int           @default(1)
   weddingDate     DateTime?
   weddingCity     String        @default("")
   selectedEvents  String        @default("[]")

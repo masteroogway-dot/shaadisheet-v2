@@ -85,6 +85,7 @@ export async function updateWedding(data: {
   region?: string;
   budget?: number;
   guestCount?: number;
+  weddingDays?: number;
   weddingDate?: Date;
   weddingCity?: string;
   selectedEvents?: string[];
@@ -97,11 +98,12 @@ export async function updateWedding(data: {
   });
   if (!wedding) throw new Error("Wedding not found");
 
+  const { weddingId, selectedEvents, ...rest } = data;
   return prisma.wedding.update({
-    where: { id: data.weddingId },
+    where: { id: weddingId },
     data: {
-      ...data,
-      selectedEvents: data.selectedEvents ? JSON.stringify(data.selectedEvents) : undefined,
+      ...rest,
+      selectedEvents: selectedEvents ? JSON.stringify(selectedEvents) : undefined,
     },
   });
 }

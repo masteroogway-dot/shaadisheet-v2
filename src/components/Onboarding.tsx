@@ -40,6 +40,7 @@ export default function Onboarding({ onComplete }: Props) {
     region: "",
     budget: 1000000,
     guestCount: 200,
+    weddingDays: 1,
     selectedEvents: [] as string[],
     weddingDate: "",
     weddingCity: "",
@@ -47,8 +48,9 @@ export default function Onboarding({ onComplete }: Props) {
   });
   const [budgetInput, setBudgetInput] = useState("1000000");
   const [guestInput, setGuestInput] = useState("200");
+  const [daysInput, setDaysInput] = useState("1");
 
-  const totalSteps = 6;
+  const totalSteps = 7;
   const progress = (step / totalSteps) * 100;
 
   useEffect(() => {
@@ -67,8 +69,9 @@ export default function Onboarding({ onComplete }: Props) {
       case 2: return !!data.region;
       case 3: return data.budget >= 1000000;
       case 4: return data.guestCount >= 50;
-      case 5: return data.selectedEvents.length > 0;
-      case 6: return true;
+      case 5: return data.weddingDays >= 1;
+      case 6: return data.selectedEvents.length > 0;
+      case 7: return true;
       default: return false;
     }
   };
@@ -122,6 +125,12 @@ export default function Onboarding({ onComplete }: Props) {
       const clamped = Math.max(50, Math.min(5000, num));
       setData({ ...data, guestCount: clamped });
     }
+  };
+
+  const handleDaysChange = (value: number) => {
+    const clamped = Math.max(1, Math.min(15, value));
+    setData({ ...data, weddingDays: clamped });
+    setDaysInput(clamped.toString());
   };
 
   return (
@@ -208,13 +217,13 @@ export default function Onboarding({ onComplete }: Props) {
                   className="w-full mb-4"
                 />
                 <div className="flex justify-between text-xs text-gray-400 font-medium mb-6">
-                  <span>{'\u20B9'}10 Lakh</span>
-                  <span>{'\u20B9'}10 Crore</span>
+                  <span>{"\u20B9"}10 Lakh</span>
+                  <span>{"\u20B9"}10 Crore</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <label className="text-sm font-semibold text-gray-600">Or type amount:</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">{'\u20B9'}</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">{"\u20B9"}</span>
                     <input
                       type="text"
                       value={budgetInput}
@@ -234,7 +243,8 @@ export default function Onboarding({ onComplete }: Props) {
           {step === 4 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-3xl font-bold mb-2">How many guests are you expecting?</h2>
-              <p className="text-gray-500 mb-8">This affects your catering budget and venue selection.</p>
+              <p className="text-gray-500 mb-1">This affects your catering budget and venue selection.</p>
+              <p className="text-sm text-gray-400 mb-8 italic">Can always be changed later</p>
               <div className="bg-white border border-gray-200 rounded-2xl p-8">
                 <div className="text-center mb-8">
                   <span className="text-5xl font-extrabold text-maroon">{data.guestCount.toLocaleString("en-IN")}</span>
@@ -272,6 +282,49 @@ export default function Onboarding({ onComplete }: Props) {
 
           {step === 5 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
+              <h2 className="text-3xl font-bold mb-2">How many days will the main wedding span?</h2>
+              <p className="text-gray-500 mb-8">Indian weddings often span multiple days. This helps us plan the timeline.</p>
+              <div className="bg-white border border-gray-200 rounded-2xl p-8">
+                <div className="text-center mb-8">
+                  <span className="text-5xl font-extrabold text-maroon">{data.weddingDays}</span>
+                  <span className="text-lg text-gray-500 ml-2">{data.weddingDays === 1 ? "day" : "days"}</span>
+                </div>
+                <input
+                  type="range"
+                  min={1}
+                  max={15}
+                  step={1}
+                  value={data.weddingDays}
+                  onChange={(e) => handleDaysChange(parseInt(e.target.value))}
+                  className="w-full mb-4"
+                />
+                <div className="flex justify-between text-xs text-gray-400 font-medium mb-6">
+                  <span>1 day</span>
+                  <span>15 days</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-semibold text-gray-600">Or type number:</label>
+                  <input
+                    type="text"
+                    value={daysInput}
+                    onChange={(e) => {
+                      setDaysInput(e.target.value);
+                      const num = parseInt(e.target.value.replace(/[^\d]/g, ""), 10);
+                      if (!isNaN(num)) handleDaysChange(num);
+                    }}
+                    onBlur={() => {
+                      const num = parseInt(daysInput.replace(/[^\d]/g, ""), 10);
+                      handleDaysChange(isNaN(num) ? 1 : Math.max(1, Math.min(15, num)));
+                    }}
+                    className="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon transition-colors text-right font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 6 && (
+            <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-3xl font-bold mb-2">Which events are you planning?</h2>
               <p className="text-gray-500 mb-1">Select all that apply. We&apos;ll create a timeline for each.</p>
               <p className="text-sm text-gray-400 mb-6 italic">You can add more events later</p>
@@ -279,7 +332,7 @@ export default function Onboarding({ onComplete }: Props) {
                 {(EVENTS[data.religion] || EVENTS.hindu).map((e) => (
                   <button key={e} onClick={() => toggleEvent(e)}
                     className={`flex items-center gap-3 p-4 bg-white border-2 rounded-lg cursor-pointer transition-all ${data.selectedEvents.includes(e) ? "border-maroon bg-maroon/5" : "border-gray-200"}`}>
-                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${data.selectedEvents.includes(e) ? "border-maroon bg-maroon" : "border-gray-300"}`}>
+                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${data.selectedEvents.includes(e) ? "border-maroon bg-maroon" : "border-gray-300"}`}>
                       {data.selectedEvents.includes(e) && (
                         <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -293,7 +346,7 @@ export default function Onboarding({ onComplete }: Props) {
             </div>
           )}
 
-          {step === 6 && (
+          {step === 7 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-3xl font-bold mb-2">Almost done! When and where?</h2>
               <p className="text-gray-500 mb-8">We&apos;ll set up reminders based on your wedding date.</p>
