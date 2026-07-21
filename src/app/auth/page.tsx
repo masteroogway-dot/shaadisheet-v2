@@ -2,42 +2,46 @@
 
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function AuthPage() {
+  const [mode, setMode] = useState<"login" | "signup">("signup");
+
   return (
     <div className="flex min-h-screen">
       {/* Left Panel */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-maroon to-maroon-dark text-white p-16 flex-col justify-center relative overflow-hidden">
-        <div className="absolute top-[-50%] right-[-50%] w-full h-full bg-[radial-gradient(circle,rgba(212,175,55,0.1)_0%,transparent_60%)] pointer-events-none" />
+      <div className="hidden lg:flex flex-1 bg-maroon text-white p-16 flex-col justify-center relative overflow-hidden">
         <Link href="/" className="flex items-center gap-2.5 text-xl font-extrabold mb-16 relative z-10">
           <span className="text-2xl tracking-tight">|||</span>
           <span className="text-white">ShaadiSheet</span>
         </Link>
         <div className="relative z-10 mb-12">
-          <h1 className="text-[2.8rem] font-extrabold leading-[1.15] mb-4">
+          <h1 className="text-[2.5rem] font-extrabold leading-[1.15] mb-4">
             Plan Your Indian Wedding<br />
-            <span className="bg-gradient-to-br from-gold-light to-gold bg-clip-text text-transparent">Without the Chaos</span>
+            <span className="text-gold">Without the Chaos</span>
           </h1>
           <p className="text-lg opacity-85 leading-relaxed">Budget tracking. Vendor management. Ritual checklists. AI assistance.</p>
         </div>
         <div className="flex flex-col gap-4 relative z-10">
           {["Pre-filled for Indian weddings", "Real-time collaboration", "AI-powered suggestions", "Works on any device"].map((f, i) => (
             <div key={i} className="flex items-center gap-3 text-[0.95rem] opacity-90">
-              <i className="fas fa-check-circle text-gold text-lg" /> {f}
+              <i className="fas fa-check-circle text-gold" /> {f}
             </div>
           ))}
         </div>
       </div>
 
-      {/* Right Panel — Login */}
+      {/* Right Panel */}
       <div className="flex-1 flex items-center justify-center p-16 bg-cream">
-        <div className="w-full max-w-[420px]">
-          <h2 className="text-3xl font-bold mb-2">Welcome Back</h2>
-          <p className="text-gray-500 mb-8">Log in to your ShaadiSheet account</p>
+        <div className="w-full max-w-[400px]">
+          <h2 className="text-2xl font-bold mb-2 text-gray-900">{mode === "signup" ? "Create Your Account" : "Welcome Back"}</h2>
+          <p className="text-gray-500 mb-8 text-sm">
+            {mode === "signup" ? "Start planning your dream wedding today" : "Log in to your ShaadiSheet account"}
+          </p>
 
           <button
             onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-            className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-white border-2 border-gray-300 rounded-lg font-semibold hover:border-gray-500 hover:shadow-sm transition-all cursor-pointer"
+            className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white border-2 border-gray-300 rounded-lg font-semibold text-sm hover:border-gray-400 hover:shadow-sm transition-all cursor-pointer"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
@@ -48,32 +52,23 @@ export default function AuthPage() {
             Continue with Google
           </button>
 
-          <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px bg-gray-300" />
-            <span className="text-sm text-gray-400">or continue with email</span>
-            <div className="flex-1 h-px bg-gray-300" />
+          <div className="mt-8 text-center">
+            {mode === "signup" ? (
+              <p className="text-sm text-gray-500">
+                Already have an account?{" "}
+                <button onClick={() => setMode("login")} className="text-maroon font-semibold hover:underline cursor-pointer">
+                  Log In
+                </button>
+              </p>
+            ) : (
+              <p className="text-sm text-gray-500">
+                Don&apos;t have an account?{" "}
+                <button onClick={() => setMode("signup")} className="text-maroon font-semibold hover:underline cursor-pointer">
+                  Sign Up Free
+                </button>
+              </p>
+            )}
           </div>
-
-          <form onSubmit={(e) => { e.preventDefault(); signIn("google", { callbackUrl: "/dashboard" }); }}>
-            <div className="mb-5">
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
-              <input type="email" placeholder="you@example.com" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-[0.95rem] focus:outline-none focus:border-maroon transition-colors" />
-            </div>
-            <div className="mb-5">
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
-              <input type="password" placeholder="••••••••" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-[0.95rem] focus:outline-none focus:border-maroon transition-colors" />
-            </div>
-            <button type="submit" className="w-full py-3.5 text-white font-bold bg-gradient-to-br from-maroon to-maroon-light rounded-lg shadow-[0_4px_15px_rgba(139,0,0,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(139,0,0,0.4)] transition-all cursor-pointer">
-              Log In
-            </button>
-          </form>
-
-          <p className="text-center mt-6 text-sm text-gray-500">
-            Don&apos;t have an account?{" "}
-            <button onClick={() => signIn("google", { callbackUrl: "/dashboard" })} className="text-maroon font-semibold hover:underline">
-              Sign Up Free
-            </button>
-          </p>
         </div>
       </div>
     </div>

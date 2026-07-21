@@ -344,14 +344,17 @@ export default function DashboardPage() {
           <button onClick={() => setAiOpen(!aiOpen)} className="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-maroon transition-all" title="AI Assistant">
             <i className="fas fa-robot text-lg" />
           </button>
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-maroon to-gold text-white text-sm font-bold flex items-center justify-center cursor-pointer">
-            {session?.user?.name?.charAt(0) || "U"}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500 hidden md:block">{session?.user?.email}</span>
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-maroon to-gold text-white text-sm font-bold flex items-center justify-center cursor-pointer">
+              {session?.user?.name?.charAt(0) || "U"}
+            </div>
           </div>
         </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar activeView={activeView} onViewChange={setActiveView} />
+        <Sidebar activeView={activeView} onViewChange={setActiveView} onReset={loadWedding} />
         <main className="flex-1 overflow-y-auto p-8">
           {renderView()}
         </main>

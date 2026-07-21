@@ -398,3 +398,30 @@ export async function clearAiMessages() {
   const wedding = await getCurrentWedding();
   return prisma.aiMessage.deleteMany({ where: { weddingId: wedding.id } });
 }
+
+// ═══════════════════════════════════════════════════════════════
+// RESET WEDDING
+// ═══════════════════════════════════════════════════════════════
+
+export async function resetWedding() {
+  const wedding = await getCurrentWedding();
+  await prisma.budgetItem.deleteMany({ where: { weddingId: wedding.id } });
+  await prisma.vendor.deleteMany({ where: { weddingId: wedding.id } });
+  await prisma.guest.deleteMany({ where: { weddingId: wedding.id } });
+  await prisma.task.deleteMany({ where: { weddingId: wedding.id } });
+  await prisma.seatingTable.deleteMany({ where: { weddingId: wedding.id } });
+  await prisma.aiMessage.deleteMany({ where: { weddingId: wedding.id } });
+  return prisma.wedding.update({
+    where: { id: wedding.id },
+    data: {
+      name: "",
+      religion: "",
+      region: "",
+      budget: "",
+      guestCount: "",
+      weddingDate: null,
+      weddingCity: "",
+      selectedEvents: "[]",
+    },
+  });
+}
