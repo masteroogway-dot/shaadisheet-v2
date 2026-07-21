@@ -1259,3 +1259,110 @@ export async function getWeddingSummary(weddingId: string) {
     weddingDays: w.weddingDays,
   };
 }
+
+// ─── AI Learning System ──────────────────────────────────────────────
+
+export async function storeInteraction(
+  weddingId: string,
+  role: string,
+  content: string,
+  intent?: string,
+  targetType?: string,
+  successful?: boolean
+) {
+  try {
+    return await prisma.aiMessage.create({
+      data: { weddingId, role, content, intent, targetType, successful },
+    });
+  } catch (e) {
+    console.error("Failed to store interaction:", e);
+    return null;
+  }
+}
+
+export async function correctInteraction(
+  messageId: string,
+  correctedTo: string
+) {
+  try {
+    return await prisma.aiMessage.update({
+      where: { id: messageId },
+      data: { correctedTo, successful: false },
+    });
+  } catch (e) {
+    console.error("Failed to correct interaction:", e);
+    return null;
+  }
+}
+
+export async function learnCommand(
+  weddingId: string,
+  pattern: string,
+  intent: string,
+  targetType: string,
+  response: string
+) {
+  try {
+    return await prisma.aiMessage.create({
+      data: {
+        weddingId,
+        role: "learned",
+        content: response,
+        intent,
+        targetType,
+        pattern,
+        successful: true,
+      },
+    });
+  } catch (e) {
+    console.error("Failed to learn command:", e);
+    return null;
+  }
+}
+
+export async function getLearnedPatterns(weddingId: string) {
+  try {
+    return await prisma.aiMessage.findMany({
+      where: { weddingId, role: "learned", successful: true },
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (e) {
+    console.error("Failed to get learned patterns:", e);
+    return [];
+  }
+}
+
+export async function getInteractionHistory(weddingId: string, limit = 20) {
+  try {
+    return await prisma.aiMessage.findMany({
+      where: {
+        weddingId,
+        role: { in: ["user", "assistant"] },
+        successful: { not: false },
+      },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
+  } catch (e) {
+    console.error("Failed to get interaction history:", e);
+    return [];
+  }
+}
+
+export async function getSuccessfulPatterns(weddingId: string) {
+  try {
+    return await prisma.aiMessage.findMany({
+      where: {
+        weddingId,
+        role: "user",
+        successful: true,
+        intent: { not: null },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 30,
+    });
+  } catch (e) {
+    console.error("Failed to get successful patterns:", e);
+    return [];
+  }
+}

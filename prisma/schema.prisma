@@ -195,10 +195,15 @@ model SeatingTable {
 }
 
 model AiMessage {
-  id        String  @id @default(cuid())
-  weddingId String
-  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
-  role      String  @default("user")
-  content   String  @default("")
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  weddingId   String
+  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  role        String   @default("user")
+  content     String   @default("")
+  intent      String?  // "update", "delete", "query", "add", "learn"
+  targetType  String?  // "guests", "vendors", "budget", "rooms", "tasks"
+  successful  Boolean? // whether the action succeeded
+  correctedTo String?  // if user corrected this, the correct response
+  pattern     String?  // if learned command, the pattern regex
+  createdAt   DateTime @default(now())
 }
