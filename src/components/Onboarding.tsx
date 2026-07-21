@@ -209,8 +209,15 @@ export default function Onboarding({ onComplete }: Props) {
               </button>
             ) : <div />}
             {step < totalSteps ? (
-              <button onClick={() => setStep(step + 1)}
-                className="flex items-center gap-2 px-8 py-4 text-lg font-bold text-white bg-gradient-to-br from-maroon to-maroon-light rounded-lg shadow-[0_4px_15px_rgba(139,0,0,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(139,0,0,0.4)] transition-all">
+              <button onClick={() => {
+                if (step === 1 && !data.religion) return;
+                if (step === 2 && !data.region) return;
+                if (step === 3 && !data.budget) return;
+                if (step === 4 && !data.guests) return;
+                if (step === 5 && data.selectedEvents.length === 0) return;
+                setStep(step + 1);
+              }}
+                className={`flex items-center gap-2 px-8 py-4 text-lg font-bold text-white bg-gradient-to-br from-maroon to-maroon-light rounded-lg shadow-[0_4px_15px_rgba(139,0,0,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(139,0,0,0.4)] transition-all`}>
                 Continue <i className="fas fa-arrow-right" />
               </button>
             ) : (

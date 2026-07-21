@@ -8,7 +8,14 @@ export default function VendorsView({ wedding, onUpdate }: { wedding: any; onUpd
   const [editData, setEditData] = useState<any>({});
 
   const handleSave = async (id: string) => {
-    await updateVendor(id, editData);
+    const data = { ...editData };
+    if (data.quote !== undefined || data.paid !== undefined) {
+      const v = wedding.vendors?.find((x: any) => x.id === id);
+      const quote = data.quote ?? v?.quote ?? 0;
+      const paid = data.paid ?? v?.paid ?? 0;
+      data.balance = quote - paid;
+    }
+    await updateVendor(id, data);
     setEditing(null);
     onUpdate();
   };
@@ -53,35 +60,46 @@ export default function VendorsView({ wedding, onUpdate }: { wedding: any; onUpd
             </tr>
           </thead>
           <tbody>
-            {wedding.vendors?.map((v: any) => (
-              <tr key={v.id}>
-                <td className="text-center text-gray-400">{v.order + 1}</td>
-                <td className="font-semibold">{editing === v.id ? <input value={editData.category ?? v.category} onChange={(e) => setEditData({ ...editData, category: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" /> : v.category}</td>
-                <td>{editing === v.id ? <input value={editData.name ?? v.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" /> : v.name}</td>
-                <td>{v.contact}</td>
-                <td className="text-right">₹{v.quote.toLocaleString("en-IN")}</td>
-                <td className="text-right">{editing === v.id ? <input type="number" value={editData.paid ?? v.paid} onChange={(e) => setEditData({ ...editData, paid: parseInt(e.target.value) || 0 })} className="w-24 px-2 py-1 border rounded text-sm text-right" /> : `₹${v.paid.toLocaleString("en-IN")}`}</td>
-                <td className="text-right">₹{v.balance.toLocaleString("en-IN")}</td>
-                <td style={{ color: "#D4AF37" }}>{v.rating}</td>
-                <td>
-                  <span className={`status-badge ${v.contract === "Signed" ? "paid" : "pending"}`}>{v.contract}</span>
-                </td>
-                <td>{editing === v.id ? <input value={editData.notes ?? v.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} className="w-24 px-2 py-1 border rounded text-sm" /> : (v.notes || "—")}</td>
-                <td>
-                  {editing === v.id ? (
-                    <div className="flex gap-1">
-                      <button onClick={() => handleSave(v.id)} className="text-xs px-2 py-1 bg-green-500 text-white rounded cursor-pointer">Save</button>
-                      <button onClick={() => setEditing(null)} className="text-xs px-2 py-1 bg-gray-300 text-gray-700 rounded cursor-pointer">Cancel</button>
-                    </div>
-                  ) : (
-                    <div className="flex gap-1">
-                      <button onClick={() => { setEditing(v.id); setEditData({}); }} className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded cursor-pointer">Edit</button>
-                      <button onClick={() => handleDelete(v.id)} className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded cursor-pointer">Del</button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
+            {wedding.vendors?.map((v: any) => {
+              const quote = editData.quote ?? v.quote;
+              const paid = editData.paid ?? v.paid;
+              const balance = quote - paid;
+              return (
+                <tr key={v.id}>
+                  <td className="text-center text-gray-400">{v.order + 1}</td>
+                  <td className="font-semibold">{editing === v.id ? <input value={editData.category ?? v.category} onChange={(e) => setEditData({ ...editData, category: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" /> : v.category}</td>
+                  <td>{editing === v.id ? <input value={editData.name ?? v.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" /> : v.name}</td>
+                  <td>{editing === v.id ? <input value={editData.contact ?? v.contact} onChange={(e) => setEditData({ ...editData, contact: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" /> : v.contact}</td>
+                  <td className="text-right">{editing === v.id ? <input type="number" value={editData.quote ?? v.quote} onChange={(e) => setEditData({ ...editData, quote: parseInt(e.target.value) || 0 })} className="w-24 px-2 py-1 border rounded text-sm text-right" /> : `₹${v.quote.toLocaleString("en-IN")}`}</td>
+                  <td className="text-right">{editing === v.id ? <input type="number" value={editData.paid ?? v.paid} onChange={(e) => setEditData({ ...editData, paid: parseInt(e.target.value) || 0 })} className="w-24 px-2 py-1 border rounded text-sm text-right" /> : `₹${v.paid.toLocaleString("en-IN")}`}</td>
+                  <td className="text-right font-medium">₹{balance.toLocaleString("en-IN")}</td>
+                  <td style={{ color: "#D4AF37" }}>{editing === v.id ? (
+                    <select value={editData.rating ?? v.rating} onChange={(e) => setEditData({ ...editData, rating: e.target.value })} className="px-2 py-1 border rounded text-sm">
+                      <option>★★★★★</option><option>★★★★☆</option><option>★★★☆☆</option><option>★★☆☆☆</option><option>★☆☆☆☆</option>
+                    </select>
+                  ) : v.rating}</td>
+                  <td>{editing === v.id ? (
+                    <select value={editData.contract ?? v.contract} onChange={(e) => setEditData({ ...editData, contract: e.target.value })} className="px-2 py-1 border rounded text-sm">
+                      <option>Pending</option><option>Signed</option><option>Completed</option>
+                    </select>
+                  ) : <span className={`status-badge ${v.contract === "Signed" ? "paid" : "pending"}`}>{v.contract}</span>}</td>
+                  <td>{editing === v.id ? <input value={editData.notes ?? v.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} className="w-24 px-2 py-1 border rounded text-sm" /> : (v.notes || "—")}</td>
+                  <td>
+                    {editing === v.id ? (
+                      <div className="flex gap-1">
+                        <button onClick={() => handleSave(v.id)} className="text-xs px-2 py-1 bg-green-500 text-white rounded cursor-pointer">Save</button>
+                        <button onClick={() => setEditing(null)} className="text-xs px-2 py-1 bg-gray-300 text-gray-700 rounded cursor-pointer">Cancel</button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-1">
+                        <button onClick={() => { setEditing(v.id); setEditData({}); }} className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded cursor-pointer">Edit</button>
+                        <button onClick={() => handleDelete(v.id)} className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded cursor-pointer">Del</button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

@@ -7,7 +7,7 @@ export default function GuestsView({ wedding, onUpdate }: { wedding: any; onUpda
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
 
-  const totalGuests = wedding.guestCount === "small" ? 80 : wedding.guestCount === "medium" ? 200 : wedding.guestCount === "large" ? 400 : 600;
+  const totalGuests = wedding.guests?.length || 0;
   const rsvpYes = wedding.guests?.filter((g: any) => g.rsvp === "Yes").length || 0;
   const pending = wedding.guests?.filter((g: any) => g.rsvp === "Pending").length || 0;
   const declined = wedding.guests?.filter((g: any) => g.rsvp === "Declined").length || 0;
@@ -64,9 +64,6 @@ export default function GuestsView({ wedding, onUpdate }: { wedding: any; onUpda
               <th>Side</th>
               <th>RSVP</th>
               <th>Dietary</th>
-              <th>Table #</th>
-              <th>Gift</th>
-              <th>Thank You</th>
               <th>Notes</th>
               <th className="w-20">Action</th>
             </tr>
@@ -77,14 +74,21 @@ export default function GuestsView({ wedding, onUpdate }: { wedding: any; onUpda
                 <td className="text-center text-gray-400">{g.order + 1}</td>
                 <td className="font-semibold">{editing === g.id ? <input value={editData.name ?? g.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" /> : g.name}</td>
                 <td>{editing === g.id ? <input value={editData.relation ?? g.relation} onChange={(e) => setEditData({ ...editData, relation: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" /> : g.relation}</td>
-                <td>{g.side}</td>
-                <td>
-                  <span className={`status-badge ${g.rsvp === "Yes" ? "paid" : g.rsvp === "Pending" ? "planning" : "pending"}`}>{g.rsvp}</span>
-                </td>
-                <td>{g.dietary}</td>
-                <td>{g.tableNum}</td>
-                <td>{g.giftGiven}</td>
-                <td>{g.thankYou}</td>
+                <td>{editing === g.id ? (
+                  <select value={editData.side ?? g.side} onChange={(e) => setEditData({ ...editData, side: e.target.value })} className="px-2 py-1 border rounded text-sm">
+                    <option>Bride</option><option>Groom</option><option>Both</option>
+                  </select>
+                ) : g.side}</td>
+                <td>{editing === g.id ? (
+                  <select value={editData.rsvp ?? g.rsvp} onChange={(e) => setEditData({ ...editData, rsvp: e.target.value })} className="px-2 py-1 border rounded text-sm">
+                    <option>Yes</option><option>Pending</option><option>Declined</option>
+                  </select>
+                ) : <span className={`status-badge ${g.rsvp === "Yes" ? "paid" : g.rsvp === "Pending" ? "planning" : "pending"}`}>{g.rsvp}</span>}</td>
+                <td>{editing === g.id ? (
+                  <select value={editData.dietary ?? g.dietary} onChange={(e) => setEditData({ ...editData, dietary: e.target.value })} className="px-2 py-1 border rounded text-sm">
+                    <option>Veg</option><option>Non-Veg</option><option>Vegan</option><option>Jain</option>
+                  </select>
+                ) : g.dietary}</td>
                 <td>{editing === g.id ? <input value={editData.notes ?? g.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} className="w-24 px-2 py-1 border rounded text-sm" /> : (g.notes || "—")}</td>
                 <td>
                   {editing === g.id ? (

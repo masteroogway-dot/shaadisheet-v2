@@ -34,6 +34,14 @@ const EVENTS_BY_RELIGION: Record<string, Array<{ name: string; desc: string; tim
     { name: "Church Wedding", desc: "Wedding ceremony", time: "10:00 AM", ritual: true },
     { name: "Reception", desc: "Celebration", time: "7:00 PM", ritual: false },
   ],
+  jain: [
+    { name: "Roka", desc: "Official engagement", time: "11:00 AM", ritual: true },
+    { name: "Engagement", desc: "Ring exchange", time: "7:00 PM", ritual: true },
+    { name: "Mehendi", desc: "Henna application", time: "4:00 PM", ritual: false },
+    { name: "Sangeet", desc: "Music and dance", time: "7:00 PM", ritual: false },
+    { name: "Wedding Ceremony", desc: "Jain wedding rituals", time: "10:00 AM", ritual: true },
+    { name: "Reception", desc: "Grand celebration", time: "7:00 PM", ritual: false },
+  ],
 };
 
 function formatINR(n: number) {
@@ -146,18 +154,17 @@ export default function OverviewView({ wedding }: { wedding: any }) {
         {/* Recent Activity */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-6 pt-5 pb-0">
-            <h3 className="font-bold">Recent Activity</h3>
+            <h3 className="font-bold">Quick Tips</h3>
           </div>
           <div className="p-6">
             {[
-              { avatar: (wedding.name || "U").charAt(0), color: "#E8B4B8", text: `<strong>${(wedding.name || "User").split(" ")[0]}</strong> confirmed venue`, time: "Recently" },
-              { avatar: "AI", color: "#D4E8B4", text: `<strong>AI Assistant</strong> suggested: "Add ₹${formatINR(Math.round(totalBudget * 0.05))} buffer"`, time: "Yesterday" },
-            ].map((a, i) => (
+              { icon: "fa-lightbulb", color: "#FEF3C7", text: "Review your budget allocations to ensure nothing is missed." },
+              { icon: "fa-calendar-check", color: "#D1FAE5", text: "Set your wedding date to unlock countdown and reminders." },
+            ].map((tip, i) => (
               <div key={i} className="flex items-start gap-3 py-3.5 border-b border-gray-100 last:border-0">
-                <div className="w-9 h-9 rounded-full flex items-center justify-center text-[0.7rem] font-bold text-gray-800 shrink-0" style={{ background: a.color }}>{a.avatar}</div>
+                <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: tip.color }}><i className={`fas ${tip.icon} text-sm`} /></div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm" dangerouslySetInnerHTML={{ __html: a.text }} />
-                  <span className="text-xs text-gray-400">{a.time}</span>
+                  <p className="text-sm">{tip.text}</p>
                 </div>
               </div>
             ))}

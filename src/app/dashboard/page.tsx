@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
@@ -88,6 +89,50 @@ const BUDGET_CATEGORIES: Record<string, Array<{ cat: string; pct: number; items:
     { cat: "Gifts & Favors", pct: 0.04, items: ["Return Gifts", "Sagan Envelopes", "Welcome Kits", "Family Gifts"] },
     { cat: "Miscellaneous", pct: 0.04, items: ["Invitations", "Stamp Paper", "Tips", "Buffer"] },
   ],
+  muslim: [
+    { cat: "Venue & Decor", pct: 0.30, items: ["Venue Rental", "Stage Decoration", "Floral Arrangements", "Lighting & Effects", "Mandap/Nikah Stage"] },
+    { cat: "Catering", pct: 0.25, items: ["Wedding Menu", "Welcome Drinks", "Snacks & Starters", "Wedding Cake"] },
+    { cat: "Photography & Video", pct: 0.08, items: ["Photographer", "Videographer", "Drone Coverage", "Same Day Edit"] },
+    { cat: "Attire & Jewelry", pct: 0.15, items: ["Bride Outfit", "Groom Sherwani/Suit", "Bridal Jewelry", "Accessories"] },
+    { cat: "Mehr & Rituals", pct: 0.04, items: ["Mehr", "Quran", "Ritual Items", "Maulvi Sahib"] },
+    { cat: "Music & Entertainment", pct: 0.06, items: ["DJ + Sound", "Qawwali Group", "Choreographer", "LED Floor"] },
+    { cat: "Transport", pct: 0.04, items: ["Baraat Vehicle", "Bride Entry", "Guest Transport", "Parking"] },
+    { cat: "Gifts & Favors", pct: 0.04, items: ["Return Gifts", "Eidi Envelopes", "Welcome Kits", "Family Gifts"] },
+    { cat: "Miscellaneous", pct: 0.04, items: ["Invitations", "Tips", "Buffer", "Misc"] },
+  ],
+  sikh: [
+    { cat: "Venue & Decor", pct: 0.30, items: ["Venue/Gurdwara", "Stage Decoration", "Floral Arrangements", "Lighting & Effects", "Decor"] },
+    { cat: "Catering", pct: 0.25, items: ["Langar Menu", "Welcome Drinks", "Snacks & Starters", "Wedding Cake"] },
+    { cat: "Photography & Video", pct: 0.08, items: ["Photographer", "Videographer", "Drone Coverage", "Same Day Edit"] },
+    { cat: "Attire & Jewelry", pct: 0.15, items: ["Bride Outfit", "Groom Sherwani", "Bridal Jewelry", "Accessories"] },
+    { cat: "Rituals", pct: 0.04, items: ["Granthi Sahib", "Ritual Items", "Rumala Sahib", "Parshad"] },
+    { cat: "Music & Entertainment", pct: 0.06, items: ["DJ + Sound", "Dhol Players", "Choreographer", "LED Floor"] },
+    { cat: "Transport", pct: 0.04, items: ["Baraat Vehicle", "Bride Entry", "Guest Transport", "Parking"] },
+    { cat: "Gifts & Favors", pct: 0.04, items: ["Return Gifts", "Mata Di Jura", "Welcome Kits", "Family Gifts"] },
+    { cat: "Miscellaneous", pct: 0.04, items: ["Invitations", "Tips", "Buffer", "Misc"] },
+  ],
+  christian: [
+    { cat: "Venue & Decor", pct: 0.30, items: ["Church/Reception Venue", "Stage Decoration", "Floral Arrangements", "Lighting & Effects", "Decor"] },
+    { cat: "Catering", pct: 0.25, items: ["Reception Menu", "Welcome Drinks", "Snacks & Starters", "Wedding Cake"] },
+    { cat: "Photography & Video", pct: 0.08, items: ["Photographer", "Videographer", "Drone Coverage", "Same Day Edit"] },
+    { cat: "Attire & Jewelry", pct: 0.15, items: ["Bride Gown", "Groom Suit", "Bridal Jewelry", "Accessories"] },
+    { cat: "Church & Rituals", pct: 0.04, items: ["Pastor/Father", "Flowers", "Candles", "Ritual Items"] },
+    { cat: "Music & Entertainment", pct: 0.06, items: ["DJ + Sound", "Choir", "Choreographer", "LED Floor"] },
+    { cat: "Transport", pct: 0.04, items: ["Bride Car", "Guest Transport", "Parking", "Misc"] },
+    { cat: "Gifts & Favors", pct: 0.04, items: ["Return Gifts", "Welcome Kits", "Family Gifts", "Misc"] },
+    { cat: "Miscellaneous", pct: 0.04, items: ["Invitations", "Tips", "Buffer", "Misc"] },
+  ],
+  jain: [
+    { cat: "Venue & Decor", pct: 0.30, items: ["Venue Rental", "Stage Decoration", "Floral Arrangements", "Lighting & Effects", "Decor"] },
+    { cat: "Catering", pct: 0.25, items: ["Veg Menu", "Welcome Drinks", "Snacks & Starters", "Wedding Cake"] },
+    { cat: "Photography & Video", pct: 0.08, items: ["Photographer", "Videographer", "Drone Coverage", "Same Day Edit"] },
+    { cat: "Attire & Jewelry", pct: 0.15, items: ["Bride Outfit", "Groom Outfit", "Bridal Jewelry", "Accessories"] },
+    { cat: "Rituals", pct: 0.04, items: ["Pandit Ji", "Puja Samagri", "Ritual Items", "Misc"] },
+    { cat: "Music & Entertainment", pct: 0.06, items: ["DJ + Sound", "Band", "Choreographer", "LED Floor"] },
+    { cat: "Transport", pct: 0.04, items: ["Bride Entry", "Guest Transport", "Parking", "Misc"] },
+    { cat: "Gifts & Favors", pct: 0.04, items: ["Return Gifts", "Welcome Kits", "Family Gifts", "Misc"] },
+    { cat: "Miscellaneous", pct: 0.04, items: ["Invitations", "Tips", "Buffer", "Misc"] },
+  ],
 };
 
 const VENDOR_NAMES: Record<string, string[]> = {
@@ -165,7 +210,7 @@ export default function DashboardPage() {
 
     // Generate budget items
     const totalBudget = BUDGET_RANGES[data.budget]?.total || 4000000;
-    const cats = BUDGET_CATEGORIES.hindu;
+    const cats = BUDGET_CATEGORIES[data.religion] || BUDGET_CATEGORIES.hindu;
     const budgetItems: any[] = [];
     let order = 0;
     for (const cat of cats) {
@@ -209,7 +254,7 @@ export default function DashboardPage() {
     // Generate guests
     const guestCountMap: Record<string, number> = { small: 80, medium: 200, large: 400, grand: 600 };
     const totalGuests = guestCountMap[data.guests] || 200;
-    const guestsToShow = Math.min(totalGuests, 50);
+    const guestsToShow = Math.min(totalGuests, 100);
     const guests = [];
     for (let i = 0; i < guestsToShow; i++) {
       guests.push({
@@ -316,6 +361,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-// Need Link import
-import Link from "next/link";

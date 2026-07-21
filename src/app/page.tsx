@@ -25,17 +25,17 @@ export default function Home() {
       </nav>
 
       {/* HERO */}
-      <section className="pt-[140px] pb-16 px-6 text-center relative overflow-hidden min-h-screen">
+      <section className="pt-[120px] pb-20 px-6 text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(139,0,0,0.03)_0%,transparent_50%),radial-gradient(circle_at_80%_20%,rgba(212,175,55,0.05)_0%,transparent_50%)] pointer-events-none" />
         <div className="max-w-[800px] mx-auto relative z-10">
           <div className="inline-flex items-center gap-2 px-5 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-600 mb-6 shadow-sm">
             <i className="fas fa-sparkles text-gold" /> Built for Indian Weddings
           </div>
-          <h1 className="text-[4rem] font-extrabold leading-[1.1] mb-6 tracking-tight">
+          <h1 className="text-5xl md:text-6xl font-extrabold leading-[1.1] mb-6 tracking-tight">
             Plan Your Indian Wedding<br />
             <span className="bg-gradient-to-br from-maroon to-gold bg-clip-text text-transparent">Without the Chaos</span>
           </h1>
-          <p className="text-xl text-gray-500 max-w-[600px] mx-auto mb-10 leading-relaxed">
+          <p className="text-lg md:text-xl text-gray-500 max-w-[600px] mx-auto mb-10 leading-relaxed">
             Budget tracking. Vendor management. Ritual checklists. AI assistance. Built for Hindu, Muslim, Sikh, and Christian weddings.
           </p>
           <div className="flex gap-4 justify-center flex-wrap mb-12">

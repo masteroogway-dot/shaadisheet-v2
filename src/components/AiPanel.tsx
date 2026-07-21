@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { addAiMessage } from "@/lib/actions";
+import { addAiMessage, getAiMessages } from "@/lib/actions";
 
 const BUDGET_RANGES: Record<string, number> = {
   under10: 800000, "10to30": 2000000, "30to50": 4000000, "50to1cr": 7500000, above1cr: 15000000,
@@ -66,11 +66,26 @@ export default function AiPanel({ open, onClose, wedding, onUpdate }: Props) {
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([
     { role: "bot", content: "Hi! I'm your wedding planning assistant. Ask me about budget, guests, vendors, rituals, or timeline." },
   ]);
+  const [loaded, setLoaded] = useState(false);
   const messagesEnd = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEnd.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if (open && !loaded) {
+      getAiMessages().then((dbMessages) => {
+        if (dbMessages && dbMessages.length > 0) {
+          setMessages([
+            { role: "bot", content: "Hi! I'm your wedding planning assistant. Ask me about budget, guests, vendors, rituals, or timeline." },
+            ...dbMessages.map((m: any) => ({ role: m.role, content: m.content })),
+          ]);
+        }
+        setLoaded(true);
+      }).catch(() => setLoaded(true));
+    }
+  }, [open, loaded]);
 
   const send = async () => {
     if (!input.trim()) return;

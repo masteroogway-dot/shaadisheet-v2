@@ -109,10 +109,16 @@ export async function updateBudgetItem(
     notes?: string;
   }
 ) {
+  const wedding = await getCurrentWedding();
+  const item = await prisma.budgetItem.findUnique({ where: { id } });
+  if (!item || item.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.budgetItem.update({ where: { id }, data });
 }
 
 export async function deleteBudgetItem(id: string) {
+  const wedding = await getCurrentWedding();
+  const item = await prisma.budgetItem.findUnique({ where: { id } });
+  if (!item || item.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.budgetItem.delete({ where: { id } });
 }
 
@@ -178,10 +184,16 @@ export async function updateVendor(
     notes?: string;
   }
 ) {
+  const wedding = await getCurrentWedding();
+  const vendor = await prisma.vendor.findUnique({ where: { id } });
+  if (!vendor || vendor.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.vendor.update({ where: { id }, data });
 }
 
 export async function deleteVendor(id: string) {
+  const wedding = await getCurrentWedding();
+  const vendor = await prisma.vendor.findUnique({ where: { id } });
+  if (!vendor || vendor.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.vendor.delete({ where: { id } });
 }
 
@@ -245,10 +257,16 @@ export async function updateGuest(
     notes?: string;
   }
 ) {
+  const wedding = await getCurrentWedding();
+  const guest = await prisma.guest.findUnique({ where: { id } });
+  if (!guest || guest.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.guest.update({ where: { id }, data });
 }
 
 export async function deleteGuest(id: string) {
+  const wedding = await getCurrentWedding();
+  const guest = await prisma.guest.findUnique({ where: { id } });
+  if (!guest || guest.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.guest.delete({ where: { id } });
 }
 
@@ -296,10 +314,16 @@ export async function createTask(data: {
 }
 
 export async function updateTask(id: string, data: { done?: boolean; text?: string }) {
+  const wedding = await getCurrentWedding();
+  const task = await prisma.task.findUnique({ where: { id } });
+  if (!task || task.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.task.update({ where: { id }, data });
 }
 
 export async function deleteTask(id: string) {
+  const wedding = await getCurrentWedding();
+  const task = await prisma.task.findUnique({ where: { id } });
+  if (!task || task.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.task.delete({ where: { id } });
 }
 
@@ -341,10 +365,16 @@ export async function updateSeatingTable(
   id: string,
   data: { name?: string; capacity?: number; guests?: string }
 ) {
+  const wedding = await getCurrentWedding();
+  const table = await prisma.seatingTable.findUnique({ where: { id } });
+  if (!table || table.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.seatingTable.update({ where: { id }, data });
 }
 
 export async function deleteSeatingTable(id: string) {
+  const wedding = await getCurrentWedding();
+  const table = await prisma.seatingTable.findUnique({ where: { id } });
+  if (!table || table.weddingId !== wedding.id) throw new Error("Unauthorized");
   return prisma.seatingTable.delete({ where: { id } });
 }
 
