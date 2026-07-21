@@ -38,7 +38,7 @@ export default function TasksView({ wedding, weddingId, onToggle }: { wedding: a
         <p className="text-gray-500 text-sm">12-month countdown {'\u2014'} nothing gets missed</p>
       </div>
 
-      {!hasTasks ? (
+      {!hasTasks && !addingTo ? (
         <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
           <div className="w-16 h-16 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-4">
             <i className="fas fa-tasks text-maroon text-xl" />
