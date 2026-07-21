@@ -18,6 +18,7 @@ interface WeddingEvent {
   duration: number;
   location: string;
   isRitual: boolean;
+  isSimultaneous: boolean;
   order: number;
 }
 
@@ -52,6 +53,7 @@ function checkOverlaps(events: WeddingEvent[]): Map<string, string[]> {
       const a = events[i];
       const b = events[j];
       if (a.date !== b.date) continue;
+      if (a.isSimultaneous && b.isSimultaneous) continue;
 
       const aStart = timeToMinutes(a.startTime);
       const aEnd = getEndTime(a.startTime, a.duration);
@@ -168,6 +170,7 @@ export default function EventsView({ wedding, weddingId }: { wedding: any; weddi
       duration: event.duration,
       location: event.location,
       isRitual: event.isRitual,
+      isSimultaneous: event.isSimultaneous,
     });
   };
 
@@ -326,15 +329,26 @@ export default function EventsView({ wedding, weddingId }: { wedding: any; weddi
                               </div>
                             </div>
                             <div className="flex items-center justify-between">
-                              <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={editData.isRitual ?? false}
-                                  onChange={(e) => setEditData({ ...editData, isRitual: e.target.checked })}
-                                  className="w-4 h-4 accent-maroon rounded"
-                                />
-                                Ritual / Religious Ceremony
-                              </label>
+                              <div className="flex items-center gap-5">
+                                <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={editData.isRitual ?? false}
+                                    onChange={(e) => setEditData({ ...editData, isRitual: e.target.checked })}
+                                    className="w-4 h-4 accent-maroon rounded"
+                                  />
+                                  Ritual
+                                </label>
+                                <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={editData.isSimultaneous ?? false}
+                                    onChange={(e) => setEditData({ ...editData, isSimultaneous: e.target.checked })}
+                                    className="w-4 h-4 accent-maroon rounded"
+                                  />
+                                  Simultaneous
+                                </label>
+                              </div>
                               <div className="flex gap-2">
                                 <button onClick={cancelEdit} className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg cursor-pointer">Cancel</button>
                                 <button onClick={() => handleSave(event.id)} className="px-4 py-1.5 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">Save</button>
@@ -381,6 +395,12 @@ export default function EventsView({ wedding, weddingId }: { wedding: any; weddi
                                   <span className="flex items-center gap-1">
                                     <i className="fas fa-om" />
                                     Ritual
+                                  </span>
+                                )}
+                                {event.isSimultaneous && (
+                                  <span className="flex items-center gap-1 text-purple-600">
+                                    <i className="fas fa-layer-group" />
+                                    Simultaneous
                                   </span>
                                 )}
                               </div>

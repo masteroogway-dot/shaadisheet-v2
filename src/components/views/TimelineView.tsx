@@ -16,6 +16,7 @@ interface TimelineItem {
   startTime: string;
   duration: number;
   isHighlight: boolean;
+  isSimultaneous: boolean;
   order: number;
 }
 
@@ -51,6 +52,7 @@ function checkOverlaps(items: TimelineItem[]): Map<string, string[]> {
     for (let j = i + 1; j < items.length; j++) {
       const a = items[i];
       const b = items[j];
+      if (a.isSimultaneous && b.isSimultaneous) continue;
       const aStart = timeToMinutes(a.startTime);
       const aEnd = aStart + a.duration;
       const bStart = timeToMinutes(b.startTime);
@@ -140,6 +142,7 @@ export default function TimelineView({ wedding, weddingId }: { wedding: any; wed
       startTime: item.startTime,
       duration: item.duration,
       isHighlight: item.isHighlight,
+      isSimultaneous: item.isSimultaneous,
     });
   };
 
@@ -257,7 +260,7 @@ export default function TimelineView({ wedding, weddingId }: { wedding: any; wed
                             ))}
                           </select>
                         </div>
-                        <div className="flex items-end">
+                        <div className="flex items-end gap-4">
                           <label className="flex items-center gap-2 text-sm font-medium cursor-pointer pb-2">
                             <input
                               type="checkbox"
@@ -266,6 +269,15 @@ export default function TimelineView({ wedding, weddingId }: { wedding: any; wed
                               className="w-4 h-4 accent-maroon rounded"
                             />
                             Highlight
+                          </label>
+                          <label className="flex items-center gap-2 text-sm font-medium cursor-pointer pb-2">
+                            <input
+                              type="checkbox"
+                              checked={editData.isSimultaneous ?? false}
+                              onChange={(e) => setEditData({ ...editData, isSimultaneous: e.target.checked })}
+                              className="w-4 h-4 accent-maroon rounded"
+                            />
+                            Simultaneous
                           </label>
                         </div>
                       </div>
@@ -286,6 +298,11 @@ export default function TimelineView({ wedding, weddingId }: { wedding: any; wed
                         {isOverlapping && (
                           <span className="inline-block mt-2 text-[0.65rem] px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-semibold">
                             Overlaps with: {overlaps.get(item.id)?.join(", ")}
+                          </span>
+                        )}
+                        {item.isSimultaneous && (
+                          <span className="inline-block mt-2 text-[0.65rem] px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-semibold">
+                            Simultaneous
                           </span>
                         )}
                       </div>

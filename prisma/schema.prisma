@@ -89,22 +89,24 @@ model WeddingEvent {
   startTime   String   @default("10:00")
   duration    Int      @default(60)
   location    String   @default("")
-  isRitual    Boolean  @default(false)
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
+  isRitual       Boolean  @default(false)
+  isSimultaneous Boolean  @default(false)
+  order          Int      @default(0)
+  createdAt      DateTime @default(now())
 }
 
 model WeddingTimelineItem {
-  id          String   @id @default(cuid())
-  weddingId   String
-  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
-  title       String
-  description String   @default("")
-  startTime   String   @default("09:00")
-  duration    Int      @default(30)
-  isHighlight Boolean  @default(false)
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
+  id             String   @id @default(cuid())
+  weddingId      String
+  wedding        Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  title          String
+  description    String   @default("")
+  startTime      String   @default("09:00")
+  duration       Int      @default(30)
+  isHighlight    Boolean  @default(false)
+  isSimultaneous Boolean  @default(false)
+  order          Int      @default(0)
+  createdAt      DateTime @default(now())
 }
 
 model BudgetItem {

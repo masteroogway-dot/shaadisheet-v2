@@ -614,6 +614,7 @@ export async function createWeddingEvent(weddingId: string, data: any) {
       duration: data.duration || 60,
       location: data.location || "",
       isRitual: data.isRitual || false,
+      isSimultaneous: data.isSimultaneous || false,
     },
   });
 }
@@ -626,6 +627,7 @@ export async function updateWeddingEvent(weddingId: string, eventId: string, dat
 
   if (updateData.duration !== undefined) updateData.duration = Number(updateData.duration);
   if (updateData.isRitual !== undefined) updateData.isRitual = Boolean(updateData.isRitual);
+  if (updateData.isSimultaneous !== undefined) updateData.isSimultaneous = Boolean(updateData.isSimultaneous);
   if (updateData.order !== undefined) updateData.order = Number(updateData.order);
 
   return prisma.weddingEvent.update({
@@ -653,7 +655,7 @@ export async function seedWeddingEvents(weddingId: string) {
   const existing = await prisma.weddingEvent.count({ where: { weddingId } });
   if (existing > 0) return;
 
-  const EVENTS: Record<string, Array<{ name: string; description: string; startTime: string; duration: number; isRitual: boolean }>> = {
+  const EVENTS: Record<string, Array<{ name: string; description: string; startTime: string; duration: number; isRitual: boolean; isSimultaneous?: boolean }>> = {
     hindu: [
       { name: "Roka", description: "Official engagement", startTime: "11:00", duration: 120, isRitual: true },
       { name: "Engagement", description: "Ring exchange ceremony", startTime: "19:00", duration: 120, isRitual: true },
@@ -717,6 +719,7 @@ export async function seedWeddingEvents(weddingId: string) {
         duration: template[i].duration,
         location: wedding.weddingCity || "",
         isRitual: template[i].isRitual,
+        isSimultaneous: template[i].isSimultaneous || false,
       },
     });
   }
@@ -754,6 +757,7 @@ export async function createWeddingTimelineItem(weddingId: string, data: any) {
       startTime: data.startTime || "09:00",
       duration: data.duration || 30,
       isHighlight: data.isHighlight || false,
+      isSimultaneous: data.isSimultaneous || false,
     },
   });
 }
@@ -766,6 +770,7 @@ export async function updateWeddingTimelineItem(weddingId: string, itemId: strin
 
   if (updateData.duration !== undefined) updateData.duration = Number(updateData.duration);
   if (updateData.isHighlight !== undefined) updateData.isHighlight = Boolean(updateData.isHighlight);
+  if (updateData.isSimultaneous !== undefined) updateData.isSimultaneous = Boolean(updateData.isSimultaneous);
   if (updateData.order !== undefined) updateData.order = Number(updateData.order);
 
   return prisma.weddingTimelineItem.update({
@@ -793,10 +798,10 @@ export async function seedWeddingTimeline(weddingId: string) {
   const existing = await prisma.weddingTimelineItem.count({ where: { weddingId } });
   if (existing > 0) return;
 
-  const TIMELINE: Record<string, Array<{ title: string; description: string; startTime: string; duration: number; isHighlight: boolean }>> = {
+  const TIMELINE: Record<string, Array<{ title: string; description: string; startTime: string; duration: number; isHighlight: boolean; isSimultaneous?: boolean }>> = {
     hindu: [
-      { title: "Bride's Getting Ready", description: "Hair, makeup, and dressing", startTime: "05:00", duration: 60, isHighlight: false },
-      { title: "Groom's Getting Ready", description: "Sherwani, sehra, accessories", startTime: "06:00", duration: 60, isHighlight: false },
+      { title: "Bride's Getting Ready", description: "Hair, makeup, and dressing", startTime: "05:00", duration: 120, isHighlight: false, isSimultaneous: true },
+      { title: "Groom's Getting Ready", description: "Sherwani, sehra, accessories", startTime: "05:00", duration: 120, isHighlight: false, isSimultaneous: true },
       { title: "Morning Puja", description: "Prayers and blessings", startTime: "07:00", duration: 60, isHighlight: false },
       { title: "Baraat Assembly", description: "Groom's side gathers", startTime: "08:00", duration: 60, isHighlight: false },
       { title: "Baraat Procession", description: "Band, DJ, dancing", startTime: "09:00", duration: 60, isHighlight: true },
@@ -852,6 +857,7 @@ export async function seedWeddingTimeline(weddingId: string) {
         startTime: item.startTime,
         duration: item.duration,
         isHighlight: item.isHighlight,
+        isSimultaneous: item.isSimultaneous || false,
       },
     });
   }
