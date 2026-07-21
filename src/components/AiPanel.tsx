@@ -85,7 +85,7 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
 
   const getWelcomeMessage = () => {
     const learnedCount = learnedPatterns.length;
-    const base = `Hi! I'm your ShaadiSheet AI assistant, powered by **Gemini** for smart queries.\n\n**Quick Actions (instant):**\n- "Mark all Sharma guests as RSVP Yes"\n- "Set all Bride side guests dietary to Veg"\n- "Delete all guests with Declined RSVP"\n\n**Smart Queries (AI-powered):**\n- "Summarize my wedding planning status"\n- "What should I prioritize next?"\n- "Analyze my budget and suggest savings"\n- "Which guests haven't RSVP'd yet?"\n- "Tell me about Mehndi ceremony traditions"`;
+    const base = `Hi! I'm your ShaadiSheet AI assistant. I can help with:\n\n**Quick Commands (instant):**\n- "Mark all Sharma guests as RSVP Yes"\n- "Set all Bride side guests dietary to Veg"\n- "Delete all guests with Declined RSVP"\n\n**AI Commands (creates real records):**\n- "Add 5 guests: Rahul (Groom, Veg), Priya (Bride, Non-Veg)..."\n- "Create a vendor: Sharma Catering, Catering, quote 5 lakhs"\n- "Allocate 10 rooms at Hotel Express Inn"\n- "Create a budget item: Venue Decor, 3 lakhs"\n\n**Smart Queries:**\n- "Summarize my wedding planning status"\n- "What should I prioritize next?"\n- "Analyze my budget and suggest savings"\n\nType **help** anytime for the full command guide.`;
     if (learnedCount > 0) {
       return base + `\n\n**Learned:** ${learnedCount} custom command${learnedCount > 1 ? "s" : ""} from past interactions.`;
     }
