@@ -11,7 +11,6 @@ import {
   correctInteraction,
   learnCommand,
   getLearnedPatterns,
-  askGeminiAI,
 } from "@/lib/actions";
 import { shouldUseGemini } from "@/lib/gemini";
 
@@ -499,7 +498,13 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
         setMessages((prev) => [...prev, { role: "bot", content: "Thinking..." }]);
 
         const conversationHistory = messages.slice(-10).map((m) => ({ role: m.role, content: m.content }));
-        const response = await askGeminiAI(weddingId, userMsg, conversationHistory);
+        const res = await fetch("/api/ai", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ weddingId, question: userMsg, conversationHistory }),
+        });
+        const data = await res.json();
+        const response = data.response || "Sorry, I couldn't process that.";
 
         // Remove "Thinking..." and add real response
         setMessages((prev) => {
