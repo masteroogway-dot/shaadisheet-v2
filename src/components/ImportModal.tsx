@@ -167,7 +167,7 @@ export default function ImportModal({ open, onClose, type, onImport }: Props) {
           <div>
             <h2 className="text-lg font-bold">Import from Excel / CSV</h2>
             <p className="text-sm text-gray-500">
-              {type === "budget" ? "Import budget items" : type === "vendors" ? "Import vendors" : "Import guests"}
+              {type === "budget" ? "Import budget items" : type === "vendors" ? "Import vendors" : type === "rooms" ? "Import room allocations" : "Import guests"}
             </p>
           </div>
           <button onClick={handleClose} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500 cursor-pointer">

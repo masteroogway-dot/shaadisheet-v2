@@ -279,7 +279,11 @@ export function applyMappings(
         if (fieldType === "currency" || fieldType === "number") {
           result[mapping.targetField] = parseCurrencyValue(val);
         } else {
-          result[mapping.targetField] = String(val).trim();
+          if (val instanceof Date) {
+            result[mapping.targetField] = val.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
+          } else {
+            result[mapping.targetField] = String(val).trim();
+          }
         }
       }
 

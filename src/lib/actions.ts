@@ -511,15 +511,15 @@ export async function batchCreateBudgetItems(weddingId: string, items: any[]) {
       data: {
         weddingId,
         order: order++,
-        category: item.category || "",
-        item: item.item || "",
+        category: sanitize(item.category),
+        item: sanitize(item.item),
         estimated,
         actual: Number(item.actual) || 0,
         paid,
         balance: estimated - paid,
         status: paid >= estimated && estimated > 0 ? "Paid" : paid > 0 ? "Partial" : "Pending",
-        dueDate: item.dueDate || "",
-        notes: item.notes || "",
+        dueDate: sanitize(item.dueDate),
+        notes: sanitize(item.notes),
       },
     });
   }
@@ -543,15 +543,15 @@ export async function batchCreateVendors(weddingId: string, items: any[]) {
       data: {
         weddingId,
         order: order++,
-        category: item.category || "",
-        name: item.name || "",
-        contact: item.contact || "",
+        category: sanitize(item.category),
+        name: sanitize(item.name),
+        contact: sanitize(item.contact),
         quote,
         paid,
         balance: quote - paid,
-        rating: item.rating || "\u2605\u2605\u2605\u2605\u2606",
-        contract: item.contract || "Pending",
-        notes: item.notes || "",
+        rating: sanitize(item.rating) || "\u2605\u2605\u2605\u2605\u2606",
+        contract: sanitize(item.contract) || "Pending",
+        notes: sanitize(item.notes),
       },
     });
   }
@@ -573,15 +573,15 @@ export async function batchCreateGuests(weddingId: string, items: any[]) {
       data: {
         weddingId,
         order: order++,
-        name: item.name || "",
-        relation: item.relation || "",
-        side: item.side || "Both",
-        rsvp: item.rsvp || "Pending",
-        dietary: item.dietary || "Veg",
+        name: sanitize(item.name),
+        relation: sanitize(item.relation),
+        side: sanitize(item.side) || "Both",
+        rsvp: sanitize(item.rsvp) || "Pending",
+        dietary: sanitize(item.dietary) || "Veg",
         tableNum: 0,
         giftGiven: "No",
         thankYou: "No",
-        notes: item.notes || "",
+        notes: sanitize(item.notes),
       },
     });
   }
@@ -954,6 +954,15 @@ export async function deleteRoomAllocation(weddingId: string, allocationId: stri
   return prisma.roomAllocation.delete({ where: { id: allocationId } });
 }
 
+function sanitize(val: any): string {
+  if (val === null || val === undefined) return "";
+  if (val instanceof Date) {
+    return val.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
+  }
+  if (typeof val === "number") return String(val);
+  return String(val).trim();
+}
+
 export async function batchCreateRoomAllocations(weddingId: string, items: any[]) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Not authenticated");
@@ -970,14 +979,14 @@ export async function batchCreateRoomAllocations(weddingId: string, items: any[]
       data: {
         weddingId,
         order: order++,
-        guestName: item.guestName || "",
-        hotel: item.hotel || "",
-        roomNumber: item.roomNumber || "",
-        roomType: item.roomType || "Standard",
-        checkIn: item.checkIn || "",
-        checkOut: item.checkOut || "",
-        status: item.status || "Reserved",
-        notes: item.notes || "",
+        guestName: sanitize(item.guestName),
+        hotel: sanitize(item.hotel),
+        roomNumber: sanitize(item.roomNumber),
+        roomType: sanitize(item.roomType) || "Standard",
+        checkIn: sanitize(item.checkIn),
+        checkOut: sanitize(item.checkOut),
+        status: sanitize(item.status) || "Reserved",
+        notes: sanitize(item.notes),
       },
     });
   }
