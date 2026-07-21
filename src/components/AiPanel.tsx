@@ -60,24 +60,38 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
     const q = userMsg.toLowerCase().trim();
     const summary = await getWeddingSummary(weddingId);
 
+    const isUpdateCmd = q.includes("mark") || q.includes("set") || q.includes("change") || q.includes("update") || q.includes("move") || q.includes("make") || q.includes("turn") || q.includes("switch") || q.includes("assign") || q.includes("apply");
+    const isDeleteCmd = q.includes("delete") || q.includes("remove") || q.includes("clear");
+    const isQueryCmd = q.includes("how many") || q.includes("what's") || q.includes("what is") || q.includes("show") || q.includes("list") || q.includes("count") || q.includes("give me");
+    const isAddCmd = q.includes("add") || q.includes("create") || q.includes("new");
+    const isBulkCmd = q.includes("all ") || q.includes("every") || q.includes("all the") || q.includes("entire") || /\d+/.test(q);
+
     // ── Delete commands ──
-    if (q.includes("delete") || q.includes("remove")) {
+    if (isDeleteCmd) {
       return parseDeleteCommand(q, summary);
     }
 
-    // ── Update / Set commands ──
-    if (q.includes("mark") || q.includes("set") || q.includes("change") || q.includes("update") || q.includes("move")) {
+    // ── Update / Set / Make commands ──
+    if (isUpdateCmd) {
       return parseUpdateCommand(q, summary);
     }
 
-    // ── Query commands ──
-    if (q.includes("how many") || q.includes("what") || q.includes("show") || q.includes("list") || q.includes("count")) {
-      return parseQueryCommand(q, summary);
+    // ── Add commands ──
+    if (isAddCmd) {
+      return parseAddCommand(q, summary);
     }
 
-    // ── Add commands ──
-    if (q.includes("add") || q.includes("create")) {
-      return parseAddCommand(q, summary);
+    // ── Contextual follow-ups: "yes", "all yes", "make them all yes" ──
+    if (/^(yes|all\s*yes|mark\s*all|set\s*all|do\s*it|confirm|y)$/i.test(q) || (q.includes("them") && q.includes("yes"))) {
+      return parseUpdateCommand("set all guests rsvp to yes", summary);
+    }
+    if (/^(no|cancel|n)$/i.test(q)) {
+      return { response: "Action cancelled." };
+    }
+
+    // ── Query commands ──
+    if (isQueryCmd || isBulkCmd) {
+      return parseQueryCommand(q, summary);
     }
 
     // ── Help ──
@@ -85,24 +99,30 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
       return { response: getWelcomeMessage() };
     }
 
-    // ── Budget queries ──
-    if (q.includes("budget") || q.includes("spend") || q.includes("cost")) {
-      return { response: `Your total budget is **${formatINR(summary.budget)}**.\n\n- Allocated: ${formatINR(summary.budgetAllocated)}\n- Spent: ${formatINR(summary.budgetSpent)}\n- Remaining: ${formatINR(summary.budgetRemaining)}` };
+    // ── Topic-specific queries ──
+    if (q.includes("budget") || q.includes("spend") || q.includes("cost") || q.includes("money")) {
+      return { response: `**Budget Summary:**\n- Total: ${formatINR(summary.budget)}\n- Allocated: ${formatINR(summary.budgetAllocated)}\n- Spent: ${formatINR(summary.budgetSpent)}\n- Remaining: ${formatINR(summary.budgetRemaining)}` };
     }
 
-    // ── Guest queries ──
-    if (q.includes("guest") || q.includes("rsvp")) {
-      return { response: `You have **${summary.guestCount}** guests.\n\n- RSVP'd Yes: ${summary.rsvpYes}\n- Pending: ${summary.rsvpPending}\n- Declined: ${summary.rsvpDeclined}` };
+    if (q.includes("guest") || q.includes("rsvp") || q.includes("invite")) {
+      return { response: `**Guest Summary:**\n- Total: ${summary.guestCount}\n- RSVP Yes: ${summary.rsvpYes}\n- Pending: ${summary.rsvpPending}\n- Declined: ${summary.rsvpDeclined}` };
     }
 
-    // ── Vendor queries ──
     if (q.includes("vendor")) {
-      return { response: `You have **${summary.vendorCount}** vendors.\n\n- Booked: ${summary.vendorsBooked}\n- Remaining: ${summary.vendorCount - summary.vendorsBooked}` };
+      return { response: `**Vendor Summary:**\n- Total: ${summary.vendorCount}\n- Booked: ${summary.vendorsBooked}\n- Remaining: ${summary.vendorCount - summary.vendorsBooked}` };
     }
 
-    // ── Task queries ──
     if (q.includes("task")) {
-      return { response: `You have **${summary.taskCount}** tasks.\n\n- Done: ${summary.tasksDone}\n- Remaining: ${summary.taskCount - summary.tasksDone}` };
+      return { response: `**Task Summary:**\n- Total: ${summary.taskCount}\n- Done: ${summary.tasksDone}\n- Remaining: ${summary.taskCount - summary.tasksDone}` };
+    }
+
+    if (q.includes("room")) {
+      return { response: `**Room Summary:**\n- Total: ${summary.roomCount}` };
+    }
+
+    // ── Fallback: try to interpret as update if it contains action words ──
+    if (q.includes("yes") || q.includes("no") || q.includes("veg") || q.includes("non-veg")) {
+      return parseUpdateCommand(`set all guests ${q.includes("yes") ? "rsvp to yes" : q.includes("veg") ? "dietary to veg" : "rsvp to " + q}`, summary);
     }
 
     return { response: `I can help with your wedding! Try:\n\n- "Mark all Sharma guests as RSVP Yes"\n- "Set dietary to Veg for all Bride side"\n- "Delete all Declined guests"\n- "How many vendors are booked?"\n- "What's my budget remaining?"` };
@@ -190,7 +210,7 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
       targetLabel = "tasks";
     } else {
       // Try to infer from context
-      if (q.includes("rsvp") || q.includes("dietary") || q.includes("side")) {
+      if (q.includes("rsvp") || q.includes("dietary") || q.includes("side") || q.includes("yes") || q.includes("veg")) {
         type = "guests";
         targetLabel = "guests";
       } else if (q.includes("contract") || q.includes("rating")) {
@@ -233,10 +253,31 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
     const catMatch = q.match(/(?:in|category)\s+(\w[\w\s&]*?)(?:\s+to|\s+as|\s*$)/i);
     if (catMatch) filter.category = catMatch[1].trim();
 
-    // Parse updates
+    // Parse updates — handle "yes"/"no"/"veg" even without "rsvp" keyword
     if (q.includes("rsvp") && (q.includes("yes") || q.includes("confirm"))) updates.rsvp = "Yes";
     else if (q.includes("rsvp") && q.includes("pending")) updates.rsvp = "Pending";
     else if (q.includes("rsvp") && q.includes("decline")) updates.rsvp = "Declined";
+    else if (!q.includes("rsvp") && !q.includes("dietary") && !q.includes("side") && !q.includes("contract") && !q.includes("status")) {
+      // No field keyword — infer from values
+      if (q.includes("yes") || q.includes("confirm") || q.includes("accept")) {
+        if (targetLabel === "guests") updates.rsvp = "Yes";
+        else if (targetLabel === "vendors") updates.contract = "Signed";
+        else updates.status = "Reserved";
+      } else if (q.includes("no") || q.includes("decline") || q.includes("reject")) {
+        if (targetLabel === "guests") updates.rsvp = "Declined";
+        else if (targetLabel === "vendors") updates.contract = "Pending";
+        else updates.status = "Cancelled";
+      } else if (q.includes("pending")) {
+        if (targetLabel === "guests") updates.rsvp = "Pending";
+        else if (targetLabel === "vendors") updates.contract = "Pending";
+        else updates.status = "Reserved";
+      }
+    } else {
+      // Field keyword present
+      if (q.includes("yes") || q.includes("confirm")) updates.rsvp = "Yes";
+      else if (q.includes("pending")) updates.rsvp = "Pending";
+      else if (q.includes("decline") || q.includes("declined")) updates.rsvp = "Declined";
+    }
 
     if (q.includes("dietary") || q.includes("food")) {
       if (q.includes("non-veg") || q.includes("nonveg")) updates.dietary = "Non-Veg";
