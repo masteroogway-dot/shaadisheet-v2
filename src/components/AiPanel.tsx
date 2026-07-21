@@ -14,11 +14,12 @@ import {
 } from "@/lib/actions";
 import { shouldUseAI } from "@/lib/ai-helpers";
 
-function formatINR(n: number) {
-  if (n >= 10000000) return (n / 10000000).toFixed(1) + " Cr";
-  if (n >= 100000) return (n / 100000).toFixed(1) + " L";
-  if (n >= 1000) return (n / 1000).toFixed(1) + " K";
-  return n.toString();
+function formatINR(n: number): string {
+  if (n === 0) return "0";
+  if (n >= 10000000) return (n / 10000000).toFixed(1).replace(/\.0$/, "") + " Cr";
+  if (n >= 100000) return (n / 100000).toFixed(1).replace(/\.0$/, "") + " L";
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + " K";
+  return n.toLocaleString("en-IN");
 }
 
 type PendingAction = {

@@ -4,6 +4,14 @@ import { useState } from "react";
 import { updateBudgetItem, createBudgetItem, deleteBudgetItem, batchCreateBudgetItems, bulkDeleteBudgetItems, bulkAddBudgetItems } from "@/lib/actions";
 import ImportModal from "@/components/ImportModal";
 
+function formatINR(n: number): string {
+  if (n === 0) return "0";
+  if (n >= 10000000) return (n / 10000000).toFixed(1).replace(/\.0$/, "") + " Cr";
+  if (n >= 100000) return (n / 100000).toFixed(1).replace(/\.0$/, "") + " L";
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + " K";
+  return n.toLocaleString("en-IN");
+}
+
 export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
@@ -104,19 +112,19 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { 
       {items.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className="text-2xl font-extrabold block">{'\u20B9'}{totalBudget >= 10000000 ? (totalBudget / 10000000).toFixed(1) + ' Cr' : totalBudget >= 100000 ? (totalBudget / 100000).toFixed(1) + ' L' : totalBudget.toLocaleString('en-IN')}</span>
+            <span className="text-2xl font-extrabold block">{'\u20B9'}{formatINR(totalBudget)}</span>
             <span className="text-xs text-gray-500">Total Budget</span>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className="text-2xl font-extrabold block text-blue-600">{'\u20B9'}{(totalEstimated / 100000).toFixed(1)}L</span>
+            <span className="text-2xl font-extrabold block text-blue-600">{'\u20B9'}{formatINR(totalEstimated)}</span>
             <span className="text-xs text-gray-500">Allocated ({items.length} items)</span>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className="text-2xl font-extrabold block text-green">{'\u20B9'}{(totalPaid / 100000).toFixed(1)}L</span>
+            <span className="text-2xl font-extrabold block text-green">{'\u20B9'}{formatINR(totalPaid)}</span>
             <span className="text-xs text-gray-500">Paid</span>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className={`text-2xl font-extrabold block ${budgetRemaining > 0 ? "text-yellow" : "text-green"}`}>{'\u20B9'}{(budgetRemaining / 100000).toFixed(1)}L</span>
+            <span className={`text-2xl font-extrabold block ${budgetRemaining > 0 ? "text-yellow" : "text-green"}`}>{'\u20B9'}{formatINR(budgetRemaining)}</span>
             <span className="text-xs text-gray-500">Remaining</span>
           </div>
         </div>
