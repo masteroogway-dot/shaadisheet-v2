@@ -77,10 +77,12 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { 
     onToast(`${bulkAddCount} item${bulkAddCount > 1 ? "s" : ""} created`, "success");
   };
 
+  const totalBudget = wedding.budget || 0;
   const totalEstimated = items.reduce((s: number, i: any) => s + (i.estimated || 0), 0) || 0;
   const totalPaid = items.reduce((s: number, i: any) => s + (i.paid || 0), 0) || 0;
   const totalBalance = totalEstimated - totalPaid;
   const paidCount = items.filter((i: any) => i.status === "Paid").length;
+  const budgetRemaining = totalBudget - totalEstimated;
 
   return (
     <div>
@@ -102,20 +104,20 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { 
       {items.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className="text-2xl font-extrabold block">{'\u20B9'}{(totalEstimated / 100000).toFixed(1)}L</span>
+            <span className="text-2xl font-extrabold block">{'\u20B9'}{totalBudget >= 10000000 ? (totalBudget / 10000000).toFixed(1) + ' Cr' : totalBudget >= 100000 ? (totalBudget / 100000).toFixed(1) + ' L' : totalBudget.toLocaleString('en-IN')}</span>
             <span className="text-xs text-gray-500">Total Budget</span>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className="text-2xl font-extrabold text-green block">{'\u20B9'}{(totalPaid / 100000).toFixed(1)}L</span>
-            <span className="text-xs text-gray-500">Total Paid</span>
+            <span className="text-2xl font-extrabold block text-blue-600">{'\u20B9'}{(totalEstimated / 100000).toFixed(1)}L</span>
+            <span className="text-xs text-gray-500">Allocated ({items.length} items)</span>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className={`text-2xl font-extrabold block ${totalBalance > 0 ? "text-yellow" : "text-green"}`}>{'\u20B9'}{(totalBalance / 100000).toFixed(1)}L</span>
-            <span className="text-xs text-gray-500">Balance</span>
+            <span className="text-2xl font-extrabold block text-green">{'\u20B9'}{(totalPaid / 100000).toFixed(1)}L</span>
+            <span className="text-xs text-gray-500">Paid</span>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className="text-2xl font-extrabold block">{paidCount}/{items.length}</span>
-            <span className="text-xs text-gray-500">Items Paid</span>
+            <span className={`text-2xl font-extrabold block ${budgetRemaining > 0 ? "text-yellow" : "text-green"}`}>{'\u20B9'}{(budgetRemaining / 100000).toFixed(1)}L</span>
+            <span className="text-xs text-gray-500">Remaining</span>
           </div>
         </div>
       )}
