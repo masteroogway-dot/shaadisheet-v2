@@ -8,24 +8,30 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast }: { 
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
   const [showImport, setShowImport] = useState(false);
-  const [selected, setSelected] = useState<string[]>([]);
-  const [bulkAddCount, setBulkAddCount] = useState<number>(0);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkAddCount, setBulkAddCount] = useState<number>(5);
   const [showBulkAdd, setShowBulkAdd] = useState(false);
 
-  const totalGuests = wedding.guests?.length || 0;
-  const rsvpYes = wedding.guests?.filter((g: any) => g.rsvp === "Yes").length || 0;
-  const pending = wedding.guests?.filter((g: any) => g.rsvp === "Pending").length || 0;
-  const declined = wedding.guests?.filter((g: any) => g.rsvp === "Declined").length || 0;
+  const guests = wedding.guests || [];
+  const totalGuests = guests.length;
+  const rsvpYes = guests.filter((g: any) => g.rsvp === "Yes").length;
+  const pending = guests.filter((g: any) => g.rsvp === "Pending").length;
+  const declined = guests.filter((g: any) => g.rsvp === "Declined").length;
 
   const toggleSelect = (id: string) => {
-    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const toggleSelectAll = () => {
-    if (selected.length === (wedding.guests?.length || 0)) {
-      setSelected([]);
+    if (selected.size === guests.length) {
+      setSelected(new Set());
     } else {
-      setSelected(wedding.guests?.map((g: any) => g.id) || []);
+      setSelected(new Set(guests.map((g: any) => g.id)));
     }
   };
 
@@ -33,6 +39,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast }: { 
     try {
       await updateGuest(weddingId, id, editData);
       setEditing(null);
+      setEditData({});
       onUpdate();
       onToast("Guest updated", "success");
     } catch {
@@ -53,6 +60,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast }: { 
   const handleDelete = async (id: string) => {
     try {
       await deleteGuest(weddingId, id);
+      setSelected((prev) => { const next = new Set(prev); next.delete(id); return next; });
       onUpdate();
       onToast("Guest deleted", "success");
     } catch {
@@ -61,12 +69,12 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast }: { 
   };
 
   const handleBulkDelete = async () => {
-    if (selected.length === 0) return;
+    if (selected.size === 0) return;
     try {
-      await bulkDeleteGuests(weddingId, selected);
-      setSelected([]);
+      await bulkDeleteGuests(weddingId, Array.from(selected));
+      setSelected(new Set());
       onUpdate();
-      onToast(`${selected.length} guest(s) deleted`, "success");
+      onToast(`${selected.size} guest(s) deleted`, "success");
     } catch {
       onToast("Failed to delete guests", "error");
     }
@@ -79,7 +87,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast }: { 
       setShowBulkAdd(false);
       setBulkAddCount(5);
       onUpdate();
-      onToast(`${bulkAddCount} row${bulkAddCount > 1 ? "s" : ""} created`);
+      onToast(`${bulkAddCount} row${bulkAddCount > 1 ? "s" : ""} created`, "success");
     } catch {
       onToast("Failed to add rows", "error");
     }
@@ -93,28 +101,49 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast }: { 
           <p className="text-gray-500 text-sm">Track every guest {'\u2014'} RSVP, dietary needs, gifts</p>
         </div>
         <div className="flex gap-2.5">
-          <button onClick={() => setShowImport(true)} className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-br from-maroon to-maroon-light rounded-lg hover:shadow-md transition-all cursor-pointer">
-            <i className="fas fa-file-import mr-1.5" /> Import Excel
+          <button onClick={() => setShowImport(true)} className="btn-maroon">
+            <i className="fas fa-file-import" /> Import
           </button>
-          <button onClick={handleAdd} className="px-4 py-2 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
-            <i className="fas fa-plus mr-1.5" /> Add Guest
+          <button onClick={handleAdd} className="btn-maroon">
+            <i className="fas fa-plus" /> Add Guest
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        {[
-          { num: totalGuests, label: "Total Invited", color: "" },
-          { num: rsvpYes, label: "RSVP'd Yes", color: "text-green" },
-          { num: pending, label: "Pending", color: "text-yellow" },
-          { num: declined, label: "Declined", color: "text-red" },
-        ].map((s, i) => (
-          <div key={i} className="bg-white border border-gray-200 rounded-xl p-5 text-center">
-            <span className={`text-3xl font-extrabold block mb-1 ${s.color}`}>{s.num}</span>
-            <span className="text-sm text-gray-500">{s.label}</span>
-          </div>
-        ))}
-      </div>
+      {totalGuests > 0 && (
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          {[
+            { num: totalGuests, label: "Total Invited", color: "" },
+            { num: rsvpYes, label: "RSVP'd Yes", color: "text-green" },
+            { num: pending, label: "Pending", color: "text-yellow" },
+            { num: declined, label: "Declined", color: "text-red" },
+          ].map((s, i) => (
+            <div key={i} className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+              <span className={`text-2xl font-extrabold block mb-1 ${s.color}`}>{s.num}</span>
+              <span className="text-xs text-gray-500">{s.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {selected.size > 0 && (
+        <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
+          <span className="text-sm font-medium">{selected.size} selected</span>
+          <button onClick={handleBulkDelete} className="btn-delete text-xs py-1 px-3">
+            <i className="fas fa-trash mr-1" /> Delete Selected
+          </button>
+          <button onClick={() => setSelected(new Set())} className="text-xs text-gray-500 hover:text-gray-700 cursor-pointer">Clear</button>
+        </div>
+      )}
+
+      {showBulkAdd && (
+        <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
+          <span className="text-sm font-medium">Add how many guests?</span>
+          <input type="number" min={1} max={500} value={bulkAddCount} onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 1)} className="card-input w-20 py-1.5 text-center" />
+          <button onClick={handleBulkAdd} className="btn-maroon text-xs py-1.5 px-3">Add</button>
+          <button onClick={() => { setShowBulkAdd(false); setBulkAddCount(5); }} className="btn-cancel text-xs py-1.5 px-3">Cancel</button>
+        </div>
+      )}
 
       {totalGuests === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
@@ -123,117 +152,107 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast }: { 
           </div>
           <h3 className="font-bold text-lg mb-2">No guests yet</h3>
           <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">Start building your guest list and track RSVPs for your wedding.</p>
-          <button onClick={handleAdd} className="px-6 py-2.5 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
-            <i className="fas fa-plus mr-1.5" /> Add First Guest
+          <button onClick={handleAdd} className="btn-maroon">
+            <i className="fas fa-plus" /> Add First Guest
           </button>
         </div>
       ) : (
-      <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
-        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200">
-          <span className="text-sm text-gray-500">{selected.length} selected</span>
-          {selected.length > 0 && (
-            <button onClick={handleBulkDelete} className="px-3 py-1.5 text-xs font-semibold text-white bg-red-600 rounded hover:bg-red-700 transition-colors cursor-pointer">
-              <i className="fas fa-trash-alt mr-1" /> Delete Selected ({selected.length})
-            </button>
-          )}
-        </div>
-        <table className="spreadsheet">
-          <thead>
-            <tr>
-              <th className="w-12 text-center">
-                <input
-                  type="checkbox"
-                  checked={selected.length === (wedding.guests?.length || 0) && (wedding.guests?.length || 0) > 0}
-                  onChange={toggleSelectAll}
-                  className="cursor-pointer"
-                />
-              </th>
-              <th className="w-12 text-center">#</th>
-              <th>Guest Name</th>
-              <th>Relation</th>
-              <th>Side</th>
-              <th>RSVP</th>
-              <th>Dietary</th>
-              <th>Notes</th>
-              <th className="w-20">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {wedding.guests?.map((g: any) => (
-              <tr key={g.id}>
-                <td className="text-center">
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(g.id)}
-                    onChange={() => toggleSelect(g.id)}
-                    className="cursor-pointer"
-                  />
-                </td>
-                <td className="text-center text-gray-400">{g.order + 1}</td>
-                <td className="font-semibold">{editing === g.id ? <input value={editData.name ?? g.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" /> : g.name}</td>
-                <td>{editing === g.id ? <input value={editData.relation ?? g.relation} onChange={(e) => setEditData({ ...editData, relation: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" /> : g.relation}</td>
-                <td>{editing === g.id ? (
-                  <select value={editData.side ?? g.side} onChange={(e) => setEditData({ ...editData, side: e.target.value })} className="px-2 py-1 border rounded text-sm">
-                    <option>Bride</option><option>Groom</option><option>Both</option>
-                  </select>
-                ) : g.side}</td>
-                <td>{editing === g.id ? (
-                  <select value={editData.rsvp ?? g.rsvp} onChange={(e) => setEditData({ ...editData, rsvp: e.target.value })} className="px-2 py-1 border rounded text-sm">
-                    <option>Yes</option><option>Pending</option><option>Declined</option>
-                  </select>
-                ) : <span className={`status-badge ${g.rsvp === "Yes" ? "paid" : g.rsvp === "Pending" ? "planning" : "pending"}`}>{g.rsvp}</span>}</td>
-                <td>{editing === g.id ? (
-                  <select value={editData.dietary ?? g.dietary} onChange={(e) => setEditData({ ...editData, dietary: e.target.value })} className="px-2 py-1 border rounded text-sm">
-                    <option>Veg</option><option>Non-Veg</option><option>Vegan</option><option>Jain</option>
-                  </select>
-                ) : g.dietary}</td>
-                <td>{editing === g.id ? <input value={editData.notes ?? g.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} className="w-24 px-2 py-1 border rounded text-sm" /> : (g.notes || "\u2014")}</td>
-                <td>
-                  {editing === g.id ? (
-                    <div className="flex gap-1">
-                      <button onClick={() => handleSave(g.id)} className="text-xs px-2 py-1 bg-green-500 text-white rounded cursor-pointer">Save</button>
-                      <button onClick={() => setEditing(null)} className="text-xs px-2 py-1 bg-gray-300 text-gray-700 rounded cursor-pointer">Cancel</button>
-                    </div>
-                  ) : (
-                    <div className="flex gap-1">
-                      <button onClick={() => { setEditing(g.id); setEditData({}); }} className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded cursor-pointer">Edit</button>
-                      <button onClick={() => handleDelete(g.id)} className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded cursor-pointer">Del</button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="space-y-3">
+          {guests.map((g: any) => {
+            const isEditing = editing === g.id;
+            const isSelected = selected.has(g.id);
 
-        <div className="px-4 py-3 border-t border-gray-200">
-          {showBulkAdd ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">Add</span>
-              <input
-                type="number"
-                min={1}
-                value={bulkAddCount || ""}
-                onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 0)}
-                className="w-20 px-2 py-1 border rounded text-sm"
-                placeholder="# rows"
-              />
-              <span className="text-sm text-gray-600">rows</span>
-              <button onClick={handleBulkAdd} className="px-3 py-1 text-xs font-semibold text-white bg-maroon rounded hover:bg-maroon-light transition-colors cursor-pointer">
-                Add
-              </button>
-              <button onClick={() => { setShowBulkAdd(false); setBulkAddCount(0); }} className="px-3 py-1 text-xs font-semibold text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors cursor-pointer">
-                Cancel
-              </button>
-            </div>
-          ) : (
-            <button onClick={() => setShowBulkAdd(true)} className="text-sm text-maroon font-semibold hover:underline cursor-pointer">
-              <i className="fas fa-plus mr-1" /> Add Multiple Rows
-            </button>
-          )}
+            return (
+              <div key={g.id} className={`item-card ${isEditing ? "editing" : ""}`}>
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleSelect(g.id)}
+                      className="w-4 h-4 rounded accent-maroon cursor-pointer shrink-0"
+                    />
+                    {isEditing ? (
+                      <input value={editData.name ?? g.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="card-input py-1.5 font-bold w-60" placeholder="Guest name" />
+                    ) : (
+                      <h4 className="font-bold text-base">{g.name}</h4>
+                    )}
+                    {!isEditing && (
+                      <span className={`status-badge ${g.rsvp === "Yes" ? "paid" : g.rsvp === "Pending" ? "planning" : "pending"}`}>{g.rsvp}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {isEditing ? (
+                      <>
+                        <button onClick={() => handleSave(g.id)} className="btn-save"><i className="fas fa-check mr-1" /> Save</button>
+                        <button onClick={() => { setEditing(null); setEditData({}); }} className="btn-cancel">Cancel</button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={() => { setEditing(g.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen mr-1" /> Edit</button>
+                        <button onClick={() => handleDelete(g.id)} className="btn-delete"><i className="fas fa-trash mr-1" /> Delete</button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Relation</label>
+                    {isEditing ? (
+                      <input value={editData.relation ?? g.relation} onChange={(e) => setEditData({ ...editData, relation: e.target.value })} className="card-input" placeholder="e.g. Friend, Family" />
+                    ) : (
+                      <p className="text-sm">{g.relation}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Side</label>
+                    {isEditing ? (
+                      <select value={editData.side ?? g.side} onChange={(e) => setEditData({ ...editData, side: e.target.value })} className="card-select">
+                        <option>Bride</option><option>Groom</option><option>Both</option>
+                      </select>
+                    ) : (
+                      <p className="text-sm">{g.side}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">RSVP</label>
+                    {isEditing ? (
+                      <select value={editData.rsvp ?? g.rsvp} onChange={(e) => setEditData({ ...editData, rsvp: e.target.value })} className="card-select">
+                        <option>Yes</option><option>Pending</option><option>Declined</option>
+                      </select>
+                    ) : (
+                      <span className={`status-badge ${g.rsvp === "Yes" ? "paid" : g.rsvp === "Pending" ? "planning" : "pending"}`}>{g.rsvp}</span>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Dietary</label>
+                    {isEditing ? (
+                      <select value={editData.dietary ?? g.dietary} onChange={(e) => setEditData({ ...editData, dietary: e.target.value })} className="card-select">
+                        <option>Veg</option><option>Non-Veg</option><option>Vegan</option><option>Jain</option>
+                      </select>
+                    ) : (
+                      <p className="text-sm">{g.dietary}</p>
+                    )}
+                  </div>
+                </div>
+
+                {isEditing && (
+                  <div className="mt-3">
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Notes</label>
+                    <input value={editData.notes ?? g.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} className="card-input" placeholder="Add notes" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <button onClick={() => setShowBulkAdd(true)} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm font-semibold text-gray-500 hover:border-maroon hover:text-maroon transition-colors cursor-pointer">
+            <i className="fas fa-plus mr-1.5" /> Add More Guests
+          </button>
         </div>
-      </div>
       )}
+
       <ImportModal
         open={showImport}
         onClose={() => setShowImport(false)}

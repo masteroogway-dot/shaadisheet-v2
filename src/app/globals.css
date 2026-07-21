@@ -150,6 +150,180 @@ input[type="range"]::-moz-range-track {
   background: linear-gradient(to right, #8B0000, #D4AF37);
 }
 
+/* ── Card-based Form Inputs ── */
+.card-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #1f2937;
+  background: #fafafa;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  outline: none;
+}
+
+.card-input:focus {
+  border-color: #8B0000;
+  box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.08);
+  background: #fff;
+}
+
+.card-input::placeholder {
+  color: #9ca3af;
+}
+
+.card-select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #1f2937;
+  background: #fafafa;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.card-select:focus {
+  border-color: #8B0000;
+  box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.08);
+}
+
+/* ── Item Card ── */
+.item-card {
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 20px 24px;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.item-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border-color: #d1d5db;
+}
+
+.item-card.editing {
+  border-color: #8B0000;
+  box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.06);
+}
+
+/* ── Action Buttons ── */
+.btn-maroon {
+  padding: 10px 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  background: #8B0000;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-maroon:hover {
+  background: #C62828;
+  box-shadow: 0 2px 8px rgba(139, 0, 0, 0.25);
+}
+
+.btn-maroon:active {
+  transform: scale(0.97);
+}
+
+.btn-save {
+  padding: 8px 18px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fff;
+  background: #2E7D32;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-save:hover {
+  background: #1B5E20;
+}
+
+.btn-cancel {
+  padding: 8px 18px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f3f4f6;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-cancel:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.btn-edit {
+  padding: 6px 14px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #8B0000;
+  background: rgba(139, 0, 0, 0.06);
+  border: 1.5px solid rgba(139, 0, 0, 0.15);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-edit:hover {
+  background: rgba(139, 0, 0, 0.12);
+}
+
+.btn-delete {
+  padding: 6px 14px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #C62828;
+  background: rgba(198, 40, 40, 0.06);
+  border: 1.5px solid rgba(198, 40, 40, 0.15);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-delete:hover {
+  background: rgba(198, 40, 40, 0.12);
+}
+
+/* ── Card Grid Layout ── */
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .card-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1280px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar {
   width: 6px;

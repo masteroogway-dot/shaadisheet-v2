@@ -29,21 +29,20 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { 
     setEditing(null);
     setEditData({});
     onUpdate();
-    const row = items.find((i: any) => i.id === id);
-    onToast(`Row ${(row?.order ?? 0) + 1} updated`);
+    onToast("Item updated", "success");
   };
 
   const handleAdd = async () => {
     await createBudgetItem(weddingId, { category: "", item: "New Item", estimated: 0, actual: 0, paid: 0, balance: 0, status: "Pending", dueDate: "", notes: "" });
     onUpdate();
-    onToast("Row created");
+    onToast("Item created", "success");
   };
 
   const handleDelete = async (id: string) => {
-    const row = items.find((i: any) => i.id === id);
     await deleteBudgetItem(weddingId, id);
+    setSelected((prev) => { const next = new Set(prev); next.delete(id); return next; });
     onUpdate();
-    onToast(`Row ${(row?.order ?? 0) + 1} deleted`);
+    onToast("Item deleted", "success");
   };
 
   const toggleSelect = (id: string) => {
@@ -68,18 +67,20 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { 
     await bulkDeleteBudgetItems(weddingId, Array.from(selected));
     setSelected(new Set());
     onUpdate();
-    onToast(`${count} row${count > 1 ? "s" : ""} deleted`);
+    onToast(`${count} item${count > 1 ? "s" : ""} deleted`, "success");
   };
 
   const handleBulkAdd = async () => {
     await bulkAddBudgetItems(weddingId, bulkAddCount);
     setShowBulkAdd(false);
     onUpdate();
-    onToast(`${bulkAddCount} row${bulkAddCount > 1 ? "s" : ""} created`);
+    onToast(`${bulkAddCount} item${bulkAddCount > 1 ? "s" : ""} created`, "success");
   };
 
   const totalEstimated = items.reduce((s: number, i: any) => s + (i.estimated || 0), 0) || 0;
   const totalPaid = items.reduce((s: number, i: any) => s + (i.paid || 0), 0) || 0;
+  const totalBalance = totalEstimated - totalPaid;
+  const paidCount = items.filter((i: any) => i.status === "Paid").length;
 
   return (
     <div>
@@ -89,31 +90,40 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { 
           <p className="text-gray-500 text-sm">Track every rupee {'\u2014'} from estimate to final payment</p>
         </div>
         <div className="flex gap-2.5 items-center">
-          <button onClick={() => setShowImport(true)} className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-br from-maroon to-maroon-light rounded-lg hover:shadow-md transition-all cursor-pointer">
-            <i className="fas fa-file-import mr-1.5" /> Import Excel
+          <button onClick={() => setShowImport(true)} className="btn-maroon">
+            <i className="fas fa-file-import" /> Import
           </button>
-          {items.length > 0 && (
-            <>
-              <div className="text-right mr-4">
-                <div className="text-xs text-gray-500">Total Estimated</div>
-                <div className="font-bold">{'\u20B9'}{totalEstimated.toLocaleString("en-IN")}</div>
-              </div>
-              <div className="text-right mr-4">
-                <div className="text-xs text-gray-500">Total Paid</div>
-                <div className="font-bold text-green">{'\u20B9'}{totalPaid.toLocaleString("en-IN")}</div>
-              </div>
-            </>
-          )}
-          <button onClick={handleAdd} className="px-4 py-2 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
-            <i className="fas fa-plus mr-1.5" /> Add Item
+          <button onClick={handleAdd} className="btn-maroon">
+            <i className="fas fa-plus" /> Add Item
           </button>
         </div>
       </div>
 
+      {items.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+            <span className="text-2xl font-extrabold block">{'\u20B9'}{(totalEstimated / 100000).toFixed(1)}L</span>
+            <span className="text-xs text-gray-500">Total Budget</span>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+            <span className="text-2xl font-extrabold text-green block">{'\u20B9'}{(totalPaid / 100000).toFixed(1)}L</span>
+            <span className="text-xs text-gray-500">Total Paid</span>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+            <span className={`text-2xl font-extrabold block ${totalBalance > 0 ? "text-yellow" : "text-green"}`}>{'\u20B9'}{(totalBalance / 100000).toFixed(1)}L</span>
+            <span className="text-xs text-gray-500">Balance</span>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+            <span className="text-2xl font-extrabold block">{paidCount}/{items.length}</span>
+            <span className="text-xs text-gray-500">Items Paid</span>
+          </div>
+        </div>
+      )}
+
       {selected.size > 0 && (
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">{selected.size} selected</span>
-          <button onClick={handleBulkDelete} className="px-3 py-1 text-xs font-semibold text-white bg-red-500 rounded-lg hover:bg-red-600 cursor-pointer">
+          <button onClick={handleBulkDelete} className="btn-delete text-xs py-1 px-3">
             <i className="fas fa-trash mr-1" /> Delete Selected
           </button>
           <button onClick={() => setSelected(new Set())} className="text-xs text-gray-500 hover:text-gray-700 cursor-pointer">Clear</button>
@@ -122,10 +132,10 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { 
 
       {showBulkAdd && (
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
-          <span className="text-sm font-medium">Add how many rows?</span>
-          <input type="number" min={1} max={50} value={bulkAddCount} onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 1)} className="w-16 px-2 py-1 border border-gray-300 rounded text-sm text-center" />
-          <button onClick={handleBulkAdd} className="px-3 py-1 text-xs font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light cursor-pointer">Add</button>
-          <button onClick={() => setShowBulkAdd(false)} className="text-xs text-gray-500 hover:text-gray-700 cursor-pointer">Cancel</button>
+          <span className="text-sm font-medium">Add how many items?</span>
+          <input type="number" min={1} max={50} value={bulkAddCount} onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 1)} className="card-input w-20 py-1.5 text-center" />
+          <button onClick={handleBulkAdd} className="btn-maroon text-xs py-1.5 px-3">Add</button>
+          <button onClick={() => setShowBulkAdd(false)} className="btn-cancel text-xs py-1.5 px-3">Cancel</button>
         </div>
       )}
 
@@ -136,78 +146,118 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { 
           </div>
           <h3 className="font-bold text-lg mb-2">No budget items yet</h3>
           <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">Start tracking your wedding expenses by adding your first budget item.</p>
-          <button onClick={handleAdd} className="px-6 py-2.5 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
-            <i className="fas fa-plus mr-1.5" /> Add First Item
+          <button onClick={handleAdd} className="btn-maroon">
+            <i className="fas fa-plus" /> Add First Item
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
-        <table className="spreadsheet">
-          <thead>
-            <tr>
-              <th className="w-12 text-center">
-                <input type="checkbox" checked={selected.size === items.length && items.length > 0} onChange={toggleSelectAll} className="accent-maroon cursor-pointer" />
-              </th>
-              <th>#</th>
-              <th>Category</th>
-              <th>Item</th>
-              <th className="text-right">Estimated ({'\u20B9'})</th>
-              <th className="text-right">Actual ({'\u20B9'})</th>
-              <th className="text-right">Paid ({'\u20B9'})</th>
-              <th className="text-right">Balance ({'\u20B9'})</th>
-              <th>Status</th>
-              <th>Due Date</th>
-              <th>Notes</th>
-              <th className="w-20">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item: any) => {
-              const est = editData.estimated ?? item.estimated;
-              const paid = editData.paid ?? item.paid;
-              const balance = est - paid;
-              return (
-                <tr key={item.id} className={selected.has(item.id) ? "bg-maroon/5" : ""}>
-                  <td className="text-center">
-                    <input type="checkbox" checked={selected.has(item.id)} onChange={() => toggleSelect(item.id)} className="accent-maroon cursor-pointer" />
-                  </td>
-                  <td className="text-center text-gray-400">{item.order + 1}</td>
-                  <td className="font-semibold">{editing === item.id ? <input value={editData.category ?? item.category} onChange={(e) => setEditData({ ...editData, category: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" /> : item.category}</td>
-                  <td>{editing === item.id ? <input value={editData.item ?? item.item} onChange={(e) => setEditData({ ...editData, item: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" /> : item.item}</td>
-                  <td className="text-right">{editing === item.id ? <input type="number" value={editData.estimated ?? item.estimated} onChange={(e) => setEditData({ ...editData, estimated: parseInt(e.target.value) || 0 })} className="w-24 px-2 py-1 border rounded text-sm text-right" /> : `{'\u20B9'}${item.estimated.toLocaleString("en-IN")}`}</td>
-                  <td className="text-right">{editing === item.id ? <input type="number" value={editData.actual ?? item.actual} onChange={(e) => setEditData({ ...editData, actual: parseInt(e.target.value) || 0 })} className="w-24 px-2 py-1 border rounded text-sm text-right" /> : `{'\u20B9'}${item.actual.toLocaleString("en-IN")}`}</td>
-                  <td className="text-right">{editing === item.id ? <input type="number" value={editData.paid ?? item.paid} onChange={(e) => setEditData({ ...editData, paid: parseInt(e.target.value) || 0 })} className="w-24 px-2 py-1 border rounded text-sm text-right" /> : `{'\u20B9'}${item.paid.toLocaleString("en-IN")}`}</td>
-                  <td className="text-right font-medium">{'\u20B9'}{balance.toLocaleString("en-IN")}</td>
-                  <td>
-                    <span className={`status-badge ${item.status === "Paid" ? "paid" : item.status === "Partial" ? "partial" : "pending"}`}>{item.status}</span>
-                  </td>
-                  <td>{editing === item.id ? <input value={editData.dueDate ?? item.dueDate} onChange={(e) => setEditData({ ...editData, dueDate: e.target.value })} className="w-24 px-2 py-1 border rounded text-sm" /> : (item.dueDate || "\u2014")}</td>
-                  <td>{editing === item.id ? <input value={editData.notes ?? item.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} className="w-24 px-2 py-1 border rounded text-sm" /> : (item.notes || "\u2014")}</td>
-                  <td>
-                    {editing === item.id ? (
-                      <div className="flex gap-1">
-                        <button onClick={() => handleSave(item.id)} className="text-xs px-2 py-1 bg-green-500 text-white rounded cursor-pointer">Save</button>
-                        <button onClick={() => setEditing(null)} className="text-xs px-2 py-1 bg-gray-300 text-gray-700 rounded cursor-pointer">Cancel</button>
+        <div className="space-y-3">
+          {items.map((item: any) => {
+            const isEditing = editing === item.id;
+            const isSelected = selected.has(item.id);
+            const est = isEditing ? (editData.estimated ?? item.estimated) : item.estimated;
+            const paid = isEditing ? (editData.paid ?? item.paid) : item.paid;
+            const balance = est - paid;
+
+            return (
+              <div key={item.id} className={`item-card ${isEditing ? "editing" : ""}`}>
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleSelect(item.id)}
+                      className="w-4 h-4 rounded accent-maroon cursor-pointer shrink-0"
+                    />
+                    {isEditing ? (
+                      <div className="flex gap-2">
+                        <input value={editData.category ?? item.category} onChange={(e) => setEditData({ ...editData, category: e.target.value })} className="card-input py-1.5 w-40 font-bold" placeholder="Category" />
+                        <input value={editData.item ?? item.item} onChange={(e) => setEditData({ ...editData, item: e.target.value })} className="card-input py-1.5 flex-1" placeholder="Item name" />
                       </div>
                     ) : (
-                      <div className="flex gap-1">
-                        <button onClick={() => { setEditing(item.id); setEditData({}); }} className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded cursor-pointer">Edit</button>
-                        <button onClick={() => handleDelete(item.id)} className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded cursor-pointer">Del</button>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full uppercase">{item.category}</span>
+                        <h4 className="font-bold text-base">{item.item}</h4>
                       </div>
                     )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        <div className="px-4 py-3 border-t border-gray-200 flex justify-end">
-          <button onClick={() => setShowBulkAdd(true)} className="text-sm font-medium text-maroon hover:underline cursor-pointer">
-            <i className="fas fa-plus mr-1" /> Add Multiple Rows
+                    {!isEditing && (
+                      <span className={`status-badge ${item.status === "Paid" ? "paid" : item.status === "Partial" ? "partial" : "pending"}`}>{item.status}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {isEditing ? (
+                      <>
+                        <button onClick={() => handleSave(item.id)} className="btn-save"><i className="fas fa-check mr-1" /> Save</button>
+                        <button onClick={() => { setEditing(null); setEditData({}); }} className="btn-cancel">Cancel</button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={() => { setEditing(item.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen mr-1" /> Edit</button>
+                        <button onClick={() => handleDelete(item.id)} className="btn-delete"><i className="fas fa-trash mr-1" /> Delete</button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Estimated</label>
+                    {isEditing ? (
+                      <input type="number" value={editData.estimated ?? item.estimated} onChange={(e) => setEditData({ ...editData, estimated: parseInt(e.target.value) || 0 })} className="card-input text-right" />
+                    ) : (
+                      <p className="text-sm font-bold">{'\u20B9'}{item.estimated.toLocaleString("en-IN")}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Actual</label>
+                    {isEditing ? (
+                      <input type="number" value={editData.actual ?? item.actual} onChange={(e) => setEditData({ ...editData, actual: parseInt(e.target.value) || 0 })} className="card-input text-right" />
+                    ) : (
+                      <p className="text-sm">{'\u20B9'}{item.actual.toLocaleString("en-IN")}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Paid</label>
+                    {isEditing ? (
+                      <input type="number" value={editData.paid ?? item.paid} onChange={(e) => setEditData({ ...editData, paid: parseInt(e.target.value) || 0 })} className="card-input text-right" />
+                    ) : (
+                      <p className="text-sm font-bold text-green">{'\u20B9'}{item.paid.toLocaleString("en-IN")}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Balance</label>
+                    <p className={`text-sm font-bold ${balance > 0 ? "text-yellow" : "text-green"}`}>{'\u20B9'}{balance.toLocaleString("en-IN")}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Due Date</label>
+                    {isEditing ? (
+                      <input type="date" value={editData.dueDate ?? item.dueDate} onChange={(e) => setEditData({ ...editData, dueDate: e.target.value })} className="card-input" />
+                    ) : (
+                      <p className="text-sm text-gray-600">{item.dueDate || '\u2014'}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Notes</label>
+                    {isEditing ? (
+                      <input value={editData.notes ?? item.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} className="card-input" placeholder="Add notes" />
+                    ) : (
+                      <p className="text-sm text-gray-500 truncate">{item.notes || '\u2014'}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          <button onClick={() => setShowBulkAdd(true)} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm font-semibold text-gray-500 hover:border-maroon hover:text-maroon transition-colors cursor-pointer">
+            <i className="fas fa-plus mr-1.5" /> Add More Items
           </button>
         </div>
-        </div>
       )}
+
       <ImportModal
         open={showImport}
         onClose={() => setShowImport(false)}
@@ -215,7 +265,7 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { 
         onImport={async (imported: any[]) => {
           await batchCreateBudgetItems(weddingId, imported);
           onUpdate();
-          onToast(`${imported.length} row${imported.length > 1 ? "s" : ""} imported`);
+          onToast(`${imported.length} item${imported.length > 1 ? "s" : ""} imported`);
         }}
       />
     </div>

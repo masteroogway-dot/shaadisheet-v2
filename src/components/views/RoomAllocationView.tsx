@@ -15,7 +15,6 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
   const [showImport, setShowImport] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showBulkAdd, setShowBulkAdd] = useState(false);
   const [bulkAddCount, setBulkAddCount] = useState(1);
@@ -48,7 +47,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
     setEditing(null);
     setEditData({});
     onUpdate();
-    onToast("Room allocation updated", "success");
+    onToast("Room updated", "success");
   };
 
   const handleAdd = async () => {
@@ -68,9 +67,9 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
 
   const handleDelete = async (id: string) => {
     await deleteRoomAllocation(weddingId, id);
-    setDeleteConfirm(null);
+    setSelected((prev) => { const next = new Set(prev); next.delete(id); return next; });
     onUpdate();
-    onToast("Room allocation deleted", "success");
+    onToast("Room deleted", "success");
   };
 
   const handleBulkDelete = async () => {
@@ -78,7 +77,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
     await bulkDeleteRoomAllocations(weddingId, Array.from(selected));
     setSelected(new Set());
     onUpdate();
-    onToast(`${selected.size} room allocation(s) deleted`, "success");
+    onToast(`${selected.size} room(s) deleted`, "success");
   };
 
   const handleBulkAdd = async () => {
@@ -87,7 +86,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
     setShowBulkAdd(false);
     setBulkAddCount(1);
     onUpdate();
-    onToast(`${count} row(s) added`, "success");
+    onToast(`${count} room(s) added`, "success");
   };
 
   return (
@@ -98,33 +97,49 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
           <p className="text-gray-500 text-sm">Assign guests to hotel rooms and track check-ins</p>
         </div>
         <div className="flex gap-2.5">
-          {selected.size > 0 && (
-            <button onClick={handleBulkDelete} className="px-4 py-2 text-sm font-semibold text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors cursor-pointer">
-              <i className="fas fa-trash mr-1.5" /> Delete Selected ({selected.size})
-            </button>
-          )}
-          <button onClick={() => setShowImport(true)} className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-br from-maroon to-maroon-light rounded-lg hover:shadow-md transition-all cursor-pointer">
-            <i className="fas fa-file-import mr-1.5" /> Import Excel
+          <button onClick={() => setShowImport(true)} className="btn-maroon">
+            <i className="fas fa-file-import" /> Import
           </button>
-          <button onClick={handleAdd} className="px-4 py-2 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
-            <i className="fas fa-plus mr-1.5" /> Add Room
+          <button onClick={handleAdd} className="btn-maroon">
+            <i className="fas fa-plus" /> Add Room
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        {[
-          { num: totalRooms, label: "Total Rooms", color: "" },
-          { num: reserved, label: "Reserved", color: "text-blue-600" },
-          { num: checkedIn, label: "Checked In", color: "text-green" },
-          { num: cancelled, label: "Cancelled", color: "text-red" },
-        ].map((s, i) => (
-          <div key={i} className="bg-white border border-gray-200 rounded-xl p-5 text-center">
-            <span className={`text-3xl font-extrabold block mb-1 ${s.color}`}>{s.num}</span>
-            <span className="text-sm text-gray-500">{s.label}</span>
-          </div>
-        ))}
-      </div>
+      {totalRooms > 0 && (
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          {[
+            { num: totalRooms, label: "Total Rooms", color: "" },
+            { num: reserved, label: "Reserved", color: "text-blue-600" },
+            { num: checkedIn, label: "Checked In", color: "text-green" },
+            { num: cancelled, label: "Cancelled", color: "text-red" },
+          ].map((s, i) => (
+            <div key={i} className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+              <span className={`text-2xl font-extrabold block mb-1 ${s.color}`}>{s.num}</span>
+              <span className="text-xs text-gray-500">{s.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {selected.size > 0 && (
+        <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
+          <span className="text-sm font-medium">{selected.size} selected</span>
+          <button onClick={handleBulkDelete} className="btn-delete text-xs py-1 px-3">
+            <i className="fas fa-trash mr-1" /> Delete Selected
+          </button>
+          <button onClick={() => setSelected(new Set())} className="text-xs text-gray-500 hover:text-gray-700 cursor-pointer">Clear</button>
+        </div>
+      )}
+
+      {showBulkAdd && (
+        <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
+          <span className="text-sm font-medium">Add how many rooms?</span>
+          <input type="number" min={1} max={100} value={bulkAddCount} onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 1)} className="card-input w-20 py-1.5 text-center" />
+          <button onClick={handleBulkAdd} className="btn-maroon text-xs py-1.5 px-3">Add</button>
+          <button onClick={() => { setShowBulkAdd(false); setBulkAddCount(1); }} className="btn-cancel text-xs py-1.5 px-3">Cancel</button>
+        </div>
+      )}
 
       {totalRooms === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
@@ -133,150 +148,121 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
           </div>
           <h3 className="font-bold text-lg mb-2">No rooms allocated yet</h3>
           <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">Start assigning guests to hotel rooms for the wedding.</p>
-          <button onClick={handleAdd} className="px-6 py-2.5 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
-            <i className="fas fa-plus mr-1.5" /> Add First Room
+          <button onClick={handleAdd} className="btn-maroon">
+            <i className="fas fa-plus" /> Add First Room
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
-          <table className="spreadsheet">
-            <thead>
-              <tr>
-                <th className="w-12 text-center">
-                  <input
-                    type="checkbox"
-                    checked={allocations.length > 0 && selected.size === allocations.length}
-                    onChange={toggleSelectAll}
-                    className="cursor-pointer"
-                  />
-                </th>
-                <th className="w-12 text-center">#</th>
-                <th>Guest Name</th>
-                <th>Hotel</th>
-                <th>Room #</th>
-                <th>Room Type</th>
-                <th>Check In</th>
-                <th>Check Out</th>
-                <th>Status</th>
-                <th>Notes</th>
-                <th className="w-20">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {allocations.map((a: any) => (
-                <tr key={a.id}>
-                  <td className="text-center">
+        <div className="space-y-3">
+          {allocations.map((a: any) => {
+            const isEditing = editing === a.id;
+            const isSelected = selected.has(a.id);
+
+            return (
+              <div key={a.id} className={`item-card ${isEditing ? "editing" : ""}`}>
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div className="flex items-center gap-3 min-w-0">
                     <input
                       type="checkbox"
-                      checked={selected.has(a.id)}
+                      checked={isSelected}
                       onChange={() => toggleSelect(a.id)}
-                      className="cursor-pointer"
+                      className="w-4 h-4 rounded accent-maroon cursor-pointer shrink-0"
                     />
-                  </td>
-                  <td className="text-center text-gray-400">{a.order + 1}</td>
-                  <td className="font-semibold">
-                    {editing === a.id ? (
-                      <input value={editData.guestName ?? a.guestName} onChange={(e) => setEditData({ ...editData, guestName: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" />
-                    ) : a.guestName || "\u2014"}
-                  </td>
-                  <td>
-                    {editing === a.id ? (
-                      <input value={editData.hotel ?? a.hotel} onChange={(e) => setEditData({ ...editData, hotel: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" />
-                    ) : a.hotel || "\u2014"}
-                  </td>
-                  <td>
-                    {editing === a.id ? (
-                      <input value={editData.roomNumber ?? a.roomNumber} onChange={(e) => setEditData({ ...editData, roomNumber: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" />
-                    ) : a.roomNumber || "\u2014"}
-                  </td>
-                  <td>
-                    {editing === a.id ? (
-                      <select value={editData.roomType ?? a.roomType} onChange={(e) => setEditData({ ...editData, roomType: e.target.value })} className="px-2 py-1 border rounded text-sm">
-                        <option>Standard</option>
-                        <option>Deluxe</option>
-                        <option>Suite</option>
-                        <option>Executive</option>
-                        <option>Presidential</option>
-                        <option>Family</option>
-                        <option>Twin</option>
-                      </select>
-                    ) : a.roomType}
-                  </td>
-                  <td>
-                    {editing === a.id ? (
-                      <input type="date" value={editData.checkIn ?? a.checkIn} onChange={(e) => setEditData({ ...editData, checkIn: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" />
-                    ) : a.checkIn || "\u2014"}
-                  </td>
-                  <td>
-                    {editing === a.id ? (
-                      <input type="date" value={editData.checkOut ?? a.checkOut} onChange={(e) => setEditData({ ...editData, checkOut: e.target.value })} className="w-full px-2 py-1 border rounded text-sm" />
-                    ) : a.checkOut || "\u2014"}
-                  </td>
-                  <td>
-                    {editing === a.id ? (
-                      <select value={editData.status ?? a.status} onChange={(e) => setEditData({ ...editData, status: e.target.value })} className="px-2 py-1 border rounded text-sm">
-                        <option>Reserved</option>
-                        <option>Checked In</option>
-                        <option>Checked Out</option>
-                        <option>Cancelled</option>
-                        <option>No Show</option>
-                      </select>
+                    {isEditing ? (
+                      <input value={editData.guestName ?? a.guestName} onChange={(e) => setEditData({ ...editData, guestName: e.target.value })} className="card-input py-1.5 font-bold w-60" placeholder="Guest name" />
                     ) : (
-                      <span className={`status-badge ${a.status === "Checked In" ? "paid" : a.status === "Cancelled" ? "pending" : a.status === "Checked Out" ? "planning" : "planning"}`}>{a.status}</span>
+                      <h4 className="font-bold text-base">{a.guestName || '\u2014'}</h4>
                     )}
-                  </td>
-                  <td>
-                    {editing === a.id ? (
-                      <input value={editData.notes ?? a.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} className="w-24 px-2 py-1 border rounded text-sm" />
-                    ) : (a.notes || "\u2014")}
-                  </td>
-                  <td>
-                    {editing === a.id ? (
-                      <div className="flex gap-1">
-                        <button onClick={() => handleSave(a.id)} className="text-xs px-2 py-1 bg-green-500 text-white rounded cursor-pointer">Save</button>
-                        <button onClick={() => setEditing(null)} className="text-xs px-2 py-1 bg-gray-300 text-gray-700 rounded cursor-pointer">Cancel</button>
-                      </div>
+                    {!isEditing && (
+                      <span className={`status-badge ${a.status === "Checked In" ? "paid" : a.status === "Cancelled" ? "pending" : "planning"}`}>{a.status}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {isEditing ? (
+                      <>
+                        <button onClick={() => handleSave(a.id)} className="btn-save"><i className="fas fa-check mr-1" /> Save</button>
+                        <button onClick={() => { setEditing(null); setEditData({}); }} className="btn-cancel">Cancel</button>
+                      </>
                     ) : (
-                      <div className="flex gap-1">
-                        <button onClick={() => { setEditing(a.id); setEditData({}); }} className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded cursor-pointer">Edit</button>
-                        {deleteConfirm === a.id ? (
-                          <div className="flex gap-1">
-                            <button onClick={() => handleDelete(a.id)} className="text-xs px-2 py-1 bg-red-500 text-white rounded cursor-pointer">Yes</button>
-                            <button onClick={() => setDeleteConfirm(null)} className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded cursor-pointer">No</button>
-                          </div>
-                        ) : (
-                          <button onClick={() => setDeleteConfirm(a.id)} className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded cursor-pointer">Del</button>
-                        )}
-                      </div>
+                      <>
+                        <button onClick={() => { setEditing(a.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen mr-1" /> Edit</button>
+                        <button onClick={() => handleDelete(a.id)} className="btn-delete"><i className="fas fa-trash mr-1" /> Delete</button>
+                      </>
                     )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                </div>
 
-          <div className="px-4 py-3 border-t border-gray-200">
-            {showBulkAdd ? (
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600">Add</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={100}
-                  value={bulkAddCount}
-                  onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 1)}
-                  className="w-20 px-2 py-1 border rounded text-sm"
-                />
-                <span className="text-sm text-gray-600">row(s)</span>
-                <button onClick={handleBulkAdd} className="text-xs px-3 py-1 bg-maroon text-white rounded cursor-pointer">Add</button>
-                <button onClick={() => { setShowBulkAdd(false); setBulkAddCount(1); }} className="text-xs px-3 py-1 bg-gray-200 text-gray-700 rounded cursor-pointer">Cancel</button>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Hotel</label>
+                    {isEditing ? (
+                      <input value={editData.hotel ?? a.hotel} onChange={(e) => setEditData({ ...editData, hotel: e.target.value })} className="card-input" placeholder="Hotel name" />
+                    ) : (
+                      <p className="text-sm">{a.hotel || '\u2014'}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Room #</label>
+                    {isEditing ? (
+                      <input value={editData.roomNumber ?? a.roomNumber} onChange={(e) => setEditData({ ...editData, roomNumber: e.target.value })} className="card-input" placeholder="Room number" />
+                    ) : (
+                      <p className="text-sm font-medium">{a.roomNumber || '\u2014'}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Room Type</label>
+                    {isEditing ? (
+                      <select value={editData.roomType ?? a.roomType} onChange={(e) => setEditData({ ...editData, roomType: e.target.value })} className="card-select">
+                        <option>Standard</option><option>Deluxe</option><option>Suite</option><option>Executive</option><option>Presidential</option><option>Family</option><option>Twin</option>
+                      </select>
+                    ) : (
+                      <p className="text-sm">{a.roomType}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Status</label>
+                    {isEditing ? (
+                      <select value={editData.status ?? a.status} onChange={(e) => setEditData({ ...editData, status: e.target.value })} className="card-select">
+                        <option>Reserved</option><option>Checked In</option><option>Checked Out</option><option>Cancelled</option><option>No Show</option>
+                      </select>
+                    ) : (
+                      <span className={`status-badge ${a.status === "Checked In" ? "paid" : a.status === "Cancelled" ? "pending" : "planning"}`}>{a.status}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mt-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Check In</label>
+                    {isEditing ? (
+                      <input type="date" value={editData.checkIn ?? a.checkIn} onChange={(e) => setEditData({ ...editData, checkIn: e.target.value })} className="card-input" />
+                    ) : (
+                      <p className="text-sm text-gray-600">{a.checkIn || '\u2014'}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Check Out</label>
+                    {isEditing ? (
+                      <input type="date" value={editData.checkOut ?? a.checkOut} onChange={(e) => setEditData({ ...editData, checkOut: e.target.value })} className="card-input" />
+                    ) : (
+                      <p className="text-sm text-gray-600">{a.checkOut || '\u2014'}</p>
+                    )}
+                  </div>
+                </div>
+
+                {isEditing && (
+                  <div className="mt-3">
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Notes</label>
+                    <input value={editData.notes ?? a.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} className="card-input" placeholder="Add notes" />
+                  </div>
+                )}
               </div>
-            ) : (
-              <button onClick={() => setShowBulkAdd(true)} className="text-sm text-maroon hover:text-maroon-light font-semibold cursor-pointer">
-                <i className="fas fa-plus mr-1.5" /> Add Multiple Rows
-              </button>
-            )}
-          </div>
+            );
+          })}
+
+          <button onClick={() => setShowBulkAdd(true)} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm font-semibold text-gray-500 hover:border-maroon hover:text-maroon transition-colors cursor-pointer">
+            <i className="fas fa-plus mr-1.5" /> Add More Rooms
+          </button>
         </div>
       )}
 
@@ -287,7 +273,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
         onImport={async (items: any[]) => {
           await batchCreateRoomAllocations(weddingId, items);
           onUpdate();
-          onToast(`${items.length} room allocation(s) imported`, "success");
+          onToast(`${items.length} room(s) imported`, "success");
         }}
       />
     </div>
