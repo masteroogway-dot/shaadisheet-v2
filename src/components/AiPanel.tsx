@@ -497,33 +497,46 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
       if (shouldUseGemini(userMsg)) {
         setMessages((prev) => [...prev, { role: "bot", content: "Thinking..." }]);
 
-        const conversationHistory = messages.slice(-10).map((m) => ({ role: m.role, content: m.content }));
-        const res = await fetch("/api/ai", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ weddingId, question: userMsg, conversationHistory }),
-        });
-        const data = await res.json();
-        if (!res.ok || data.error) {
-          const response = `Gemini error: ${data.error || "Unknown error"}`;
+        try {
+          const conversationHistory = messages.slice(-10).map((m) => ({ role: m.role, content: m.content }));
+          const res = await fetch("/api/ai", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ weddingId, question: userMsg, conversationHistory }),
+          });
+          const data = await res.json();
+          if (!res.ok || data.error) {
+            // Gemini failed — fall back to rule-based parser
+            const fallback = await parseCommand(userMsg);
+            setMessages((prev) => {
+              const without = prev.slice(0, -1);
+              return [...without, { role: "bot", content: fallback.response, action: fallback.action }];
+            });
+            await addAiMessage(weddingId, "bot", fallback.response);
+            return;
+          }
+          const response = data.response || "No response from Gemini.";
+
+          // Remove "Thinking..." and add real response
           setMessages((prev) => {
             const without = prev.slice(0, -1);
             return [...without, { role: "bot", content: response }];
           });
-          return;
-        }
-        const response = data.response || "No response from Gemini.";
-
-        // Remove "Thinking..." and add real response
-        setMessages((prev) => {
-          const without = prev.slice(0, -1);
-          return [...without, { role: "bot", content: response }];
-        });
 
         await addAiMessage(weddingId, "bot", response);
         await storeInteraction(weddingId, "user", userMsg, "query", undefined, true);
         onUpdate();
         return;
+        } catch (geminiErr) {
+          // Gemini failed — fall back to rule-based parser
+          const fallback = await parseCommand(userMsg);
+          setMessages((prev) => {
+            const without = prev.slice(0, -1);
+            return [...without, { role: "bot", content: fallback.response, action: fallback.action }];
+          });
+          await addAiMessage(weddingId, "bot", fallback.response);
+          return;
+        }
       }
 
       // Rule-based parser for simple commands
