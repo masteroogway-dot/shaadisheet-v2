@@ -1,6 +1,6 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "" });
 
 function formatINR(n: number) {
   if (n >= 10000000) return (n / 10000000).toFixed(1) + " Cr";
@@ -30,8 +30,7 @@ function buildWeddingContext(summary: any, learnedPatterns: any[]): string {
 - Vendors: ${summary.vendorCount} total (Booked: ${summary.vendorsBooked})
 - Tasks: ${summary.taskCount} total (Done: ${summary.tasksDone}, Remaining: ${summary.taskCount - summary.tasksDone})
 - Room Allocations: ${summary.roomCount}
-- Events: ${(summary.events || []).map((e: any) => e.name).join(", ") || "None configured"}
-- Timeline Items: ${summary.timelineCount || 0}`;
+- Events: ${(summary.events || []).map((e: any) => e.name).join(", ") || "None configured"}`;
 
   if (learnedPatterns.length > 0) {
     ctx += `\n\nLEARNED COMMANDS (${learnedPatterns.length}):\n${learnedPatterns.map((lp: any) => `- Pattern: "${lp.pattern}" → ${lp.content}`).join("\n")}`;
@@ -40,15 +39,13 @@ function buildWeddingContext(summary: any, learnedPatterns: any[]): string {
   return ctx;
 }
 
-export async function askGemini(
+export async function askAI(
   question: string,
   summary: any,
   learnedPatterns: any[] = [],
   conversationHistory: { role: string; content: string }[] = []
 ): Promise<string> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
     const weddingCtx = buildWeddingContext(summary, learnedPatterns);
 
     const systemPrompt = `You are ShaadiSheet AI, a specialized wedding planning assistant for Indian weddings. You help with budget tracking, guest management, vendor coordination, seating, timeline, and room allocation.
@@ -71,39 +68,39 @@ RULES:
 
 ${weddingCtx}`;
 
-    const history = conversationHistory.slice(-10).map((m) => ({
-      role: m.role === "bot" ? "model" : "user",
-      parts: [{ text: m.content }],
-    }));
+    const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
+      { role: "system", content: systemPrompt },
+    ];
 
-    const chat = model.startChat({
-      history: [
-        { role: "user", parts: [{ text: systemPrompt }] },
-        { role: "model", parts: [{ text: "Understood. I'm ready to help with this wedding." }] },
-        ...history,
-      ],
-      generationConfig: {
-        maxOutputTokens: 1024,
-        temperature: 0.7,
-      },
+    // Add conversation history
+    for (const m of conversationHistory.slice(-10)) {
+      messages.push({
+        role: m.role === "bot" ? "assistant" : "user",
+        content: m.content,
+      });
+    }
+
+    // Add current question
+    messages.push({ role: "user", content: question });
+
+    const completion = await groq.chat.completions.create({
+      messages,
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.7,
+      max_tokens: 1024,
     });
 
-    const result = await chat.sendMessage(question);
-    const response = result.response;
-    return response.text();
+    return completion.choices[0]?.message?.content || "No response generated.";
   } catch (error: any) {
-    console.error("Gemini API error:", error?.message || error);
-    if (error.message?.includes("API key") || error.message?.includes("API_KEY")) {
-      return "Gemini API key is invalid or expired. Please check your API key configuration.";
+    console.error("Groq API error:", error?.message || error);
+    if (error.message?.includes("API key")) {
+      return "AI API key is invalid. Please check configuration.";
     }
-    if (error.message?.includes("not found") || error.message?.includes("404")) {
-      return "Gemini model not found. The model name may be incorrect.";
-    }
-    return `Gemini error: ${error?.message || "Unknown error"}`;
+    return `AI error: ${error?.message || "Unknown error"}`;
   }
 }
 
-export function shouldUseGemini(query: string): boolean {
+export function shouldUseAI(query: string): boolean {
   const q = query.toLowerCase().trim();
 
   // Simple CRUD commands — use fast parser
@@ -116,7 +113,7 @@ export function shouldUseGemini(query: string): boolean {
   ];
   if (simplePatterns.some((p) => p.test(q))) return false;
 
-  // Complex queries — use Gemini
+  // Complex queries — use AI
   const complexPatterns = [
     /summar/i,
     /suggest/i,
@@ -133,19 +130,13 @@ export function shouldUseGemini(query: string): boolean {
     /how.*improve/i,
     /how.*optimize/i,
     /what.*think/i,
-    /what.*think/i,
     /tell me about/i,
     /explain/i,
     /why/i,
     /help me/i,
-    /what.*doing/i,
     /what.*status/i,
     /overview/i,
     /progress/i,
-    /track/i,
-    /what.*budget/i,
-    /can you/i,
-    /do you/i,
     /cultural/i,
     /ritual/i,
     /tradition/i,
@@ -153,6 +144,9 @@ export function shouldUseGemini(query: string): boolean {
     /schedule/i,
     /timeline/i,
     /itinerary/i,
+    /find.*vendor/i,
+    /food.*vendor/i,
+    /vendor.*recommend/i,
   ];
   if (complexPatterns.some((p) => p.test(q))) return true;
 

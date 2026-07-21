@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { askGemini } from "@/lib/gemini";
+import { askAI } from "@/lib/ai";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-
-function formatINR(n: number) {
-  if (n >= 10000000) return (n / 10000000).toFixed(1) + " Cr";
-  if (n >= 100000) return (n / 100000).toFixed(1) + " L";
-  if (n >= 1000) return (n / 1000).toFixed(1) + " K";
-  return n.toString();
-}
 
 async function getSummary(weddingId: string) {
   const w = await prisma.wedding.findUnique({
@@ -69,10 +62,10 @@ export async function POST(req: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    const response = await askGemini(question, summary, learned, conversationHistory || []);
+    const response = await askAI(question, summary, learned, conversationHistory || []);
     return NextResponse.json({ response });
   } catch (error: any) {
-    console.error("Gemini API route error:", error);
+    console.error("AI API route error:", error);
     return NextResponse.json({ error: error.message || "Internal error" }, { status: 500 });
   }
 }

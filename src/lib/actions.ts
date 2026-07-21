@@ -1366,16 +1366,3 @@ export async function getSuccessfulPatterns(weddingId: string) {
     return [];
   }
 }
-
-// ─── Gemini AI Integration ──────────────────────────────────────────
-
-export async function askGeminiAI(
-  weddingId: string,
-  question: string,
-  conversationHistory: { role: string; content: string }[]
-) {
-  const { askGemini } = await import("../lib/gemini");
-  const summary = await getWeddingSummary(weddingId);
-  const learned = await getLearnedPatterns(weddingId);
-  return askGemini(question, summary, learned, conversationHistory);
-}

@@ -12,7 +12,7 @@ import {
   learnCommand,
   getLearnedPatterns,
 } from "@/lib/actions";
-import { shouldUseGemini } from "@/lib/gemini";
+import { shouldUseAI } from "@/lib/ai";
 
 function formatINR(n: number) {
   if (n >= 10000000) return (n / 10000000).toFixed(1) + " Cr";
@@ -494,7 +494,7 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
       await addAiMessage(weddingId, "user", userMsg);
 
       // Check if should use Gemini for complex queries
-      if (shouldUseGemini(userMsg)) {
+      if (shouldUseAI(userMsg)) {
         setMessages((prev) => [...prev, { role: "bot", content: "Thinking..." }]);
 
         try {
