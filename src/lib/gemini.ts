@@ -47,7 +47,7 @@ export async function askGemini(
   conversationHistory: { role: string; content: string }[] = []
 ): Promise<string> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const weddingCtx = buildWeddingContext(summary, learnedPatterns);
 
@@ -93,11 +93,14 @@ ${weddingCtx}`;
     const response = result.response;
     return response.text();
   } catch (error: any) {
-    console.error("Gemini API error:", error);
-    if (error.message?.includes("API key")) {
-      return "Gemini API key is invalid or expired. Using built-in parser instead.";
+    console.error("Gemini API error:", error?.message || error);
+    if (error.message?.includes("API key") || error.message?.includes("API_KEY")) {
+      return "Gemini API key is invalid or expired. Please check your API key configuration.";
     }
-    throw error;
+    if (error.message?.includes("not found") || error.message?.includes("404")) {
+      return "Gemini model not found. The model name may be incorrect.";
+    }
+    return `Gemini error: ${error?.message || "Unknown error"}`;
   }
 }
 

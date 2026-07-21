@@ -504,7 +504,15 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
           body: JSON.stringify({ weddingId, question: userMsg, conversationHistory }),
         });
         const data = await res.json();
-        const response = data.response || "Sorry, I couldn't process that.";
+        if (!res.ok || data.error) {
+          const response = `Gemini error: ${data.error || "Unknown error"}`;
+          setMessages((prev) => {
+            const without = prev.slice(0, -1);
+            return [...without, { role: "bot", content: response }];
+          });
+          return;
+        }
+        const response = data.response || "No response from Gemini.";
 
         // Remove "Thinking..." and add real response
         setMessages((prev) => {
