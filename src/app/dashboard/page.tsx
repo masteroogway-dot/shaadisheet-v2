@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { getUserWeddings, createWedding } from "@/lib/actions";
+import { useState, useEffect, useRef } from "react";
+import { getUserWeddings, createWedding, updateWedding, deleteWedding } from "@/lib/actions";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -12,11 +12,22 @@ export default function DashboardPage() {
   const [weddings, setWeddings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/auth");
     if (status === "authenticated") loadWeddings();
   }, [status, router]);
+
+  useEffect(() => {
+    if (editingId && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.select();
+    }
+  }, [editingId]);
 
   const loadWeddings = async () => {
     try {
@@ -39,6 +50,42 @@ export default function DashboardPage() {
     } finally {
       setCreating(false);
     }
+  };
+
+  const handleStartRename = (wedding: any) => {
+    setEditingId(wedding.id);
+    setEditName(wedding.name || "");
+  };
+
+  const handleSaveName = async (id: string) => {
+    if (!editName.trim()) {
+      setEditingId(null);
+      return;
+    }
+    try {
+      await updateWedding({ weddingId: id, name: editName.trim() });
+      setWeddings((prev) =>
+        prev.map((w) => (w.id === id ? { ...w, name: editName.trim() } : w))
+      );
+    } catch (e) {
+      console.error(e);
+    }
+    setEditingId(null);
+  };
+
+  const handleDeleteWedding = async (id: string) => {
+    if (deletingId !== id) {
+      setDeletingId(id);
+      setTimeout(() => setDeletingId(null), 4000);
+      return;
+    }
+    try {
+      await deleteWedding(id);
+      setWeddings((prev) => prev.filter((w) => w.id !== id));
+    } catch (e) {
+      console.error(e);
+    }
+    setDeletingId(null);
   };
 
   const formatDate = (dateStr: string | null) => {
@@ -116,26 +163,61 @@ export default function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {weddings.map((wedding) => (
-              <Link
+              <div
                 key={wedding.id}
-                href={`/dashboard/${wedding.id}`}
-                className="bg-white rounded-2xl border border-gray-200 hover:border-maroon/30 hover:shadow-xl transition-all duration-300 overflow-hidden"
+                className="bg-white rounded-2xl border border-gray-200 hover:border-maroon/30 hover:shadow-xl transition-all duration-300 overflow-hidden group"
               >
                 <div className="h-3 bg-gradient-to-r from-maroon to-gold" />
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900">{wedding.name || "Unnamed Wedding"}</h3>
+                    <div className="flex-1 min-w-0">
+                      {editingId === wedding.id ? (
+                        <input
+                          ref={editInputRef}
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSaveName(wedding.id);
+                            if (e.key === "Escape") setEditingId(null);
+                          }}
+                          onBlur={() => handleSaveName(wedding.id)}
+                          className="text-lg font-bold w-full px-2 py-1 border-2 border-maroon rounded-lg focus:outline-none"
+                          placeholder="Wedding name"
+                        />
+                      ) : (
+                        <h3
+                          className="text-lg font-bold text-gray-900 cursor-pointer hover:text-maroon transition-colors truncate"
+                          onClick={() => handleStartRename(wedding)}
+                          title="Click to rename"
+                        >
+                          {wedding.name || "Unnamed Wedding"}
+                        </h3>
+                      )}
                       <p className="text-sm text-gray-500 mt-1">
                         {wedding.religion ? wedding.religion.charAt(0).toUpperCase() + wedding.religion.slice(1) : "Not set"}
                         {wedding.region && " \u2022 " + wedding.region}
                       </p>
                     </div>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      wedding.religion ? "bg-maroon/10 text-maroon" : "bg-gray-100 text-gray-500"
-                    }`}>
-                      {wedding.religion ? "Configured" : "Setup needed"}
-                    </span>
+                    <div className="flex items-center gap-1.5 ml-2">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        wedding.religion ? "bg-maroon/10 text-maroon" : "bg-gray-100 text-gray-500"
+                      }`}>
+                        {wedding.religion ? "Configured" : "Setup needed"}
+                      </span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDeleteWedding(wedding.id); }}
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                          deletingId === wedding.id
+                            ? "bg-red-500 text-white"
+                            : "text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100"
+                        }`}
+                        title={deletingId === wedding.id ? "Click again to confirm delete" : "Delete wedding"}
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
 
                   <div className="space-y-3 text-sm">
@@ -146,7 +228,7 @@ export default function DashboardPage() {
                       <span>{formatDate(wedding.weddingDate)}</span>
                       {wedding.weddingCity && (
                         <>
-                          <span className="text-gray-300">{'\u2022'}</span>
+                          <span className="text-gray-300">{"\u2022"}</span>
                           <span>{wedding.weddingCity}</span>
                         </>
                       )}
@@ -167,26 +249,16 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  <div className="mt-5 pt-4 border-t border-gray-100 grid grid-cols-4 gap-4 text-center">
-                    <div className="bg-gray-50 rounded-xl p-3">
-                      <div className="text-2xl font-bold text-maroon">{wedding._count?.budgetItems || 0}</div>
-                      <div className="text-xs text-gray-500">Budget Items</div>
-                    </div>
-                    <div className="bg-gray-50 rounded-xl p-3">
-                      <div className="text-2xl font-bold text-maroon">{wedding._count?.vendors || 0}</div>
-                      <div className="text-xs text-gray-500">Vendors</div>
-                    </div>
-                    <div className="bg-gray-50 rounded-xl p-3">
-                      <div className="text-2xl font-bold text-maroon">{wedding._count?.guests || 0}</div>
-                      <div className="text-xs text-gray-500">Guests</div>
-                    </div>
-                    <div className="bg-gray-50 rounded-xl p-3">
-                      <div className="text-2xl font-bold text-maroon">{wedding._count?.tasks || 0}</div>
-                      <div className="text-xs text-gray-500">Tasks</div>
-                    </div>
+                  <div className="mt-5 pt-4 border-t border-gray-100">
+                    <Link
+                      href={`/dashboard/${wedding.id}`}
+                      className="block text-center py-2.5 text-sm font-semibold text-maroon bg-maroon/5 rounded-xl hover:bg-maroon/10 transition-colors"
+                    >
+                      Open Planner {"\u2192"}
+                    </Link>
                   </div>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}

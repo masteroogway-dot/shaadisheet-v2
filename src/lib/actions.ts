@@ -469,3 +469,15 @@ export async function createWedding() {
   });
   return wedding;
 }
+
+export async function deleteWedding(weddingId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const wedding = await prisma.wedding.findFirst({
+    where: { id: weddingId, userId: session.user.id },
+  });
+  if (!wedding) throw new Error("Wedding not found");
+
+  return prisma.wedding.delete({ where: { id: weddingId } });
+}
