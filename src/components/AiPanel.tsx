@@ -11,7 +11,9 @@ import {
   correctInteraction,
   learnCommand,
   getLearnedPatterns,
+  askGeminiAI,
 } from "@/lib/actions";
+import { shouldUseGemini } from "@/lib/gemini";
 
 function formatINR(n: number) {
   if (n >= 10000000) return (n / 10000000).toFixed(1) + " Cr";
@@ -84,7 +86,7 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
 
   const getWelcomeMessage = () => {
     const learnedCount = learnedPatterns.length;
-    const base = `Hi! I'm your ShaadiSheet assistant. I can help with:\n\n**Quick Actions:**\n- "Mark all Sharma guests as RSVP Yes"\n- "Set all Bride side guests dietary to Veg"\n- "Delete all guests with Declined RSVP"\n- "What's my total vendor spend?"\n\n**Bulk Operations:**\n- Update RSVP, dietary, side for guests\n- Update contract status for vendors\n- Delete items by category or status\n- Assign rooms by hotel or type`;
+    const base = `Hi! I'm your ShaadiSheet AI assistant, powered by **Gemini** for smart queries.\n\n**Quick Actions (instant):**\n- "Mark all Sharma guests as RSVP Yes"\n- "Set all Bride side guests dietary to Veg"\n- "Delete all guests with Declined RSVP"\n\n**Smart Queries (AI-powered):**\n- "Summarize my wedding planning status"\n- "What should I prioritize next?"\n- "Analyze my budget and suggest savings"\n- "Which guests haven't RSVP'd yet?"\n- "Tell me about Mehndi ceremony traditions"`;
     if (learnedCount > 0) {
       return base + `\n\n**Learned:** ${learnedCount} custom command${learnedCount > 1 ? "s" : ""} from past interactions.`;
     }
@@ -491,6 +493,27 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
 
     try {
       await addAiMessage(weddingId, "user", userMsg);
+
+      // Check if should use Gemini for complex queries
+      if (shouldUseGemini(userMsg)) {
+        setMessages((prev) => [...prev, { role: "bot", content: "Thinking..." }]);
+
+        const conversationHistory = messages.slice(-10).map((m) => ({ role: m.role, content: m.content }));
+        const response = await askGeminiAI(weddingId, userMsg, conversationHistory);
+
+        // Remove "Thinking..." and add real response
+        setMessages((prev) => {
+          const without = prev.slice(0, -1);
+          return [...without, { role: "bot", content: response }];
+        });
+
+        await addAiMessage(weddingId, "bot", response);
+        await storeInteraction(weddingId, "user", userMsg, "query", undefined, true);
+        onUpdate();
+        return;
+      }
+
+      // Rule-based parser for simple commands
       const { response, action, learned } = await parseCommand(userMsg);
 
       if (action) {
