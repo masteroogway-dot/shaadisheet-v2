@@ -8,6 +8,7 @@ import {
   deleteWeddingTimelineItem,
   seedWeddingTimeline,
 } from "@/lib/actions";
+import TimePicker from "@/components/TimePicker";
 
 interface TimelineItem {
   id: string;
@@ -241,11 +242,9 @@ export default function TimelineView({ wedding, weddingId }: { wedding: any; wed
                       <div className="grid grid-cols-3 gap-4">
                         <div>
                           <label className="text-xs font-semibold text-gray-500 mb-1 block">Start Time</label>
-                          <input
-                            type="time"
+                          <TimePicker
                             value={editData.startTime ?? "09:00"}
-                            onChange={(e) => setEditData({ ...editData, startTime: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon"
+                            onChange={(val) => setEditData({ ...editData, startTime: val })}
                           />
                         </div>
                         <div>

@@ -9,6 +9,7 @@ import {
   seedWeddingEvents,
 } from "@/lib/actions";
 import DatePicker from "@/components/DatePicker";
+import TimePicker from "@/components/TimePicker";
 
 interface WeddingEvent {
   id: string;
@@ -300,11 +301,9 @@ export default function EventsView({ wedding, weddingId }: { wedding: any; weddi
                               </div>
                               <div>
                                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Start Time</label>
-                                <input
-                                  type="time"
+                                <TimePicker
                                   value={editData.startTime ?? "10:00"}
-                                  onChange={(e) => setEditData({ ...editData, startTime: e.target.value })}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon"
+                                  onChange={(val) => setEditData({ ...editData, startTime: val })}
                                 />
                               </div>
                               <div>
