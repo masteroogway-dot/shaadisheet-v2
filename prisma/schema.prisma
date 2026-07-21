@@ -75,6 +75,22 @@ model Wedding {
   tasks           Task[]
   seatingTables   SeatingTable[]
   aiMessages      AiMessage[]
+  events          WeddingEvent[]
+}
+
+model WeddingEvent {
+  id          String   @id @default(cuid())
+  weddingId   String
+  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  name        String
+  description String   @default("")
+  date        String   @default("")
+  startTime   String   @default("10:00")
+  duration    Int      @default(60)
+  location    String   @default("")
+  isRitual    Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
 }
 
 model BudgetItem {

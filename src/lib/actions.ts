@@ -579,3 +579,145 @@ export async function batchCreateGuests(weddingId: string, items: any[]) {
     });
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// WEDDING EVENTS
+// ═══════════════════════════════════════════════════════════════
+
+export async function getWeddingEvents(weddingId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  return prisma.weddingEvent.findMany({
+    where: { weddingId },
+    orderBy: { order: "asc" },
+  });
+}
+
+export async function createWeddingEvent(weddingId: string, data: any) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const maxOrder = await prisma.weddingEvent.aggregate({
+    where: { weddingId },
+    _max: { order: true },
+  });
+
+  return prisma.weddingEvent.create({
+    data: {
+      weddingId,
+      order: (maxOrder._max.order ?? -1) + 1,
+      name: data.name || "New Event",
+      description: data.description || "",
+      date: data.date || "",
+      startTime: data.startTime || "10:00",
+      duration: data.duration || 60,
+      location: data.location || "",
+      isRitual: data.isRitual || false,
+    },
+  });
+}
+
+export async function updateWeddingEvent(weddingId: string, eventId: string, data: any) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const { weddingId: _, ...updateData } = data;
+
+  if (updateData.duration !== undefined) updateData.duration = Number(updateData.duration);
+  if (updateData.isRitual !== undefined) updateData.isRitual = Boolean(updateData.isRitual);
+  if (updateData.order !== undefined) updateData.order = Number(updateData.order);
+
+  return prisma.weddingEvent.update({
+    where: { id: eventId },
+    data: updateData,
+  });
+}
+
+export async function deleteWeddingEvent(weddingId: string, eventId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  return prisma.weddingEvent.delete({ where: { id: eventId } });
+}
+
+export async function seedWeddingEvents(weddingId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const wedding = await prisma.wedding.findFirst({
+    where: { id: weddingId, userId: session.user.id },
+  });
+  if (!wedding) throw new Error("Wedding not found");
+
+  const existing = await prisma.weddingEvent.count({ where: { weddingId } });
+  if (existing > 0) return;
+
+  const EVENTS: Record<string, Array<{ name: string; description: string; startTime: string; duration: number; isRitual: boolean }>> = {
+    hindu: [
+      { name: "Roka", description: "Official engagement", startTime: "11:00", duration: 120, isRitual: true },
+      { name: "Engagement", description: "Ring exchange ceremony", startTime: "19:00", duration: 120, isRitual: true },
+      { name: "Mehendi", description: "Henna application", startTime: "16:00", duration: 180, isRitual: false },
+      { name: "Sangeet", description: "Music and dance night", startTime: "19:00", duration: 240, isRitual: false },
+      { name: "Haldi", description: "Turmeric ceremony", startTime: "09:00", duration: 120, isRitual: true },
+      { name: "Wedding", description: "Baraat, Jaimala, Pheras", startTime: "10:00", duration: 240, isRitual: true },
+      { name: "Reception", description: "Grand evening celebration", startTime: "19:00", duration: 240, isRitual: false },
+    ],
+    muslim: [
+      { name: "Mangni", description: "Engagement", startTime: "19:00", duration: 120, isRitual: true },
+      { name: "Mehendi", description: "Henna night", startTime: "16:00", duration: 180, isRitual: false },
+      { name: "Nikah", description: "Wedding ceremony", startTime: "10:00", duration: 180, isRitual: true },
+      { name: "Walima", description: "Post-wedding reception", startTime: "19:00", duration: 240, isRitual: true },
+    ],
+    sikh: [
+      { name: "Kurmai", description: "Engagement", startTime: "11:00", duration: 120, isRitual: true },
+      { name: "Mehendi", description: "Henna", startTime: "16:00", duration: 180, isRitual: false },
+      { name: "Sangeet", description: "Dance night", startTime: "19:00", duration: 240, isRitual: false },
+      { name: "Anand Karaj", description: "Wedding at Gurdwara", startTime: "10:00", duration: 180, isRitual: true },
+      { name: "Langar", description: "Community meal", startTime: "13:00", duration: 120, isRitual: true },
+      { name: "Reception", description: "Evening party", startTime: "19:00", duration: 240, isRitual: false },
+    ],
+    christian: [
+      { name: "Engagement", description: "Formal engagement", startTime: "19:00", duration: 120, isRitual: true },
+      { name: "Roce Ceremony", description: "Turmeric ceremony", startTime: "17:00", duration: 120, isRitual: true },
+      { name: "Church Wedding", description: "Wedding ceremony", startTime: "10:00", duration: 120, isRitual: true },
+      { name: "Reception", description: "Celebration", startTime: "19:00", duration: 240, isRitual: false },
+    ],
+    jain: [
+      { name: "Roka", description: "Official engagement", startTime: "11:00", duration: 120, isRitual: true },
+      { name: "Engagement", description: "Ring exchange", startTime: "19:00", duration: 120, isRitual: true },
+      { name: "Mehendi", description: "Henna application", startTime: "16:00", duration: 180, isRitual: false },
+      { name: "Sangeet", description: "Dance night", startTime: "19:00", duration: 240, isRitual: false },
+      { name: "Wedding", description: "Jain wedding rituals", startTime: "10:00", duration: 180, isRitual: true },
+      { name: "Reception", description: "Grand celebration", startTime: "19:00", duration: 240, isRitual: false },
+    ],
+  };
+
+  const template = EVENTS[wedding.religion] || EVENTS.hindu;
+  const weddingDate = wedding.weddingDate ? new Date(wedding.weddingDate) : new Date();
+  const days = wedding.weddingDays || 1;
+
+  const eventsPerDay = Math.ceil(template.length / days);
+  let order = 0;
+
+  for (let i = 0; i < template.length; i++) {
+    const dayIndex = Math.floor(i / eventsPerDay);
+    const date = new Date(weddingDate);
+    date.setDate(date.getDate() + dayIndex);
+    const dateStr = date.toISOString().split("T")[0];
+
+    await prisma.weddingEvent.create({
+      data: {
+        weddingId,
+        order: order++,
+        name: template[i].name,
+        description: template[i].description,
+        date: dateStr,
+        startTime: template[i].startTime,
+        duration: template[i].duration,
+        location: wedding.weddingCity || "",
+        isRitual: template[i].isRitual,
+      },
+    });
+  }
+}
