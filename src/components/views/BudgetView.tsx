@@ -43,22 +43,38 @@ export default function BudgetView({ wedding, onUpdate }: { wedding: any; onUpda
           <h2 className="text-2xl font-bold">Budget Tracker</h2>
           <p className="text-gray-500 text-sm">Track every rupee — from estimate to final payment</p>
         </div>
-        <div className="flex gap-2.5">
-          <div className="text-right mr-4">
-            <div className="text-xs text-gray-500">Total Estimated</div>
-            <div className="font-bold">₹{totalEstimated.toLocaleString("en-IN")}</div>
-          </div>
-          <div className="text-right mr-4">
-            <div className="text-xs text-gray-500">Total Paid</div>
-            <div className="font-bold text-green">₹{totalPaid.toLocaleString("en-IN")}</div>
-          </div>
+        <div className="flex gap-2.5 items-center">
+          {wedding.budgetItems?.length > 0 && (
+            <>
+              <div className="text-right mr-4">
+                <div className="text-xs text-gray-500">Total Estimated</div>
+                <div className="font-bold">₹{totalEstimated.toLocaleString("en-IN")}</div>
+              </div>
+              <div className="text-right mr-4">
+                <div className="text-xs text-gray-500">Total Paid</div>
+                <div className="font-bold text-green">₹{totalPaid.toLocaleString("en-IN")}</div>
+              </div>
+            </>
+          )}
           <button onClick={handleAdd} className="px-4 py-2 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
             <i className="fas fa-plus mr-1.5" /> Add Item
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+      {!wedding.budgetItems || wedding.budgetItems.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+          <div className="w-16 h-16 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-4">
+            <i className="fas fa-rupee-sign text-maroon text-xl" />
+          </div>
+          <h3 className="font-bold text-lg mb-2">No budget items yet</h3>
+          <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">Start tracking your wedding expenses by adding your first budget item.</p>
+          <button onClick={handleAdd} className="px-6 py-2.5 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
+            <i className="fas fa-plus mr-1.5" /> Add First Item
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
         <table className="spreadsheet">
           <thead>
             <tr>
@@ -112,7 +128,8 @@ export default function BudgetView({ wedding, onUpdate }: { wedding: any; onUpda
             })}
           </tbody>
         </table>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

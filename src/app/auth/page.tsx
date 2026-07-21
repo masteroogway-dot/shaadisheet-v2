@@ -3,9 +3,57 @@
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { signup } from "@/lib/actions";
 
 export default function AuthPage() {
+  const router = useRouter();
   const [mode, setMode] = useState<"login" | "signup">("signup");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleCredentialsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    if (mode === "signup") {
+      const result = await signup(name, email, password);
+      if (result.error) {
+        setError(result.error);
+        setLoading(false);
+        return;
+      }
+      // Auto-login after signup
+      const loginResult = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+      if (loginResult?.error) {
+        setError("Account created. Please log in.");
+        setMode("login");
+        setLoading(false);
+        return;
+      }
+      router.push("/dashboard");
+    } else {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+      if (result?.error) {
+        setError("Invalid email or password");
+        setLoading(false);
+        return;
+      }
+      router.push("/dashboard");
+    }
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -52,18 +100,77 @@ export default function AuthPage() {
             Continue with Google
           </button>
 
-          <div className="mt-8 text-center">
+          <div className="flex items-center gap-4 my-6">
+            <div className="flex-1 h-px bg-gray-300" />
+            <span className="text-sm text-gray-400">or</span>
+            <div className="flex-1 h-px bg-gray-300" />
+          </div>
+
+          <form onSubmit={handleCredentialsSubmit}>
+            {mode === "signup" && (
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Your name"
+                  required
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon transition-colors"
+                />
+              </div>
+            )}
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon transition-colors"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="At least 6 characters"
+                required
+                minLength={6}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon transition-colors"
+              />
+            </div>
+
+            {error && (
+              <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 text-white font-bold bg-maroon rounded-lg hover:bg-maroon-dark transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Please wait..." : mode === "signup" ? "Create Account" : "Log In"}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
             {mode === "signup" ? (
               <p className="text-sm text-gray-500">
                 Already have an account?{" "}
-                <button onClick={() => setMode("login")} className="text-maroon font-semibold hover:underline cursor-pointer">
+                <button onClick={() => { setMode("login"); setError(""); }} className="text-maroon font-semibold hover:underline cursor-pointer">
                   Log In
                 </button>
               </p>
             ) : (
               <p className="text-sm text-gray-500">
                 Don&apos;t have an account?{" "}
-                <button onClick={() => setMode("signup")} className="text-maroon font-semibold hover:underline cursor-pointer">
+                <button onClick={() => { setMode("signup"); setError(""); }} className="text-maroon font-semibold hover:underline cursor-pointer">
                   Sign Up Free
                 </button>
               </p>

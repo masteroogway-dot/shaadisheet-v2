@@ -42,7 +42,19 @@ export default function VendorsView({ wedding, onUpdate }: { wedding: any; onUpd
         </button>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+      {!wedding.vendors || wedding.vendors.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+          <div className="w-16 h-16 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-4">
+            <i className="fas fa-store text-maroon text-xl" />
+          </div>
+          <h3 className="font-bold text-lg mb-2">No vendors yet</h3>
+          <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">Start adding your wedding vendors — venue, caterer, photographer, and more.</p>
+          <button onClick={handleAdd} className="px-6 py-2.5 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
+            <i className="fas fa-plus mr-1.5" /> Add First Vendor
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
         <table className="spreadsheet">
           <thead>
             <tr>
@@ -102,7 +114,8 @@ export default function VendorsView({ wedding, onUpdate }: { wedding: any; onUpd
             })}
           </tbody>
         </table>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

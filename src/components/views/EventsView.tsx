@@ -30,6 +30,14 @@ const EVENTS: Record<string, Array<{ name: string; desc: string; time: string; r
     { name: "Church Wedding", desc: "Wedding ceremony", time: "10:00 AM", ritual: true },
     { name: "Reception", desc: "Celebration", time: "7:00 PM", ritual: false },
   ],
+  jain: [
+    { name: "Roka", desc: "Official engagement", time: "11:00 AM", ritual: true },
+    { name: "Engagement", desc: "Ring exchange", time: "7:00 PM", ritual: true },
+    { name: "Mehendi", desc: "Henna application", time: "4:00 PM", ritual: false },
+    { name: "Sangeet", desc: "Dance night", time: "7:00 PM", ritual: false },
+    { name: "Wedding Ceremony", desc: "Jain wedding rituals", time: "10:00 AM", ritual: true },
+    { name: "Reception", desc: "Grand celebration", time: "7:00 PM", ritual: false },
+  ],
 };
 
 export default function EventsView({ wedding }: { wedding: any }) {

@@ -15,7 +15,7 @@ const EVENTS_BY_RELIGION: Record<string, Array<{ name: string; desc: string; tim
     { name: "Reception", desc: "Grand evening celebration", time: "7:00 PM", ritual: false },
   ],
   muslim: [
-    { name: "Mangni", desc: "Engagement ceremony", time: "7:00 PM", ritual: true },
+    { name: "Mangni", desc: "Engagement", time: "7:00 PM", ritual: true },
     { name: "Mehendi", desc: "Henna night", time: "4:00 PM", ritual: false },
     { name: "Nikah", desc: "Wedding ceremony", time: "10:00 AM", ritual: true },
     { name: "Walima", desc: "Post-wedding reception", time: "7:00 PM", ritual: true },
@@ -54,7 +54,7 @@ function formatINR(n: number) {
 export default function OverviewView({ wedding }: { wedding: any }) {
   const totalBudget = BUDGET_RANGES[wedding.budget] || 4000000;
   const totalSpent = wedding.budgetItems?.reduce((s: number, i: any) => s + (i.paid || 0), 0) || 0;
-  const totalGuests = wedding.guestCount === "small" ? 80 : wedding.guestCount === "medium" ? 200 : wedding.guestCount === "large" ? 400 : 600;
+  const totalGuests = wedding.guests?.length || 0;
   const rsvpYes = wedding.guests?.filter((g: any) => g.rsvp === "Yes").length || 0;
   const vendorsBooked = wedding.vendors?.filter((v: any) => v.contract === "Signed").length || 0;
   const totalVendors = wedding.vendors?.length || 0;
@@ -65,19 +65,17 @@ export default function OverviewView({ wedding }: { wedding: any }) {
     ? Math.ceil((new Date(wedding.weddingDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null;
 
-  // Upcoming events
   const allEvents = EVENTS_BY_RELIGION[wedding.religion] || EVENTS_BY_RELIGION.hindu;
   const selectedNames: string[] = JSON.parse(wedding.selectedEvents || "[]");
   const selectedEvents = selectedNames.length > 0 ? allEvents.filter((e) => selectedNames.includes(e.name)) : allEvents;
-  const weddingDate = wedding.weddingDate ? new Date(wedding.weddingDate) : new Date("2026-10-15");
+  const weddingDate = wedding.weddingDate ? new Date(wedding.weddingDate) : null;
   const today = new Date();
-  const eventsWithDates = selectedEvents.map((e, i) => {
+  const eventsWithDates = weddingDate ? selectedEvents.map((e, i) => {
     const d = new Date(weddingDate);
     d.setDate(d.getDate() - (selectedEvents.length - 1 - i));
     return { ...e, date: d };
-  }).filter((e) => e.date >= today).slice(0, 4);
+  }).filter((e) => e.date >= today).slice(0, 4) : [];
 
-  // Budget bars
   const cats = [
     { name: "Venue & Decor", pct: 0.30, color: "from-maroon to-maroon-light" },
     { name: "Catering", pct: 0.25, color: "from-gold to-gold-dark" },
@@ -87,117 +85,138 @@ export default function OverviewView({ wedding }: { wedding: any }) {
     { name: "Music & Entertainment", pct: 0.06, color: "from-orange-600 to-red-700" },
   ];
 
+  const hasData = totalBudget > 0 || totalGuests > 0 || totalVendors > 0 || totalTasks > 0;
+
   return (
     <div>
       <div className="flex justify-between items-start mb-7">
         <div>
           <h2 className="text-2xl font-bold">Wedding Dashboard</h2>
           <p className="text-gray-500 text-sm">
-            {countdown !== null ? (countdown > 0 ? `${countdown} days until your wedding` : "Your wedding day!") : "—"}
+            {countdown !== null ? (countdown > 0 ? `${countdown} days until your wedding` : countdown === 0 ? "Your wedding day!" : `${Math.abs(countdown)} days since your wedding`) : "Set your wedding date to see countdown"}
           </p>
         </div>
       </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
-        {[
-          { label: "Total Budget", value: `₹${formatINR(totalBudget)}`, sub: `₹${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)`, icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
-          { label: "Guests", value: totalGuests.toString(), sub: `${rsvpYes} RSVP'd (${Math.round(rsvpYes / Math.max(wedding.guests?.length || 1, 1) * 100)}%)`, icon: "fa-users", gradient: "from-green to-green/80" },
-          { label: "Vendors", value: `${vendorsBooked} / ${totalVendors}`, sub: `${totalVendors - vendorsBooked} remaining`, icon: "fa-store", gradient: "from-blue to-blue/80" },
-          { label: "Tasks", value: `${tasksDone} / ${totalTasks}`, sub: `${totalTasks - tasksDone} remaining`, icon: "fa-tasks", gradient: "from-orange-600 to-red-700" },
-        ].map((s, i) => (
-          <div key={i} className="bg-white rounded-xl p-5 border border-gray-200 flex items-center gap-4 hover:shadow-md transition-shadow">
-            <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${s.gradient} flex items-center justify-center text-white shrink-0`}>
-              <i className={`fas ${s.icon}`} />
-            </div>
-            <div>
-              <span className="text-xs text-gray-500 font-medium">{s.label}</span>
-              <div className="text-xl font-extrabold">{s.value}</div>
-              <span className="text-xs text-gray-500">{s.sub}</span>
-            </div>
+      {!hasData ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+          <div className="w-16 h-16 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-4">
+            <i className="fas fa-rocket text-maroon text-xl" />
           </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Upcoming Events */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="flex items-center justify-between px-6 pt-5 pb-0">
-            <h3 className="font-bold">Upcoming Events</h3>
-          </div>
-          <div className="p-6">
-            {eventsWithDates.length === 0 ? (
-              <p className="text-gray-400 text-center py-5">No upcoming events</p>
-            ) : eventsWithDates.map((event, i) => {
-              const day = event.date.getDate();
-              const month = event.date.toLocaleString("en-US", { month: "short" });
-              const isWedding = event.name.includes("Wedding") || event.name.includes("Nikah") || event.name.includes("Anand Karaj");
-              return (
-                <div key={i} className="flex items-center gap-4 py-3.5 border-b border-gray-100 last:border-0">
-                  <div className={`w-[52px] h-[52px] rounded-lg flex flex-col items-center justify-center shrink-0 ${isWedding ? "bg-gradient-to-br from-maroon to-maroon-light text-white" : "bg-gray-100"}`}>
-                    <span className={`text-lg font-extrabold leading-none ${isWedding ? "" : ""}`}>{day}</span>
-                    <span className="text-[0.7rem] uppercase font-semibold opacity-80">{month}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <strong className="text-sm">{event.name}</strong>
-                    <span className="block text-xs text-gray-500">{wedding.weddingCity || "Venue TBD"} • {event.time}</span>
-                  </div>
-                  <span className={`status-badge ${event.date.getTime() - today.getTime() < 30 * 86400000 ? "planning" : "pending"}`}>
-                    {event.date.getTime() - today.getTime() < 30 * 86400000 ? "Planning" : "Upcoming"}
-                  </span>
-                </div>
-              );
-            })}
+          <h3 className="font-bold text-lg mb-2">Welcome to ShaadiSheet!</h3>
+          <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">Your wedding dashboard is ready. Start by adding budget items, vendors, or guests from the sidebar.</p>
+          <div className="flex gap-3 justify-center">
+            <span className="px-4 py-2 bg-maroon/5 rounded-lg text-sm text-maroon font-medium">Budget →</span>
+            <span className="px-4 py-2 bg-maroon/5 rounded-lg text-sm text-maroon font-medium">Vendors →</span>
+            <span className="px-4 py-2 bg-maroon/5 rounded-lg text-sm text-maroon font-medium">Guests →</span>
           </div>
         </div>
-
-        {/* Recent Activity */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-6 pt-5 pb-0">
-            <h3 className="font-bold">Quick Tips</h3>
-          </div>
-          <div className="p-6">
+      ) : (
+        <>
+          {/* Stat Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
             {[
-              { icon: "fa-lightbulb", color: "#FEF3C7", text: "Review your budget allocations to ensure nothing is missed." },
-              { icon: "fa-calendar-check", color: "#D1FAE5", text: "Set your wedding date to unlock countdown and reminders." },
-            ].map((tip, i) => (
-              <div key={i} className="flex items-start gap-3 py-3.5 border-b border-gray-100 last:border-0">
-                <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: tip.color }}><i className={`fas ${tip.icon} text-sm`} /></div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm">{tip.text}</p>
+              { label: "Total Budget", value: `₹${formatINR(totalBudget)}`, sub: totalSpent > 0 ? `₹${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
+              { label: "Guests", value: totalGuests.toString(), sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : "No guests added", icon: "fa-users", gradient: "from-green to-green/80" },
+              { label: "Vendors", value: `${vendorsBooked} / ${totalVendors}`, sub: `${totalVendors - vendorsBooked} remaining`, icon: "fa-store", gradient: "from-blue to-blue/80" },
+              { label: "Tasks", value: `${tasksDone} / ${totalTasks}`, sub: `${totalTasks - tasksDone} remaining`, icon: "fa-tasks", gradient: "from-orange-600 to-red-700" },
+            ].map((s, i) => (
+              <div key={i} className="bg-white rounded-xl p-5 border border-gray-200 flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${s.gradient} flex items-center justify-center text-white shrink-0`}>
+                  <i className={`fas ${s.icon}`} />
+                </div>
+                <div>
+                  <span className="text-xs text-gray-500 font-medium">{s.label}</span>
+                  <div className="text-xl font-extrabold">{s.value}</div>
+                  <span className="text-xs text-gray-500">{s.sub}</span>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      </div>
 
-      {/* Budget Bars */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="flex items-center justify-between px-6 pt-5 pb-0">
-          <h3 className="font-bold">Budget Overview</h3>
-        </div>
-        <div className="p-6">
-          <div className="space-y-4">
-            {cats.map((cat) => {
-              const catBudget = Math.round(totalBudget * cat.pct);
-              const catSpent = wedding.budgetItems?.filter((i: any) => i.category === cat.name).reduce((s: number, i: any) => s + (i.paid || 0), 0) || 0;
-              const pct = catBudget > 0 ? Math.round(catSpent / catBudget * 100) : 0;
-              return (
-                <div key={cat.name}>
-                  <div className="flex justify-between text-sm mb-1.5">
-                    <span className="font-medium">{cat.name}</span>
-                    <span className="text-gray-500">₹{formatINR(catSpent)} / ₹{formatINR(catBudget)}</span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* Upcoming Events */}
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="flex items-center justify-between px-6 pt-5 pb-0">
+                <h3 className="font-bold">Upcoming Events</h3>
+              </div>
+              <div className="p-6">
+                {eventsWithDates.length === 0 ? (
+                  <p className="text-gray-400 text-center py-5">No upcoming events</p>
+                ) : eventsWithDates.map((event, i) => {
+                  const day = event.date.getDate();
+                  const month = event.date.toLocaleString("en-US", { month: "short" });
+                  const isWedding = event.name.includes("Wedding") || event.name.includes("Nikah") || event.name.includes("Anand Karaj");
+                  return (
+                    <div key={i} className="flex items-center gap-4 py-3.5 border-b border-gray-100 last:border-0">
+                      <div className={`w-[52px] h-[52px] rounded-lg flex flex-col items-center justify-center shrink-0 ${isWedding ? "bg-gradient-to-br from-maroon to-maroon-light text-white" : "bg-gray-100"}`}>
+                        <span className="text-lg font-extrabold leading-none">{day}</span>
+                        <span className="text-[0.7rem] uppercase font-semibold opacity-80">{month}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <strong className="text-sm">{event.name}</strong>
+                        <span className="block text-xs text-gray-500">{wedding.weddingCity || "Venue TBD"} • {event.time}</span>
+                      </div>
+                      <span className={`status-badge ${event.date.getTime() - today.getTime() < 30 * 86400000 ? "planning" : "pending"}`}>
+                        {event.date.getTime() - today.getTime() < 30 * 86400000 ? "Planning" : "Upcoming"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Quick Tips */}
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="px-6 pt-5 pb-0">
+                <h3 className="font-bold">Quick Tips</h3>
+              </div>
+              <div className="p-6">
+                {[
+                  { icon: "fa-lightbulb", color: "#FEF3C7", text: "Review your budget allocations to ensure nothing is missed." },
+                  { icon: "fa-calendar-check", color: "#D1FAE5", text: "Set your wedding date to unlock countdown and reminders." },
+                ].map((tip, i) => (
+                  <div key={i} className="flex items-start gap-3 py-3.5 border-b border-gray-100 last:border-0">
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: tip.color }}><i className={`fas ${tip.icon} text-sm`} /></div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm">{tip.text}</p>
+                    </div>
                   </div>
-                  <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                    <div className={`h-full bg-gradient-to-r ${cat.color} rounded-full transition-all duration-700`} style={{ width: `${pct}%` }} />
-                  </div>
-                </div>
-              );
-            })}
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+
+          {/* Budget Bars */}
+          {wedding.budgetItems && wedding.budgetItems.length > 0 && (
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="flex items-center justify-between px-6 pt-5 pb-0">
+                <h3 className="font-bold">Budget Overview</h3>
+              </div>
+              <div className="p-6">
+                <div className="space-y-4">
+                  {cats.map((cat) => {
+                    const catBudget = Math.round(totalBudget * cat.pct);
+                    const catSpent = wedding.budgetItems?.filter((i: any) => i.category === cat.name).reduce((s: number, i: any) => s + (i.paid || 0), 0) || 0;
+                    const pct = catBudget > 0 ? Math.round(catSpent / catBudget * 100) : 0;
+                    return (
+                      <div key={cat.name}>
+                        <div className="flex justify-between text-sm mb-1.5">
+                          <span className="font-medium">{cat.name}</span>
+                          <span className="text-gray-500">₹{formatINR(catSpent)} / ₹{formatINR(catBudget)}</span>
+                        </div>
+                        <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                          <div className={`h-full bg-gradient-to-r ${cat.color} rounded-full transition-all duration-700`} style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
