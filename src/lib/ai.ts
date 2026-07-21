@@ -41,16 +41,17 @@ const tools = [
     type: "function" as const,
     function: {
       name: "allocate_rooms",
-      description: "Create room allocations for guests. Use this when the user wants to assign guests to hotel rooms.",
+      description: "Create room allocations and assign guests to rooms. Use this when the user wants to assign guests to hotel rooms. Fetches all guests from the database and assigns them 2 per room by default.",
       parameters: {
         type: "object",
         properties: {
-          count: { type: "number", description: "Number of rooms to allocate" },
-          guestsPerRoom: { type: "number", description: "Number of guests per room", default: 2 },
+          count: { type: "number", description: "Number of rooms to allocate. If not provided, calculates based on guest count (2 per room)." },
           hotel: { type: "string", description: "Hotel name" },
           roomType: { type: "string", enum: ["Standard", "Deluxe", "Suite", "Premium"], description: "Room type" },
+          checkIn: { type: "string", description: "Check-in date in YYYY-MM-DD format" },
+          checkOut: { type: "string", description: "Check-out date in YYYY-MM-DD format" },
         },
-        required: ["count"],
+        required: [],
       },
     },
   },
@@ -193,20 +194,31 @@ const tools = [
 async function executeTool(name: string, args: any, weddingId: string): Promise<string> {
   switch (name) {
     case "allocate_rooms": {
-      const { count, guestsPerRoom = 2, hotel = "", roomType = "Standard" } = args;
+      const { count, hotel = "", roomType = "Standard", checkIn = "", checkOut = "" } = args;
+      // Fetch all guests for this wedding
+      const guests = await prisma.guest.findMany({ where: { weddingId }, select: { name: true } });
+      const totalGuests = guests.length;
+      const roomsNeeded = count || Math.ceil(totalGuests / 2);
+
       const rooms = [];
-      for (let i = 0; i < count; i++) {
+      let guestIdx = 0;
+      for (let i = 0; i < roomsNeeded; i++) {
+        const guest1 = guestIdx < totalGuests ? guests[guestIdx++].name : "";
+        const guest2 = guestIdx < totalGuests ? guests[guestIdx++].name : "";
+        const guestNames = [guest1, guest2].filter(Boolean).join(", ");
         rooms.push({
           weddingId,
           hotel: hotel || "TBD",
           roomNumber: `Room ${i + 1}`,
           roomType,
-          guestsPerRoom,
+          guestName: guestNames,
+          checkIn: checkIn || "",
+          checkOut: checkOut || "",
           status: "Reserved",
         });
       }
       await prisma.roomAllocation.createMany({ data: rooms });
-      return `Created ${count} room allocations (${roomType}, ${guestsPerRoom} guests per room${hotel ? ` at ${hotel}` : ""}).`;
+      return `Created ${roomsNeeded} rooms at ${hotel || "TBD"} (${roomType}). Assigned ${Math.min(totalGuests, roomsNeeded * 2)} guests to rooms. Check-in: ${checkIn || "TBD"}, Check-out: ${checkOut || "TBD"}.`;
     }
 
     case "create_guests": {
