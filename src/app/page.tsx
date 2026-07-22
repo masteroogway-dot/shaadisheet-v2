@@ -353,7 +353,7 @@ export default function Home() {
               />
             </h1>
             <BlurText
-              text="Budget tracking. Vendor management. Ritual checklists. AI assistance. Built for Hindu, Muslim, Sikh, Christian, and Jain weddings."
+              text="Track every guest, every vendor, every ritual — all in one place. From engagement to reception, plan every moment flawlessly."
               className="text-sm md:text-lg text-white/80 max-w-[560px] mb-6 md:mb-10 leading-relaxed mx-auto drop-shadow"
               delay={150}
               animateBy="words"
