@@ -80,7 +80,7 @@ const DURATION_OPTIONS = [
   { value: 240, label: "4 hours" },
 ];
 
-export default function TimelineView({ wedding, weddingId }: { wedding: any; weddingId: string }) {
+export default function TimelineView({ wedding, weddingId, canEdit = true }: { wedding: any; weddingId: string; canEdit?: boolean }) {
   const [items, setItems] = useState<TimelineItem[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<TimelineItem>>({});
@@ -169,12 +169,14 @@ export default function TimelineView({ wedding, weddingId }: { wedding: any; wed
           <h2 className="text-2xl font-bold">Wedding Day Timeline</h2>
           <p className="text-gray-500 text-sm">Minute-by-minute schedule for your big day</p>
         </div>
-        <button
-          onClick={handleAdd}
-          className="px-4 py-2 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer"
-        >
-          <i className="fas fa-plus mr-1.5" /> Add Item
-        </button>
+        {canEdit && (
+          <button
+            onClick={handleAdd}
+            className="px-4 py-2 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer"
+          >
+            <i className="fas fa-plus mr-1.5" /> Add Item
+          </button>
+        )}
       </div>
 
       {overlapCount > 0 && (
@@ -195,9 +197,11 @@ export default function TimelineView({ wedding, weddingId }: { wedding: any; wed
           </div>
           <h3 className="font-bold text-lg mb-2">No timeline items yet</h3>
           <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">Add your first timeline item to start planning your wedding day schedule.</p>
-          <button onClick={handleAdd} className="px-6 py-2.5 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
-            <i className="fas fa-plus mr-1.5" /> Add First Item
-          </button>
+          {canEdit && (
+            <button onClick={handleAdd} className="px-6 py-2.5 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
+              <i className="fas fa-plus mr-1.5" /> Add First Item
+            </button>
+          )}
         </div>
       ) : (
         <div className="relative pl-10">
@@ -306,26 +310,30 @@ export default function TimelineView({ wedding, weddingId }: { wedding: any; wed
                         )}
                       </div>
                       <div className="flex items-start gap-1.5 shrink-0">
-                        <button
-                          onClick={() => startEdit(item)}
-                          className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-maroon transition-colors cursor-pointer"
-                          title="Edit"
-                        >
-                          <i className="fas fa-pen text-xs" />
-                        </button>
-                        {deleteConfirm === item.id ? (
-                          <div className="flex items-center gap-1">
-                            <button onClick={() => handleDelete(item.id)} className="text-xs px-2 py-1 bg-red-500 text-white rounded cursor-pointer">Yes</button>
-                            <button onClick={() => setDeleteConfirm(null)} className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded cursor-pointer">No</button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setDeleteConfirm(item.id)}
-                            className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
-                            title="Delete"
-                          >
-                            <i className="fas fa-trash text-xs" />
-                          </button>
+                        {canEdit && (
+                          <>
+                            <button
+                              onClick={() => startEdit(item)}
+                              className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-maroon transition-colors cursor-pointer"
+                              title="Edit"
+                            >
+                              <i className="fas fa-pen text-xs" />
+                            </button>
+                            {deleteConfirm === item.id ? (
+                              <div className="flex items-center gap-1">
+                                <button onClick={() => handleDelete(item.id)} className="text-xs px-2 py-1 bg-red-500 text-white rounded cursor-pointer">Yes</button>
+                                <button onClick={() => setDeleteConfirm(null)} className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded cursor-pointer">No</button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => setDeleteConfirm(item.id)}
+                                className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                                title="Delete"
+                              >
+                                <i className="fas fa-trash text-xs" />
+                              </button>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>

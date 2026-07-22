@@ -4,7 +4,7 @@ import { useState } from "react";
 import { updateGuest, createGuest, deleteGuest, batchCreateGuests, bulkDeleteGuests, bulkAddGuests } from "@/lib/actions";
 import ImportModal from "@/components/ImportModal";
 
-export default function GuestsView({ wedding, weddingId, onUpdate, onToast }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void }) {
+export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canEdit = true }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void; canEdit?: boolean }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
   const [showImport, setShowImport] = useState(false);
@@ -101,12 +101,16 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast }: { 
           <p className="text-gray-500 text-sm">Track every guest {'\u2014'} RSVP, dietary needs, gifts</p>
         </div>
         <div className="flex gap-2.5">
-          <button onClick={() => setShowImport(true)} className="btn-maroon">
-            <i className="fas fa-file-import" /> Import
-          </button>
-          <button onClick={handleAdd} className="btn-maroon">
-            <i className="fas fa-plus" /> Add Guest
-          </button>
+          {canEdit && (
+            <>
+              <button onClick={() => setShowImport(true)} className="btn-maroon">
+                <i className="fas fa-file-import" /> Import
+              </button>
+              <button onClick={handleAdd} className="btn-maroon">
+                <i className="fas fa-plus" /> Add Guest
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -126,7 +130,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast }: { 
         </div>
       )}
 
-      {selected.size > 0 && (
+      {selected.size > 0 && canEdit && (
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">{selected.size} selected</span>
           <button onClick={handleBulkDelete} className="btn-delete text-xs py-1 px-3">
@@ -136,7 +140,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast }: { 
         </div>
       )}
 
-      {showBulkAdd && (
+      {showBulkAdd && canEdit && (
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">Add how many guests?</span>
           <input type="number" min={1} max={500} value={bulkAddCount} onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 1)} className="card-input w-20 py-1.5 text-center" />
@@ -152,9 +156,11 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast }: { 
           </div>
           <h3 className="font-bold text-lg mb-2">No guests yet</h3>
           <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">Start building your guest list and track RSVPs for your wedding.</p>
-          <button onClick={handleAdd} className="btn-maroon">
-            <i className="fas fa-plus" /> Add First Guest
-          </button>
+          {canEdit && (
+            <button onClick={handleAdd} className="btn-maroon">
+              <i className="fas fa-plus" /> Add First Guest
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-3">
@@ -190,7 +196,9 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast }: { 
                     ) : (
                       <>
                         <button onClick={() => { setEditing(g.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen mr-1" /> Edit</button>
-                        <button onClick={() => handleDelete(g.id)} className="btn-delete"><i className="fas fa-trash mr-1" /> Delete</button>
+                        {canEdit && (
+                          <button onClick={() => handleDelete(g.id)} className="btn-delete"><i className="fas fa-trash mr-1" /> Delete</button>
+                        )}
                       </>
                     )}
                   </div>
@@ -247,9 +255,11 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast }: { 
             );
           })}
 
-          <button onClick={() => setShowBulkAdd(true)} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm font-semibold text-gray-500 hover:border-maroon hover:text-maroon transition-colors cursor-pointer">
-            <i className="fas fa-plus mr-1.5" /> Add More Guests
-          </button>
+          {canEdit && (
+            <button onClick={() => setShowBulkAdd(true)} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm font-semibold text-gray-500 hover:border-maroon hover:text-maroon transition-colors cursor-pointer">
+              <i className="fas fa-plus mr-1.5" /> Add More Guests
+            </button>
+          )}
         </div>
       )}
 

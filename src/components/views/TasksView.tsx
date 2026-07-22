@@ -5,7 +5,7 @@ import { createTask, deleteTask } from "@/lib/actions";
 
 const PERIODS = ["12+ Months", "9-12 Months", "6-9 Months", "3-6 Months", "1-3 Months", "Last Month"];
 
-export default function TasksView({ wedding, weddingId, onToggle }: { wedding: any; weddingId: string; onToggle: (id: string, done: boolean) => void }) {
+export default function TasksView({ wedding, weddingId, onToggle, canEdit = true }: { wedding: any; weddingId: string; onToggle: (id: string, done: boolean) => void; canEdit?: boolean }) {
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [newTaskText, setNewTaskText] = useState("");
 
@@ -45,9 +45,11 @@ export default function TasksView({ wedding, weddingId, onToggle }: { wedding: a
           </div>
           <h3 className="font-bold text-lg mb-2">No tasks yet</h3>
           <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">Create your wedding task checklist to stay organized.</p>
-          <button onClick={() => { setAddingTo("12+ Months"); }} className="px-6 py-2.5 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
-            <i className="fas fa-plus mr-1.5" /> Add First Task
-          </button>
+          {canEdit && (
+            <button onClick={() => { setAddingTo("12+ Months"); }} className="px-6 py-2.5 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
+              <i className="fas fa-plus mr-1.5" /> Add First Task
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-6">
@@ -62,9 +64,11 @@ export default function TasksView({ wedding, weddingId, onToggle }: { wedding: a
                   </h3>
                   <div className="flex items-center gap-3">
                     <span className="text-sm text-gray-500 font-medium">{done} / {tasks.length} done</span>
-                    <button onClick={() => setAddingTo(period)} className="text-xs px-2 py-1 bg-maroon text-white rounded cursor-pointer hover:bg-maroon-light">
-                      <i className="fas fa-plus mr-1" /> Add
-                    </button>
+                    {canEdit && (
+                      <button onClick={() => setAddingTo(period)} className="text-xs px-2 py-1 bg-maroon text-white rounded cursor-pointer hover:bg-maroon-light">
+                        <i className="fas fa-plus mr-1" /> Add
+                      </button>
+                    )}
                   </div>
                 </div>
                 {addingTo === period && (
@@ -87,10 +91,13 @@ export default function TasksView({ wedding, weddingId, onToggle }: { wedding: a
                       type="checkbox"
                       checked={task.done}
                       onChange={() => onToggle(task.id, !task.done)}
+                      disabled={!canEdit}
                       className="w-[18px] h-[18px] accent-maroon cursor-pointer"
                     />
                     <span className={`flex-1 text-sm ${task.done ? "line-through text-gray-400" : ""}`}>{task.text}</span>
-                    <button onClick={() => handleDeleteTask(task.id)} className="text-xs text-gray-400 hover:text-red-500 cursor-pointer"><i className="fas fa-trash" /></button>
+                    {canEdit && (
+                      <button onClick={() => handleDeleteTask(task.id)} className="text-xs text-gray-400 hover:text-red-500 cursor-pointer"><i className="fas fa-trash" /></button>
+                    )}
                   </div>
                 ))}
               </div>

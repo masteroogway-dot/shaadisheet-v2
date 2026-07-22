@@ -25,7 +25,7 @@ function StarRating({ value, onChange, readonly }: { value: string; onChange?: (
   );
 }
 
-export default function VendorsView({ wedding, weddingId, onUpdate, onToast }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void }) {
+export default function VendorsView({ wedding, weddingId, onUpdate, onToast, canEdit = true }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void; canEdit?: boolean }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
   const [showImport, setShowImport] = useState(false);
@@ -129,12 +129,16 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast }: {
           <p className="text-gray-500 text-sm">Manage all your wedding vendors in one place</p>
         </div>
         <div className="flex gap-2.5 items-center">
-          <button onClick={() => setShowImport(true)} className="btn-maroon">
-            <i className="fas fa-file-import" /> Import
-          </button>
-          <button onClick={handleAdd} className="btn-maroon">
-            <i className="fas fa-plus" /> Add Vendor
-          </button>
+          {canEdit && (
+            <button onClick={() => setShowImport(true)} className="btn-maroon">
+              <i className="fas fa-file-import" /> Import
+            </button>
+          )}
+          {canEdit && (
+            <button onClick={handleAdd} className="btn-maroon">
+              <i className="fas fa-plus" /> Add Vendor
+            </button>
+          )}
         </div>
       </div>
 
@@ -162,9 +166,11 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast }: {
       {selected.size > 0 && (
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">{selected.size} selected</span>
-          <button onClick={handleBulkDelete} className="btn-delete text-xs py-1 px-3">
-            <i className="fas fa-trash mr-1" /> Delete Selected
-          </button>
+          {canEdit && (
+            <button onClick={handleBulkDelete} className="btn-delete text-xs py-1 px-3">
+              <i className="fas fa-trash mr-1" /> Delete Selected
+            </button>
+          )}
           <button onClick={() => setSelected(new Set())} className="text-xs text-gray-500 hover:text-gray-700 cursor-pointer">Clear</button>
         </div>
       )}
@@ -173,7 +179,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast }: {
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">Add how many vendors?</span>
           <input type="number" min={1} max={100} value={bulkCount} onChange={(e) => setBulkCount(parseInt(e.target.value) || 1)} className="card-input w-20 py-1.5 text-center" />
-          <button onClick={handleBulkAdd} className="btn-maroon text-xs py-1.5 px-3">Add</button>
+          {canEdit && <button onClick={handleBulkAdd} className="btn-maroon text-xs py-1.5 px-3">Add</button>}
           <button onClick={() => { setShowBulkInput(false); setBulkCount(1); }} className="btn-cancel text-xs py-1.5 px-3">Cancel</button>
         </div>
       )}
@@ -185,9 +191,11 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast }: {
           </div>
           <h3 className="font-bold text-lg mb-2">No vendors yet</h3>
           <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">Start adding your wedding vendors {'\u2014'} venue, caterer, photographer, and more.</p>
-          <button onClick={handleAdd} className="btn-maroon">
-            <i className="fas fa-plus" /> Add First Vendor
-          </button>
+          {canEdit && (
+            <button onClick={handleAdd} className="btn-maroon">
+              <i className="fas fa-plus" /> Add First Vendor
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-3">
@@ -226,7 +234,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast }: {
                     ) : (
                       <>
                         <button onClick={() => { setEditing(v.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen mr-1" /> Edit</button>
-                        <button onClick={() => handleDelete(v.id)} className="btn-delete"><i className="fas fa-trash mr-1" /> Delete</button>
+                        {canEdit && <button onClick={() => handleDelete(v.id)} className="btn-delete"><i className="fas fa-trash mr-1" /> Delete</button>}
                       </>
                     )}
                   </div>
@@ -303,9 +311,11 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast }: {
             );
           })}
 
-          <button onClick={() => setShowBulkInput(true)} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm font-semibold text-gray-500 hover:border-maroon hover:text-maroon transition-colors cursor-pointer">
-            <i className="fas fa-plus mr-1.5" /> Add More Vendors
-          </button>
+          {canEdit && (
+            <button onClick={() => setShowBulkInput(true)} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm font-semibold text-gray-500 hover:border-maroon hover:text-maroon transition-colors cursor-pointer">
+              <i className="fas fa-plus mr-1.5" /> Add More Vendors
+            </button>
+          )}
         </div>
       )}
 

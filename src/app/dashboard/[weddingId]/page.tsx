@@ -112,17 +112,18 @@ export default function WeddingDashboardPage() {
   };
 
   const renderView = () => {
+    const canEdit = userRole === "owner" || userRole === "co-owner" || userRole === "editor";
     switch (activeView) {
       case "overview": return <OverviewView wedding={wedding} onUpdate={refreshWedding} userRole={userRole} />;
-      case "budget": return <BudgetView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
-      case "vendors": return <VendorsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
-      case "guests": return <GuestsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
-      case "events": return <EventsView wedding={wedding} weddingId={weddingId} />;
-      case "tasks": return <TasksView wedding={wedding} weddingId={weddingId} onToggle={handleToggleTask} />;
-      case "seating": return <SeatingView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
-      case "rooms": return <RoomAllocationView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
-      case "timeline": return <TimelineView wedding={wedding} weddingId={weddingId} />;
-      default: return <OverviewView wedding={wedding} onUpdate={refreshWedding} />;
+      case "budget": return <BudgetView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
+      case "vendors": return <VendorsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
+      case "guests": return <GuestsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
+      case "events": return <EventsView wedding={wedding} weddingId={weddingId} canEdit={canEdit} />;
+      case "tasks": return <TasksView wedding={wedding} weddingId={weddingId} onToggle={handleToggleTask} canEdit={canEdit} />;
+      case "seating": return <SeatingView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
+      case "rooms": return <RoomAllocationView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
+      case "timeline": return <TimelineView wedding={wedding} weddingId={weddingId} canEdit={canEdit} />;
+      default: return <OverviewView wedding={wedding} onUpdate={refreshWedding} userRole={userRole} />;
     }
   };
 

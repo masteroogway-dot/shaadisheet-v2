@@ -13,7 +13,7 @@ function formatINR(n: number): string {
   return n.toLocaleString("en-IN");
 }
 
-export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void }) {
+export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canEdit = true }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void; canEdit?: boolean }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
   const [showImport, setShowImport] = useState(false);
@@ -101,12 +101,16 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { 
           <p className="text-gray-500 text-sm">Track every rupee {'\u2014'} from estimate to final payment</p>
         </div>
         <div className="flex gap-2.5 items-center">
-          <button onClick={() => setShowImport(true)} className="btn-maroon">
-            <i className="fas fa-file-import" /> Import
-          </button>
-          <button onClick={handleAdd} className="btn-maroon">
-            <i className="fas fa-plus" /> Add Item
-          </button>
+          {canEdit && (
+            <button onClick={() => setShowImport(true)} className="btn-maroon">
+              <i className="fas fa-file-import" /> Import
+            </button>
+          )}
+          {canEdit && (
+            <button onClick={handleAdd} className="btn-maroon">
+              <i className="fas fa-plus" /> Add Item
+            </button>
+          )}
         </div>
       </div>
 
@@ -134,9 +138,11 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { 
       {selected.size > 0 && (
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">{selected.size} selected</span>
-          <button onClick={handleBulkDelete} className="btn-delete text-xs py-1 px-3">
-            <i className="fas fa-trash mr-1" /> Delete Selected
-          </button>
+          {canEdit && (
+            <button onClick={handleBulkDelete} className="btn-delete text-xs py-1 px-3">
+              <i className="fas fa-trash mr-1" /> Delete Selected
+            </button>
+          )}
           <button onClick={() => setSelected(new Set())} className="text-xs text-gray-500 hover:text-gray-700 cursor-pointer">Clear</button>
         </div>
       )}
@@ -157,9 +163,11 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { 
           </div>
           <h3 className="font-bold text-lg mb-2">No budget items yet</h3>
           <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">Start tracking your wedding expenses by adding your first budget item.</p>
-          <button onClick={handleAdd} className="btn-maroon">
-            <i className="fas fa-plus" /> Add First Item
-          </button>
+          {canEdit && (
+            <button onClick={handleAdd} className="btn-maroon">
+              <i className="fas fa-plus" /> Add First Item
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-3">
@@ -204,7 +212,9 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { 
                     ) : (
                       <>
                         <button onClick={() => { setEditing(item.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen mr-1" /> Edit</button>
-                        <button onClick={() => handleDelete(item.id)} className="btn-delete"><i className="fas fa-trash mr-1" /> Delete</button>
+                        {canEdit && (
+                          <button onClick={() => handleDelete(item.id)} className="btn-delete"><i className="fas fa-trash mr-1" /> Delete</button>
+                        )}
                       </>
                     )}
                   </div>
@@ -263,9 +273,11 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast }: { 
             );
           })}
 
-          <button onClick={() => setShowBulkAdd(true)} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm font-semibold text-gray-500 hover:border-maroon hover:text-maroon transition-colors cursor-pointer">
-            <i className="fas fa-plus mr-1.5" /> Add More Items
-          </button>
+          {canEdit && (
+            <button onClick={() => setShowBulkAdd(true)} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm font-semibold text-gray-500 hover:border-maroon hover:text-maroon transition-colors cursor-pointer">
+              <i className="fas fa-plus mr-1.5" /> Add More Items
+            </button>
+          )}
         </div>
       )}
 

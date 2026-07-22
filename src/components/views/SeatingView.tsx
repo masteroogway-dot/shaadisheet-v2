@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createSeatingTable, updateSeatingTable, deleteSeatingTable, bulkDeleteSeatingTables, bulkAddSeatingTables } from "@/lib/actions";
 
-export default function SeatingView({ wedding, weddingId, onUpdate, onToast }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void }) {
+export default function SeatingView({ wedding, weddingId, onUpdate, onToast, canEdit = true }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void; canEdit?: boolean }) {
   const tables = wedding.seatingTables || [];
   const guests = wedding.guests || [];
   const [editing, setEditing] = useState<string | null>(null);
@@ -144,14 +144,16 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast }: {
           <p className="text-gray-500 text-sm">Plan where every guest sits</p>
         </div>
         <div className="flex gap-2.5 items-center">
-          {selected.size > 0 && (
+          {canEdit && selected.size > 0 && (
             <button onClick={handleBulkDelete} className="btn-delete">
               <i className="fas fa-trash mr-1.5" /> Delete Selected ({selected.size})
             </button>
           )}
-          <button onClick={handleAddTable} className="btn-maroon">
-            <i className="fas fa-plus" /> Add Table
-          </button>
+          {canEdit && (
+            <button onClick={handleAddTable} className="btn-maroon">
+              <i className="fas fa-plus" /> Add Table
+            </button>
+          )}
         </div>
       </div>
 
@@ -172,7 +174,7 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast }: {
         </div>
       )}
 
-      {showBulkInput && (
+      {showBulkInput && canEdit && (
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">Add how many tables?</span>
           <input type="number" min={1} value={bulkCount} onChange={(e) => setBulkCount(parseInt(e.target.value) || 1)} className="card-input w-20 py-1.5 text-center" autoFocus onKeyDown={(e) => e.key === "Enter" && handleBulkAdd()} />
@@ -234,7 +236,7 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast }: {
                   tableGuests.map((g, i) => (
                     <span key={i} className="px-2.5 py-1 bg-gray-100 rounded-full text-xs font-medium flex items-center gap-1">
                       {g}
-                      <button onClick={() => handleRemoveGuestFromTable(table, i)} className="text-gray-400 hover:text-red-500 cursor-pointer ml-0.5"><i className="fas fa-times text-[0.6rem]" /></button>
+                      {canEdit && <button onClick={() => handleRemoveGuestFromTable(table, i)} className="text-gray-400 hover:text-red-500 cursor-pointer ml-0.5"><i className="fas fa-times text-[0.6rem]" /></button>}
                     </span>
                   ))
                 ) : (
@@ -257,9 +259,9 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast }: {
                     </>
                   ) : (
                     <>
-                      <button onClick={() => setAddingGuest(table.id)} className="btn-edit text-xs py-1 px-3"><i className="fas fa-plus mr-1" />Guest</button>
-                      <button onClick={() => { setEditing(table.id); setEditData({}); }} className="btn-edit text-xs py-1 px-3">Edit</button>
-                      <button onClick={() => handleDeleteTable(table.id)} className="btn-delete text-xs py-1 px-3">Del</button>
+                      {canEdit && <button onClick={() => setAddingGuest(table.id)} className="btn-edit text-xs py-1 px-3"><i className="fas fa-plus mr-1" />Guest</button>}
+                      {canEdit && <button onClick={() => { setEditing(table.id); setEditData({}); }} className="btn-edit text-xs py-1 px-3">Edit</button>}
+                      {canEdit && <button onClick={() => handleDeleteTable(table.id)} className="btn-delete text-xs py-1 px-3">Del</button>}
                     </>
                   )}
                 </div>
@@ -268,7 +270,7 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast }: {
           );
         })}
 
-        {tables.length > 0 && (
+        {tables.length > 0 && canEdit && (
           <>
             <button onClick={handleAddTable} className="border-2 border-dashed border-gray-300 rounded-xl p-5 flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-maroon hover:text-maroon transition-colors cursor-pointer min-h-[120px]">
               <i className="fas fa-plus text-xl" />
@@ -291,14 +293,16 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast }: {
           </div>
           <h3 className="font-bold text-lg mb-2">No tables yet</h3>
           <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">Create seating tables and assign guests for your wedding.</p>
-          <div className="flex gap-3 justify-center">
-            <button onClick={handleAddTable} className="btn-maroon">
-              <i className="fas fa-plus" /> Add First Table
-            </button>
-            <button onClick={() => setShowBulkInput(true)} className="btn-cancel">
-              <i className="fas fa-layer-group mr-1.5" /> Add Multiple
-            </button>
-          </div>
+          {canEdit && (
+            <div className="flex gap-3 justify-center">
+              <button onClick={handleAddTable} className="btn-maroon">
+                <i className="fas fa-plus" /> Add First Table
+              </button>
+              <button onClick={() => setShowBulkInput(true)} className="btn-cancel">
+                <i className="fas fa-layer-group mr-1.5" /> Add Multiple
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

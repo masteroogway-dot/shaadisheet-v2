@@ -95,7 +95,7 @@ const DURATION_OPTIONS = [
   { value: 480, label: "Full day" },
 ];
 
-export default function EventsView({ wedding, weddingId }: { wedding: any; weddingId: string }) {
+export default function EventsView({ wedding, weddingId, canEdit = true }: { wedding: any; weddingId: string; canEdit?: boolean }) {
   const [events, setEvents] = useState<WeddingEvent[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<WeddingEvent>>({});
@@ -202,12 +202,14 @@ export default function EventsView({ wedding, weddingId }: { wedding: any; weddi
           <h2 className="text-2xl font-bold">Event Timeline</h2>
           <p className="text-gray-500 text-sm">Every event, every ritual, every detail - on schedule</p>
         </div>
-        <button
-          onClick={handleAdd}
-          className="px-4 py-2 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer"
-        >
-          <i className="fas fa-plus mr-1.5" /> Add Event
-        </button>
+        {canEdit && (
+          <button
+            onClick={handleAdd}
+            className="px-4 py-2 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer"
+          >
+            <i className="fas fa-plus mr-1.5" /> Add Event
+          </button>
+        )}
       </div>
 
       {overlapCount > 0 && (
@@ -228,9 +230,11 @@ export default function EventsView({ wedding, weddingId }: { wedding: any; weddi
           </div>
           <h3 className="font-bold text-lg mb-2">No events yet</h3>
           <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">Add your first event to start building your wedding timeline.</p>
-          <button onClick={handleAdd} className="px-6 py-2.5 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
-            <i className="fas fa-plus mr-1.5" /> Add First Event
-          </button>
+          {canEdit && (
+            <button onClick={handleAdd} className="px-6 py-2.5 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
+              <i className="fas fa-plus mr-1.5" /> Add First Event
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-6">
@@ -405,26 +409,30 @@ export default function EventsView({ wedding, weddingId }: { wedding: any; weddi
                               </div>
                             </div>
                             <div className="flex items-start gap-1.5 shrink-0">
-                              <button
-                                onClick={() => startEdit(event)}
-                                className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-maroon transition-colors cursor-pointer"
-                                title="Edit"
-                              >
-                                <i className="fas fa-pen text-xs" />
-                              </button>
-                              {deleteConfirm === event.id ? (
-                                <div className="flex items-center gap-1">
-                                  <button onClick={() => handleDelete(event.id)} className="text-xs px-2 py-1 bg-red-500 text-white rounded cursor-pointer">Yes</button>
-                                  <button onClick={() => setDeleteConfirm(null)} className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded cursor-pointer">No</button>
-                                </div>
-                              ) : (
+                              {canEdit && (
                                 <button
-                                  onClick={() => setDeleteConfirm(event.id)}
-                                  className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
-                                  title="Delete"
+                                  onClick={() => startEdit(event)}
+                                  className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-maroon transition-colors cursor-pointer"
+                                  title="Edit"
                                 >
-                                  <i className="fas fa-trash text-xs" />
+                                  <i className="fas fa-pen text-xs" />
                                 </button>
+                              )}
+                              {canEdit && (
+                                deleteConfirm === event.id ? (
+                                  <div className="flex items-center gap-1">
+                                    <button onClick={() => handleDelete(event.id)} className="text-xs px-2 py-1 bg-red-500 text-white rounded cursor-pointer">Yes</button>
+                                    <button onClick={() => setDeleteConfirm(null)} className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded cursor-pointer">No</button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => setDeleteConfirm(event.id)}
+                                    className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                                    title="Delete"
+                                  >
+                                    <i className="fas fa-trash text-xs" />
+                                  </button>
+                                )
                               )}
                             </div>
                           </div>

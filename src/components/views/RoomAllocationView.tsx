@@ -12,7 +12,7 @@ import {
 import ImportModal from "@/components/ImportModal";
 import DatePicker from "@/components/DatePicker";
 
-export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToast }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void }) {
+export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToast, canEdit = true }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void; canEdit?: boolean }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
   const [showImport, setShowImport] = useState(false);
@@ -107,13 +107,17 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
           <p className="text-gray-500 text-sm">Assign guests to hotel rooms and track check-ins</p>
         </div>
         <div className="flex gap-2.5">
-          <button onClick={() => setShowImport(true)} className="btn-maroon">
-            <i className="fas fa-file-import" /> Import
-          </button>
-          <button onClick={handleAdd} className="btn-maroon">
-            <i className="fas fa-plus" /> Add Room
-          </button>
-          {totalRooms > 0 && (
+          {canEdit && (
+            <button onClick={() => setShowImport(true)} className="btn-maroon">
+              <i className="fas fa-file-import" /> Import
+            </button>
+          )}
+          {canEdit && (
+            <button onClick={handleAdd} className="btn-maroon">
+              <i className="fas fa-plus" /> Add Room
+            </button>
+          )}
+          {canEdit && totalRooms > 0 && (
             <button onClick={() => setShowDeleteAllConfirm(true)} className="btn-delete">
               <i className="fas fa-trash" /> Delete All
             </button>
@@ -137,7 +141,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
         </div>
       )}
 
-      {selected.size > 0 && (
+      {canEdit && selected.size > 0 && (
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">{selected.size} selected</span>
           <button onClick={handleBulkDelete} className="btn-delete text-xs py-1 px-3">
@@ -147,7 +151,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
         </div>
       )}
 
-      {showBulkAdd && (
+      {canEdit && showBulkAdd && (
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">Add how many rooms?</span>
           <input type="number" min={1} max={100} value={bulkAddCount} onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 1)} className="card-input w-20 py-1.5 text-center" />
@@ -156,7 +160,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
         </div>
       )}
 
-      {showDeleteAllConfirm && (
+      {canEdit && showDeleteAllConfirm && (
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-red-50 border border-red-200 rounded-lg">
           <span className="text-sm font-medium text-red-700">Delete all {totalRooms} rooms? This cannot be undone.</span>
           <button onClick={handleDeleteAll} className="btn-delete text-xs py-1.5 px-3">
@@ -173,9 +177,11 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
           </div>
           <h3 className="font-bold text-lg mb-2">No rooms allocated yet</h3>
           <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">Start assigning guests to hotel rooms for the wedding.</p>
-          <button onClick={handleAdd} className="btn-maroon">
-            <i className="fas fa-plus" /> Add First Room
-          </button>
+          {canEdit && (
+            <button onClick={handleAdd} className="btn-maroon">
+              <i className="fas fa-plus" /> Add First Room
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-3">
@@ -210,8 +216,12 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
                       </>
                     ) : (
                       <>
-                        <button onClick={() => { setEditing(a.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen mr-1" /> Edit</button>
-                        <button onClick={() => handleDelete(a.id)} className="btn-delete"><i className="fas fa-trash mr-1" /> Delete</button>
+                        {canEdit && (
+                          <button onClick={() => { setEditing(a.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen mr-1" /> Edit</button>
+                        )}
+                        {canEdit && (
+                          <button onClick={() => handleDelete(a.id)} className="btn-delete"><i className="fas fa-trash mr-1" /> Delete</button>
+                        )}
                       </>
                     )}
                   </div>
@@ -285,9 +295,11 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
             );
           })}
 
-          <button onClick={() => setShowBulkAdd(true)} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm font-semibold text-gray-500 hover:border-maroon hover:text-maroon transition-colors cursor-pointer">
-            <i className="fas fa-plus mr-1.5" /> Add More Rooms
-          </button>
+          {canEdit && (
+            <button onClick={() => setShowBulkAdd(true)} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm font-semibold text-gray-500 hover:border-maroon hover:text-maroon transition-colors cursor-pointer">
+              <i className="fas fa-plus mr-1.5" /> Add More Rooms
+            </button>
+          )}
         </div>
       )}
 
