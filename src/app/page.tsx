@@ -173,243 +173,50 @@ function MarigoldGarland({ side }: { side: "left" | "right" }) {
 }
 
 /* ─────────────────────────────────────────────
-   WEDDING SCENES — SVG SILHOUETTES
+   WEDDING SCENE CAROUSEL — IMAGE BASED
    ───────────────────────────────────────────── */
 
-function HinduScene({ opacity }: { opacity: number }) {
-  return (
-    <svg viewBox="0 0 400 300" className="w-full h-full" style={{ opacity, transition: "opacity 1s ease" }}>
-      {/* Mandap pillars */}
-      <rect x="80" y="100" width="8" height="180" fill="#D4AF37" opacity="0.6" rx="2" />
-      <rect x="312" y="100" width="8" height="180" fill="#D4AF37" opacity="0.6" rx="2" />
-      {/* Mandap top */}
-      <path d="M70 100 L200 40 L330 100" fill="none" stroke="#D4AF37" strokeWidth="3" opacity="0.7" />
-      <path d="M80 100 L200 50 L320 100" fill="#8B0000" opacity="0.15" />
-      {/* Toran decoration */}
-      <path d="M80 100 Q140 120 200 100 Q260 120 320 100" fill="none" stroke="#FF8F00" strokeWidth="2" opacity="0.5" />
-      {[120, 160, 200, 240, 280].map((x) => (
-        <circle key={x} cx={x} cy={105 + Math.sin((x - 120) * 0.04) * 8} r="3" fill="#FF8F00" opacity="0.6" />
-      ))}
-      {/* Sacred fire */}
-      <ellipse cx="200" cy="250" rx="20" ry="6" fill="#FF6F00" opacity="0.3" />
-      <path d="M195 250 Q200 230 205 250" fill="#FF8F00" opacity="0.7">
-        <animate attributeName="d" values="M195 250 Q200 230 205 250;M193 250 Q200 225 207 250;M195 250 Q200 230 205 250" dur="1.5s" repeatCount="indefinite" />
-      </path>
-      <path d="M197 250 Q200 235 203 250" fill="#FFD54F" opacity="0.8">
-        <animate attributeName="d" values="M197 250 Q200 235 203 250;M196 250 Q200 232 204 250;M197 250 Q200 235 203 250" dur="1s" repeatCount="indefinite" />
-      </path>
-      {/* Groom silhouette */}
-      <g transform="translate(160, 130)">
-        <circle cx="15" cy="15" r="12" fill="#8B0000" opacity="0.7" />
-        <path d="M5 27 Q15 60 25 27" fill="#8B0000" opacity="0.6" />
-        <rect x="8" y="27" width="14" height="50" rx="3" fill="#8B0000" opacity="0.5" />
-        {/* Sehra */}
-        <path d="M3 10 Q15 0 27 10" fill="none" stroke="#D4AF37" strokeWidth="1.5" opacity="0.6" />
-        {[8, 12, 16, 20, 24].map((x) => (
-          <line key={x} x1={x} y1={10} x2={x} y2={18} stroke="#D4AF37" strokeWidth="0.8" opacity="0.4" />
-        ))}
-      </g>
-      {/* Bride silhouette */}
-      <g transform="translate(220, 130)">
-        <circle cx="15" cy="15" r="12" fill="#C62828" opacity="0.7" />
-        <path d="M5 27 Q15 60 25 27" fill="#C62828" opacity="0.6" />
-        {/* Lehenga */}
-        <path d="M3 27 L0 80 L30 80 L27 27" fill="#C62828" opacity="0.5" />
-        {/* Dupatta */}
-        <path d="M27 15 Q35 30 30 50" fill="none" stroke="#D4AF37" strokeWidth="1.5" opacity="0.4" />
-      </g>
-      {/* Flower petals falling */}
-      {[0, 1, 2, 3, 4].map((i) => (
-        <circle key={i} cx={150 + i * 25} cy={90} r="2" fill="#FF8F00" opacity="0.5">
-          <animate attributeName="cy" from="90" to="200" dur={`${2 + i * 0.5}s`} repeatCount="indefinite" />
-          <animate attributeName="cx" from={150 + i * 25} to={155 + i * 25} dur={`${2 + i * 0.5}s`} repeatCount="indefinite" />
-          <animate attributeName="opacity" from="0.6" to="0" dur={`${2 + i * 0.5}s`} repeatCount="indefinite" />
-        </circle>
-      ))}
-    </svg>
-  );
-}
-
-function MuslimScene({ opacity }: { opacity: number }) {
-  return (
-    <svg viewBox="0 0 400 300" className="w-full h-full" style={{ opacity, transition: "opacity 1s ease" }}>
-      {/* Mosque arch */}
-      <path d="M100 280 L100 120 Q200 20 300 120 L300 280" fill="none" stroke="#2E7D32" strokeWidth="2.5" opacity="0.5" />
-      <path d="M110 280 L110 130 Q200 40 290 130 L290 280" fill="#2E7D32" opacity="0.08" />
-      {/* Dome */}
-      <path d="M140 130 Q200 50 260 130" fill="#2E7D32" opacity="0.12" />
-      {/* Minarets */}
-      <rect x="85" y="100" width="6" height="180" fill="#2E7D32" opacity="0.3" rx="2" />
-      <rect x="309" y="100" width="6" height="180" fill="#2E7D32" opacity="0.3" rx="2" />
-      <circle cx="88" cy="97" r="5" fill="#2E7D32" opacity="0.3" />
-      <circle cx="312" cy="97" r="5" fill="#2E7D32" opacity="0.3" />
-      {/* Crescent on dome */}
-      <path d="M195 55 Q200 48 205 55 Q200 52 195 55" fill="#D4AF37" opacity="0.6" />
-      {/* Groom */}
-      <g transform="translate(165, 140)">
-        <circle cx="15" cy="15" r="12" fill="#1B5E20" opacity="0.6" />
-        <path d="M5 27 Q15 55 25 27" fill="#1B5E20" opacity="0.5" />
-        <rect x="7" y="27" width="16" height="50" rx="3" fill="#1B5E20" opacity="0.45" />
-        {/* Sherwani collar */}
-        <path d="M10 27 L15 22 L20 27" fill="none" stroke="#D4AF37" strokeWidth="1" opacity="0.5" />
-      </g>
-      {/* Bride */}
-      <g transform="translate(220, 140)">
-        <circle cx="15" cy="15" r="12" fill="#C62828" opacity="0.6" />
-        <path d="M5 27 Q15 55 25 27" fill="#C62828" opacity="0.5" />
-        <path d="M2 27 L-2 80 L32 80 L28 27" fill="#C62828" opacity="0.45" />
-        {/* Dupatta */}
-        <path d="M27 12 Q35 25 32 45" fill="none" stroke="#D4AF37" strokeWidth="1.5" opacity="0.4" />
-      </g>
-      {/* Decorative stars */}
-      {[160, 200, 240].map((x) => (
-        <text key={x} x={x} y={80} fontSize="8" fill="#D4AF37" opacity="0.3">✦</text>
-      ))}
-    </svg>
-  );
-}
-
-function SikhScene({ opacity }: { opacity: number }) {
-  return (
-    <svg viewBox="0 0 400 300" className="w-full h-full" style={{ opacity, transition: "opacity 1s ease" }}>
-      {/* Gurdwara dome */}
-      <path d="M120 140 Q200 50 280 140" fill="#FF8F00" opacity="0.1" />
-      <path d="M130 140 Q200 60 270 140" fill="none" stroke="#FF8F00" strokeWidth="2" opacity="0.5" />
-      {/* Small dome on top */}
-      <path d="M180 65 Q200 40 220 65" fill="#FF8F00" opacity="0.15" />
-      <path d="M185 65 Q200 45 215 65" fill="none" stroke="#FF8F00" strokeWidth="1.5" opacity="0.4" />
-      {/* Building */}
-      <rect x="110" y="140" width="180" height="140" fill="#FF8F00" opacity="0.06" />
-      <rect x="110" y="140" width="180" height="140" fill="none" stroke="#FF8F00" strokeWidth="1.5" opacity="0.3" />
-      {/* Door arch */}
-      <path d="M175 280 L175 200 Q200 175 225 200 L225 280" fill="#FF8F00" opacity="0.1" />
-      <path d="M175 280 L175 200 Q200 175 225 200 L225 280" fill="none" stroke="#FF8F00" strokeWidth="1.5" opacity="0.35" />
-      {/* Nishan Sahib flag */}
-      <line x1="305" y1="80" x2="305" y2="280" stroke="#FF8F00" strokeWidth="2" opacity="0.4" />
-      <rect x="308" y="80" width="20" height="30" fill="#FF8F00" opacity="0.25" rx="1" />
-      {/* Groom with turban */}
-      <g transform="translate(160, 150)">
-        <circle cx="15" cy="15" r="12" fill="#E65100" opacity="0.6" />
-        {/* Turban */}
-        <path d="M5 10 Q15 -2 25 10" fill="#E65100" opacity="0.5" />
-        <path d="M7 8 Q15 2 23 8" fill="#FF8F00" opacity="0.4" />
-        <rect x="8" y="27" width="14" height="50" rx="3" fill="#E65100" opacity="0.45" />
-      </g>
-      {/* Bride */}
-      <g transform="translate(220, 150)">
-        <circle cx="15" cy="15" r="12" fill="#C62828" opacity="0.6" />
-        <path d="M5 27 Q15 55 25 27" fill="#C62828" opacity="0.5" />
-        <path d="M3 27 L0 80 L30 80 L27 27" fill="#C62828" opacity="0.45" />
-        {/* Chuni */}
-        <path d="M27 10 Q38 20 35 50" fill="none" stroke="#FF8F00" strokeWidth="1.5" opacity="0.4" />
-      </g>
-    </svg>
-  );
-}
-
-function ChristianScene({ opacity }: { opacity: number }) {
-  return (
-    <svg viewBox="0 0 400 300" className="w-full h-full" style={{ opacity, transition: "opacity 1s ease" }}>
-      {/* Church building */}
-      <rect x="100" y="120" width="200" height="160" fill="#1565C0" opacity="0.06" />
-      <rect x="100" y="120" width="200" height="160" fill="none" stroke="#1565C0" strokeWidth="1.5" opacity="0.3" />
-      {/* Steeple */}
-      <path d="M175 120 L200 50 L225 120" fill="#1565C0" opacity="0.1" />
-      <path d="M175 120 L200 50 L225 120" fill="none" stroke="#1565C0" strokeWidth="1.5" opacity="0.4" />
-      {/* Cross on top */}
-      <line x1="200" y1="30" x2="200" y2="50" stroke="#1565C0" strokeWidth="2" opacity="0.5" />
-      <line x1="194" y1="38" x2="206" y2="38" stroke="#1565C0" strokeWidth="2" opacity="0.5" />
-      {/* Arched windows */}
-      {[140, 200, 260].map((x) => (
-        <g key={x}>
-          <path d={`M${x - 10} 200 L${x - 10} 170 Q${x} 155 ${x + 10} 170 L${x + 10} 200`} fill="#1565C0" opacity="0.08" />
-          <path d={`M${x - 10} 200 L${x - 10} 170 Q${x} 155 ${x + 10} 170 L${x + 10} 200`} fill="none" stroke="#1565C0" strokeWidth="1" opacity="0.25" />
-        </g>
-      ))}
-      {/* Door */}
-      <path d="M185 280 L185 230 Q200 215 215 230 L215 280" fill="#1565C0" opacity="0.08" />
-      <path d="M185 280 L185 230 Q200 215 215 230 L215 280" fill="none" stroke="#1565C0" strokeWidth="1.5" opacity="0.3" />
-      {/* Groom in suit */}
-      <g transform="translate(160, 155)">
-        <circle cx="15" cy="12" r="11" fill="#1565C0" opacity="0.55" />
-        <path d="M6 23 L4 75 L26 75 L24 23" fill="#1565C0" opacity="0.4" />
-        {/* Tie */}
-        <path d="M15 23 L13 35 L15 38 L17 35 Z" fill="#C62828" opacity="0.4" />
-      </g>
-      {/* Bride in gown */}
-      <g transform="translate(220, 150)">
-        <circle cx="15" cy="12" r="11" fill="#E0E0E0" opacity="0.6" />
-        {/* Veil */}
-        <path d="M27 8 Q35 20 30 45" fill="#E0E0E0" opacity="0.2" />
-        {/* Gown */}
-        <path d="M5 23 L-5 80 L35 80 L25 23" fill="#E0E0E0" opacity="0.35" />
-      </g>
-      {/* Floral decorations */}
-      {[130, 270].map((x) => (
-        <g key={x}>
-          <circle cx={x} cy="130" r="3" fill="#C62828" opacity="0.3" />
-          <circle cx={x + 5} cy="128" r="2" fill="#E57373" opacity="0.25" />
-        </g>
-      ))}
-    </svg>
-  );
-}
-
-function JainScene({ opacity }: { opacity: number }) {
-  return (
-    <svg viewBox="0 0 400 300" className="w-full h-full" style={{ opacity, transition: "opacity 1s ease" }}>
-      {/* Jain temple - multi-tiered */}
-      <rect x="120" y="160" width="160" height="120" fill="#6A1B9A" opacity="0.06" />
-      <rect x="120" y="160" width="160" height="120" fill="none" stroke="#6A1B9A" strokeWidth="1.5" opacity="0.25" />
-      {/* Tier 1 */}
-      <path d="M110 160 L200 130 L290 160" fill="#6A1B9A" opacity="0.08" />
-      <path d="M110 160 L200 130 L290 160" fill="none" stroke="#6A1B9A" strokeWidth="1.5" opacity="0.3" />
-      {/* Tier 2 (shikhara) */}
-      <path d="M150 130 L200 80 L250 130" fill="#6A1B9A" opacity="0.1" />
-      <path d="M150 130 L200 80 L250 130" fill="none" stroke="#6A1B9A" strokeWidth="1.5" opacity="0.35" />
-      {/* Top spire */}
-      <path d="M180 80 L200 45 L220 80" fill="#6A1B9A" opacity="0.12" />
-      <path d="M180 80 L200 45 L220 80" fill="none" stroke="#6A1B9A" strokeWidth="1.5" opacity="0.4" />
-      {/* Kalash on top */}
-      <circle cx="200" cy="42" r="4" fill="#D4AF37" opacity="0.5" />
-      {/* Pillars */}
-      {[140, 170, 230, 260].map((x) => (
-        <rect key={x} x={x} y="160" width="4" height="80" fill="#6A1B9A" opacity="0.2" rx="1" />
-      ))}
-      {/* Ahimsa symbol (hand with wheel) */}
-      <circle cx="200" cy="200" r="12" fill="none" stroke="#6A1B9A" strokeWidth="1.5" opacity="0.3" />
-      <circle cx="200" cy="200" r="5" fill="#6A1B9A" opacity="0.15" />
-      {/* Groom */}
-      <g transform="translate(160, 165)">
-        <circle cx="15" cy="12" r="11" fill="#6A1B9A" opacity="0.55" />
-        <path d="M5 23 Q15 50 25 23" fill="#6A1B9A" opacity="0.45" />
-        <rect x="7" y="23" width="16" height="48" rx="3" fill="#6A1B9A" opacity="0.4" />
-      </g>
-      {/* Bride */}
-      <g transform="translate(220, 165)">
-        <circle cx="15" cy="12" r="11" fill="#C62828" opacity="0.55" />
-        <path d="M5 23 Q15 50 25 23" fill="#C62828" opacity="0.45" />
-        <path d="M3 23 L0 75 L30 75 L27 23" fill="#C62828" opacity="0.4" />
-        {/* Pancharangi */}
-        <path d="M27 10 Q35 22 32 42" fill="none" stroke="#6A1B9A" strokeWidth="1.5" opacity="0.3" />
-      </g>
-    </svg>
-  );
-}
-
-/* ─────────────────────────────────────────────
-   WEDDING SCENE CAROUSEL
-   ───────────────────────────────────────────── */
 const SCENES = [
-  { key: "hindu", label: "Hindu Wedding", Component: HinduScene, bg: "from-amber-50 to-orange-50", accent: "#D4AF37" },
-  { key: "muslim", label: "Muslim Wedding", Component: MuslimScene, bg: "from-green-50 to-emerald-50", accent: "#2E7D32" },
-  { key: "sikh", label: "Sikh Wedding", Component: SikhScene, bg: "from-orange-50 to-amber-50", accent: "#FF8F00" },
-  { key: "christian", label: "Christian Wedding", Component: ChristianScene, bg: "from-blue-50 to-sky-50", accent: "#1565C0" },
-  { key: "jain", label: "Jain Wedding", Component: JainScene, bg: "from-purple-50 to-violet-50", accent: "#6A1B9A" },
+  {
+    key: "hindu",
+    label: "Hindu Wedding",
+    gradient: "linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 30%, #FFCC80 60%, #FFB74D 100%)",
+    accent: "#D4AF37",
+    image: "/weddings/hindu.jpg",
+  },
+  {
+    key: "muslim",
+    label: "Muslim Wedding",
+    gradient: "linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 30%, #A5D6A7 60%, #81C784 100%)",
+    accent: "#2E7D32",
+    image: "/weddings/muslim.jpg",
+  },
+  {
+    key: "sikh",
+    label: "Sikh Wedding",
+    gradient: "linear-gradient(135deg, #FFF8E1 0%, #FFECB3 30%, #FFD54F 60%, #FFCA28 100%)",
+    accent: "#E65100",
+    image: "/weddings/sikh.jpg",
+  },
+  {
+    key: "christian",
+    label: "Christian Wedding",
+    gradient: "linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 30%, #90CAF9 60%, #64B5F6 100%)",
+    accent: "#1565C0",
+    image: "/weddings/christian.jpg",
+  },
+  {
+    key: "jain",
+    label: "Jain Wedding",
+    gradient: "linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 30%, #CE93D8 60%, #BA68C8 100%)",
+    accent: "#6A1B9A",
+    image: "/weddings/jain.jpg",
+  },
 ];
 
 function WeddingSceneCarousel() {
   const [active, setActive] = useState(0);
+  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
 
   const next = useCallback(() => {
     setActive((prev) => (prev + 1) % SCENES.length);
@@ -421,31 +228,54 @@ function WeddingSceneCarousel() {
   }, [next]);
 
   return (
-    <div className="relative w-full max-w-[500px] mx-auto">
-      {/* Scene container */}
-      <div className={`relative rounded-2xl overflow-hidden bg-gradient-to-br ${SCENES[active].bg} border border-gray-200/60 shadow-lg`} style={{ aspectRatio: "4/3" }}>
-        {SCENES.map((scene, i) => (
-          <div key={scene.key} className="absolute inset-0">
-            <scene.Component opacity={i === active ? 1 : 0} />
-          </div>
-        ))}
+    <div className="relative w-full max-w-[540px] mx-auto">
+      <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/10 border border-gray-200/40" style={{ aspectRatio: "4/3" }}>
+        {SCENES.map((scene, i) => {
+          const showImage = scene.image && !imgErrors[scene.key];
+          return (
+            <div
+              key={scene.key}
+              className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
+              style={{ opacity: i === active ? 1 : 0, zIndex: i === active ? 1 : 0 }}
+            >
+              {/* Gradient fallback (always rendered behind) */}
+              <div className="absolute inset-0" style={{ background: scene.gradient }} />
+
+              {/* Image (if available) */}
+              {showImage && (
+                <img
+                  src={scene.image}
+                  alt={scene.label}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  onError={() => setImgErrors((prev) => ({ ...prev, [scene.key]: true }))}
+                />
+              )}
+
+              {/* Soft overlay for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+            </div>
+          );
+        })}
 
         {/* Label */}
-        <div className="absolute bottom-4 left-0 right-0 text-center">
-          <span className="inline-block px-4 py-1.5 bg-white/80 backdrop-blur-sm rounded-full text-xs font-bold tracking-wide" style={{ color: SCENES[active].accent }}>
+        <div className="absolute bottom-5 left-0 right-0 text-center z-10">
+          <span
+            className="inline-block px-5 py-2 bg-white/90 backdrop-blur-sm rounded-full text-sm font-bold tracking-wide shadow-lg"
+            style={{ color: SCENES[active].accent }}
+          >
             {SCENES[active].label}
           </span>
         </div>
       </div>
 
       {/* Dots */}
-      <div className="flex justify-center gap-2 mt-5">
+      <div className="flex justify-center gap-2.5 mt-6">
         {SCENES.map((scene, i) => (
           <button
             key={scene.key}
             onClick={() => setActive(i)}
-            className={`w-2.5 h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
-              i === active ? "w-8 bg-maroon" : "bg-gray-300 hover:bg-gray-400"
+            className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
+              i === active ? "w-8 bg-maroon" : "w-2.5 bg-gray-300 hover:bg-gray-400"
             }`}
           />
         ))}
