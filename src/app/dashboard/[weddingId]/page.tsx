@@ -60,6 +60,15 @@ export default function WeddingDashboardPage() {
     }
   }, [weddingId, router]);
 
+  const refreshWedding = useCallback(async () => {
+    try {
+      const w = await getWedding(weddingId);
+      setWedding(w);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [weddingId]);
+
   useEffect(() => {
     if (status === "unauthenticated") router.push("/auth");
     if (status === "authenticated") loadWedding();
@@ -101,7 +110,7 @@ export default function WeddingDashboardPage() {
 
   const renderView = () => {
     switch (activeView) {
-      case "overview": return <OverviewView wedding={wedding} onUpdate={loadWedding} />;
+      case "overview": return <OverviewView wedding={wedding} onUpdate={refreshWedding} />;
       case "budget": return <BudgetView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
       case "vendors": return <VendorsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
       case "guests": return <GuestsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
@@ -110,7 +119,7 @@ export default function WeddingDashboardPage() {
       case "seating": return <SeatingView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
       case "rooms": return <RoomAllocationView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
       case "timeline": return <TimelineView wedding={wedding} weddingId={weddingId} />;
-      default: return <OverviewView wedding={wedding} onUpdate={loadWedding} />;
+      default: return <OverviewView wedding={wedding} onUpdate={refreshWedding} />;
     }
   };
 

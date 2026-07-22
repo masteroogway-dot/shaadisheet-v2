@@ -3,7 +3,7 @@
 import { useState } from "react";
 import CountUp from "@/components/animations/CountUp";
 import ScrollReveal from "@/components/animations/ScrollReveal";
-import { updateWedding } from "@/lib/actions";
+import { updateWedding, getWedding } from "@/lib/actions";
 
 function formatINR(n: number): string {
   if (n === 0) return "0";
