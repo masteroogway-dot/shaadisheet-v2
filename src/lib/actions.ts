@@ -926,59 +926,92 @@ export async function seedWeddingTimeline(weddingId: string) {
   });
   if (!wedding) throw new Error("Wedding not found");
 
-  const existing = await prisma.weddingTimelineItem.count({ where: { weddingId } });
-  if (existing > 0) return;
+  const existing = await prisma.weddingTimelineItem.findMany({ where: { weddingId } });
 
-  const TIMELINE: Record<string, Array<{ title: string; description: string; startTime: string; duration: number; isHighlight: boolean; isSimultaneous?: boolean }>> = {
+  // Parse selectedEvents to filter timeline items
+  let selectedNames: string[];
+  try {
+    selectedNames = JSON.parse(wedding.selectedEvents || "[]");
+  } catch {
+    selectedNames = [];
+  }
+
+  // Each timeline item is tagged with an eventGroup that maps to a WeddingEvent name
+  const TIMELINE: Record<string, Array<{ title: string; description: string; startTime: string; duration: number; isHighlight: boolean; isSimultaneous?: boolean; eventGroup: string }>> = {
     hindu: [
-      { title: "Bride's Getting Ready", description: "Hair, makeup, and dressing", startTime: "05:00", duration: 120, isHighlight: false, isSimultaneous: true },
-      { title: "Groom's Getting Ready", description: "Sherwani, sehra, accessories", startTime: "05:00", duration: 120, isHighlight: false, isSimultaneous: true },
-      { title: "Morning Puja", description: "Prayers and blessings", startTime: "07:00", duration: 60, isHighlight: false },
-      { title: "Baraat Assembly", description: "Groom's side gathers", startTime: "08:00", duration: 60, isHighlight: false },
-      { title: "Baraat Procession", description: "Band, DJ, dancing", startTime: "09:00", duration: 60, isHighlight: true },
-      { title: "Milni & Welcome", description: "Groom welcomed by bride's family", startTime: "10:00", duration: 30, isHighlight: false },
-      { title: "Jaimala", description: "Exchange of garlands", startTime: "10:30", duration: 30, isHighlight: true },
-      { title: "Kanyadaan", description: "Father gives away the bride", startTime: "11:00", duration: 30, isHighlight: true },
-      { title: "Mangal Pheras", description: "Seven rounds around sacred fire", startTime: "11:30", duration: 60, isHighlight: true },
-      { title: "Sindoor & Mangalsutra", description: "Groom applies sindoor", startTime: "12:30", duration: 30, isHighlight: true },
-      { title: "Vidaai", description: "Bride's farewell", startTime: "13:00", duration: 30, isHighlight: true },
-      { title: "Lunch", description: "Wedding lunch", startTime: "13:30", duration: 60, isHighlight: false },
-      { title: "Griha Pravesh", description: "Bride enters groom's home", startTime: "16:00", duration: 30, isHighlight: false },
-      { title: "Reception", description: "Evening celebration", startTime: "18:00", duration: 180, isHighlight: true },
+      { title: "Bride's Getting Ready", description: "Hair, makeup, and dressing", startTime: "05:00", duration: 120, isHighlight: false, isSimultaneous: true, eventGroup: "Wedding" },
+      { title: "Groom's Getting Ready", description: "Sherwani, sehra, accessories", startTime: "05:00", duration: 120, isHighlight: false, isSimultaneous: true, eventGroup: "Wedding" },
+      { title: "Morning Puja", description: "Prayers and blessings", startTime: "07:00", duration: 60, isHighlight: false, eventGroup: "Wedding" },
+      { title: "Baraat Assembly", description: "Groom's side gathers", startTime: "08:00", duration: 60, isHighlight: false, eventGroup: "Wedding" },
+      { title: "Baraat Procession", description: "Band, DJ, dancing", startTime: "09:00", duration: 60, isHighlight: true, eventGroup: "Wedding" },
+      { title: "Milni & Welcome", description: "Groom welcomed by bride's family", startTime: "10:00", duration: 30, isHighlight: false, eventGroup: "Wedding" },
+      { title: "Jaimala", description: "Exchange of garlands", startTime: "10:30", duration: 30, isHighlight: true, eventGroup: "Wedding" },
+      { title: "Kanyadaan", description: "Father gives away the bride", startTime: "11:00", duration: 30, isHighlight: true, eventGroup: "Wedding" },
+      { title: "Mangal Pheras", description: "Seven rounds around sacred fire", startTime: "11:30", duration: 60, isHighlight: true, eventGroup: "Wedding" },
+      { title: "Sindoor & Mangalsutra", description: "Groom applies sindoor", startTime: "12:30", duration: 30, isHighlight: true, eventGroup: "Wedding" },
+      { title: "Vidaai", description: "Bride's farewell", startTime: "13:00", duration: 30, isHighlight: true, eventGroup: "Wedding" },
+      { title: "Lunch", description: "Wedding lunch", startTime: "13:30", duration: 60, isHighlight: false, eventGroup: "Wedding" },
+      { title: "Griha Pravesh", description: "Bride enters groom's home", startTime: "16:00", duration: 30, isHighlight: false, eventGroup: "Wedding" },
+      { title: "Reception", description: "Evening celebration", startTime: "18:00", duration: 180, isHighlight: true, eventGroup: "Reception" },
     ],
     muslim: [
-      { title: "Mehendi", description: "Henna for bride", startTime: "08:00", duration: 120, isHighlight: false },
-      { title: "Nikah", description: "Signing of Nikahnama", startTime: "10:00", duration: 60, isHighlight: true },
-      { title: "Mehr Exchange", description: "Groom presents Mahr", startTime: "11:00", duration: 30, isHighlight: true },
-      { title: "Blessings & Photos", description: "Family blessings", startTime: "12:00", duration: 60, isHighlight: false },
-      { title: "Lunch", description: "Wedding feast", startTime: "13:00", duration: 60, isHighlight: false },
-      { title: "Ruksati", description: "Bride's farewell", startTime: "16:00", duration: 30, isHighlight: true },
-      { title: "Walima", description: "Grand reception", startTime: "18:00", duration: 180, isHighlight: true },
+      { title: "Mehendi", description: "Henna for bride", startTime: "08:00", duration: 120, isHighlight: false, eventGroup: "Mehendi" },
+      { title: "Nikah", description: "Signing of Nikahnama", startTime: "10:00", duration: 60, isHighlight: true, eventGroup: "Nikah" },
+      { title: "Mehr Exchange", description: "Groom presents Mahr", startTime: "11:00", duration: 30, isHighlight: true, eventGroup: "Nikah" },
+      { title: "Blessings & Photos", description: "Family blessings", startTime: "12:00", duration: 60, isHighlight: false, eventGroup: "Nikah" },
+      { title: "Lunch", description: "Wedding feast", startTime: "13:00", duration: 60, isHighlight: false, eventGroup: "Nikah" },
+      { title: "Ruksati", description: "Bride's farewell", startTime: "16:00", duration: 30, isHighlight: true, eventGroup: "Walima" },
+      { title: "Walima", description: "Grand reception", startTime: "18:00", duration: 180, isHighlight: true, eventGroup: "Walima" },
     ],
     sikh: [
-      { title: "Chooda Ceremony", description: "Maternal uncle sets chooda", startTime: "06:00", duration: 60, isHighlight: true },
-      { title: "Groom Gets Ready", description: "Sherwani, turban, kirpan", startTime: "08:00", duration: 120, isHighlight: false },
-      { title: "Anand Karaj Begins", description: "Groom enters Gurdwara", startTime: "10:00", duration: 30, isHighlight: true },
-      { title: "Lavaan", description: "Four rounds around Guru Granth Sahib", startTime: "10:30", duration: 120, isHighlight: true },
-      { title: "Ardas", description: "Final prayer", startTime: "12:30", duration: 30, isHighlight: false },
-      { title: "Langar", description: "Community meal", startTime: "13:00", duration: 60, isHighlight: false },
-      { title: "Reception", description: "Evening celebration", startTime: "18:00", duration: 180, isHighlight: true },
+      { title: "Chooda Ceremony", description: "Maternal uncle sets chooda", startTime: "06:00", duration: 60, isHighlight: true, eventGroup: "Anand Karaj" },
+      { title: "Groom Gets Ready", description: "Sherwani, turban, kirpan", startTime: "08:00", duration: 120, isHighlight: false, eventGroup: "Anand Karaj" },
+      { title: "Anand Karaj Begins", description: "Groom enters Gurdwara", startTime: "10:00", duration: 30, isHighlight: true, eventGroup: "Anand Karaj" },
+      { title: "Lavaan", description: "Four rounds around Guru Granth Sahib", startTime: "10:30", duration: 120, isHighlight: true, eventGroup: "Anand Karaj" },
+      { title: "Ardas", description: "Final prayer", startTime: "12:30", duration: 30, isHighlight: false, eventGroup: "Anand Karaj" },
+      { title: "Langar", description: "Community meal", startTime: "13:00", duration: 60, isHighlight: false, eventGroup: "Langar" },
+      { title: "Reception", description: "Evening celebration", startTime: "18:00", duration: 180, isHighlight: true, eventGroup: "Reception" },
     ],
     christian: [
-      { title: "Bride Gets Ready", description: "White gown and veil", startTime: "08:00", duration: 120, isHighlight: false },
-      { title: "Church Ceremony", description: "Bride walks down the aisle", startTime: "10:00", duration: 30, isHighlight: true },
-      { title: "Exchange of Vows", description: "Wedding promises", startTime: "10:30", duration: 30, isHighlight: true },
-      { title: "Exchange of Rings", description: "Wedding rings", startTime: "11:00", duration: 30, isHighlight: true },
-      { title: "Signing Register", description: "Legal signing", startTime: "12:00", duration: 30, isHighlight: false },
-      { title: "Photos", description: "Group photographs", startTime: "13:00", duration: 60, isHighlight: false },
-      { title: "Reception", description: "Dinner, cake, first dance", startTime: "18:00", duration: 180, isHighlight: true },
+      { title: "Bride Gets Ready", description: "White gown and veil", startTime: "08:00", duration: 120, isHighlight: false, eventGroup: "Church Wedding" },
+      { title: "Church Ceremony", description: "Bride walks down the aisle", startTime: "10:00", duration: 30, isHighlight: true, eventGroup: "Church Wedding" },
+      { title: "Exchange of Vows", description: "Wedding promises", startTime: "10:30", duration: 30, isHighlight: true, eventGroup: "Church Wedding" },
+      { title: "Exchange of Rings", description: "Wedding rings", startTime: "11:00", duration: 30, isHighlight: true, eventGroup: "Church Wedding" },
+      { title: "Signing Register", description: "Legal signing", startTime: "12:00", duration: 30, isHighlight: false, eventGroup: "Church Wedding" },
+      { title: "Photos", description: "Group photographs", startTime: "13:00", duration: 60, isHighlight: false, eventGroup: "Church Wedding" },
+      { title: "Reception", description: "Dinner, cake, first dance", startTime: "18:00", duration: 180, isHighlight: true, eventGroup: "Reception" },
+    ],
+    jain: [
+      { title: "Bride's Getting Ready", description: "Hair, makeup, and dressing", startTime: "05:00", duration: 120, isHighlight: false, isSimultaneous: true, eventGroup: "Wedding" },
+      { title: "Groom's Getting Ready", description: "Sherwani, accessories", startTime: "05:00", duration: 120, isHighlight: false, isSimultaneous: true, eventGroup: "Wedding" },
+      { title: "Mandap Setup", description: "Ceremonial canopy preparation", startTime: "08:00", duration: 60, isHighlight: false, eventGroup: "Wedding" },
+      { title: "Jain Wedding Ceremony", description: "Pheras and rituals", startTime: "10:00", duration: 120, isHighlight: true, eventGroup: "Wedding" },
+      { title: "Ashirvad", description: "Elder blessings", startTime: "12:00", duration: 30, isHighlight: false, eventGroup: "Wedding" },
+      { title: "Lunch", description: "Wedding lunch", startTime: "12:30", duration: 60, isHighlight: false, eventGroup: "Wedding" },
+      { title: "Reception", description: "Grand celebration and dinner", startTime: "18:00", duration: 180, isHighlight: true, eventGroup: "Reception" },
     ],
   };
 
   const template = TIMELINE[wedding.religion] || TIMELINE.hindu;
+
+  // If no events selected, show nothing (user can add manually)
+  const filteredTemplate = selectedNames.length > 0
+    ? template.filter((t) => selectedNames.includes(t.eventGroup))
+    : template;
+
+  // If timeline items already exist, check if they match the selected events.
+  // If not, delete old items and re-seed.
+  if (existing.length > 0) {
+    const templateTitles = new Set(filteredTemplate.map((t) => t.title));
+    const mismatch = existing.some((item) => !templateTitles.has(item.title));
+    if (!mismatch) return; // Already in sync
+    // Delete all existing timeline items and re-seed
+    await prisma.weddingTimelineItem.deleteMany({ where: { weddingId } });
+  }
+
   let order = 0;
 
-  for (const item of template) {
+  for (const item of filteredTemplate) {
     await prisma.weddingTimelineItem.create({
       data: {
         weddingId,
