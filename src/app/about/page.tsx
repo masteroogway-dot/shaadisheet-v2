@@ -46,7 +46,7 @@ export default function AboutPage() {
 
           <h2 className="text-xl font-bold text-gray-900 mt-8 mb-3">Our Story</h2>
           <p className="text-gray-600 text-base leading-relaxed mb-6">
-            Built with love from Nashik, India. ShaadiSheet is a project by a solo founder who experienced the chaos
+            ShaadiSheet is a project by a solo founder who experienced the chaos
             of Indian wedding planning firsthand and decided to build a better way. Every feature is designed with real
             families in mind.
           </p>
@@ -60,7 +60,7 @@ export default function AboutPage() {
               <h3 className="font-bold text-gray-900 text-lg">Manan Chandak</h3>
               <p className="text-maroon text-sm font-medium mb-2">Founder & Developer</p>
               <p className="text-gray-500 text-sm leading-relaxed">
-                Built ShaadiSheet from Nashik, India. Experienced the chaos of Indian wedding planning
+                Built ShaadiSheet. Experienced the chaos of Indian wedding planning
                 firsthand and decided to build a better way. Everything in this product is crafted with
                 real families and real weddings in mind.
               </p>

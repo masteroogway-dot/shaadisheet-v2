@@ -552,7 +552,7 @@ export default function Home() {
               <div className="flex items-center gap-2.5 mb-3">
                 <img src="/logo.png" alt="ShaadiSheet" style={{ height: "55px", width: "auto", filter: "invert(1) brightness(2)" }} />
               </div>
-              <p className="text-gray-400 text-sm">Har Shaadi Ka Plan. Built with love from Nashik, India.</p>
+              <p className="text-gray-400 text-sm">Har Shaadi Ka Plan.</p>
             </div>
             {[
               { title: "Product", links: [
