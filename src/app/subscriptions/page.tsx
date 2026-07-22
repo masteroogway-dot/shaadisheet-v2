@@ -49,7 +49,7 @@ export default function SubscriptionsPage() {
       {/* Header */}
       <div className="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 sticky top-0 z-50 shrink-0">
         <Link href="/dashboard" className="flex items-center gap-2.5">
-          <img src="/logo.png" alt="ShaadiSheet" style={{ height: "45px", width: "auto" }} />
+          <img src="/logo.png" alt="ShaadiSheet" style={{ height: "55px", width: "auto" }} />
         </Link>
         <Link href="/dashboard" className="text-xs sm:text-sm font-medium text-gray-600 hover:text-maroon transition-colors cursor-pointer">
           Back to Dashboard

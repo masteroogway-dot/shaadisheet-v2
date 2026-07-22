@@ -60,7 +60,7 @@ export default function AuthPage() {
       {/* Left Panel */}
       <div className="hidden lg:flex flex-1 bg-maroon text-white p-16 flex-col justify-center relative overflow-hidden">
         <Link href="/" className="flex items-center gap-2.5 relative z-10 mb-16">
-          <img src="/logo.png" alt="ShaadiSheet" style={{ height: "55px", width: "auto", filter: "invert(1) brightness(2)" }} />
+          <img src="/logo.png" alt="ShaadiSheet" style={{ height: "65px", width: "auto", filter: "invert(1) brightness(2)" }} />
         </Link>
         <div className="relative z-10 mb-12">
           <h1 className="text-[2.5rem] font-extrabold leading-[1.15] mb-4">
