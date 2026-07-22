@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "@/components/Providers";
+import PageTransition from "@/components/PageTransition";
 
 export const metadata: Metadata = {
   title: "ShaadiSheet - Plan Your Indian Wedding Without the Chaos",
@@ -28,7 +29,9 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-cream text-gray-900">
-        <Providers>{children}</Providers>
+        <Providers>
+          <PageTransition>{children}</PageTransition>
+        </Providers>
       </body>
     </html>
   );
