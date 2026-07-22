@@ -413,14 +413,14 @@ export default function Home() {
               <div className="gold-divider mb-4 md:mb-6">
                 <span className="wedding-badge">How It Works</span>
               </div>
-              <h2 className="text-2xl md:text-[2.5rem] font-bold mb-3 md:mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>From Signup to Wedding Day</h2>
+              <h2 className="text-2xl md:text-[2.5rem] font-bold mb-3 md:mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>From Sign Up to Wedding Day</h2>
               <p className="text-gray-500 text-sm md:text-base">In 4 simple steps</p>
             </div>
           </ScrollReveal>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 relative">
             <div className="absolute top-10 left-[15%] right-[15%] h-0.5 hidden md:block" style={{ background: "linear-gradient(to right, transparent, #D4AF37, transparent)" }} />
             {[
-              { n: "1", t: "Sign Up!", d: "Religion, region, budget, guest count, events." },
+              { n: "1", t: "Tell Us!", d: "Religion, region, budget, guest count, events." },
               { n: "2", t: "Get Your Template!", d: "Pre-filled rituals, budget categories, checklists." },
               { n: "3", t: "Plan & Collaborate!", d: "Track budget, manage vendors, organize guests." },
               { n: "4", t: "Celebrate!", d: "Zero chaos, pure joy." },
