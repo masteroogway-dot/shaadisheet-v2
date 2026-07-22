@@ -555,14 +555,25 @@ export default function Home() {
               <p className="text-gray-400 text-sm">Har Shaadi Ka Plan. Built with love from Nashik, India.</p>
             </div>
             {[
-              { title: "Product", links: ["Features", "Templates", "Pricing"] },
-              { title: "Company", links: ["About", "Blog", "Contact"] },
-              { title: "Legal", links: ["Privacy", "Terms", "Security"] },
+              { title: "Product", links: [
+                { label: "Features", href: "#features" },
+                { label: "Pricing", href: "#" },
+                { label: "Blog", href: "/blog" },
+              ]},
+              { title: "Company", links: [
+                { label: "About", href: "/about" },
+                { label: "Contact", href: "/contact" },
+              ]},
+              { title: "Legal", links: [
+                { label: "Privacy", href: "/privacy" },
+                { label: "Terms", href: "/terms" },
+                { label: "Security", href: "/security" },
+              ]},
             ].map((col, i) => (
               <div key={i}>
                 <h4 className="mb-3 md:mb-4 text-xs md:text-sm uppercase tracking-wider font-semibold text-[#D4AF37]">{col.title}</h4>
                 {col.links.map((l, j) => (
-                  <a key={j} href="#" className="block py-0.5 md:py-1 text-gray-400 text-xs md:text-sm hover:text-white transition-colors">{l}</a>
+                  <Link key={j} href={l.href} className="block py-0.5 md:py-1 text-gray-400 text-xs md:text-sm hover:text-white transition-colors">{l.label}</Link>
                 ))}
               </div>
             ))}
