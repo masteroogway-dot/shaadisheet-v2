@@ -8,6 +8,7 @@ import RotatingText from "@/components/animations/RotatingText";
 import ScrollReveal from "@/components/animations/ScrollReveal";
 import SpotlightCard from "@/components/animations/SpotlightCard";
 import { StaggerContainer, StaggerItem } from "@/components/animations/StaggerChildren";
+import LiveCount from "@/components/LiveCount";
 
 /* ─────────────────────────────────────────────
    ROSE PETAL ANIMATION
@@ -366,16 +367,7 @@ export default function Home() {
                 See How It Works
               </a>
             </div>
-            <div className="flex items-center justify-center gap-3">
-              <div className="flex">
-                {["#E8B4B8", "#B4D4E8", "#D4E8B4", "#E8D4B4", "#D4B4E8"].map((c, i) => (
-                  <div key={i} className="w-8 h-8 rounded-full flex items-center justify-center text-[0.65rem] font-bold text-white -ml-2 border-2 border-white/30 first:ml-0" style={{ background: c }}>
-                    {["RK", "AP", "SM", "PJ", "NM"][i]}
-                  </div>
-                ))}
-              </div>
-              <p className="text-sm text-white/70">500+ families already planning</p>
-            </div>
+            <LiveCount />
           </div>
         </div>
       </section>
