@@ -14,6 +14,7 @@ const RotatingText = forwardRef(function RotatingText(
     loop = true,
     auto = true,
     className = "",
+    currentIndex: controlledIndex,
   }: {
     texts: string[];
     transition?: Record<string, unknown>;
@@ -24,20 +25,23 @@ const RotatingText = forwardRef(function RotatingText(
     loop?: boolean;
     auto?: boolean;
     className?: string;
+    currentIndex?: number;
   },
   ref: React.ForwardedRef<unknown>
 ) {
-  const [currentTextIndex, setCurrentTextIndex] = useState(0);
+  const [internalIndex, setInternalIndex] = useState(0);
+  const currentTextIndex = controlledIndex !== undefined ? controlledIndex : internalIndex;
 
   const next = useCallback(() => {
-    setCurrentTextIndex((prev) => (prev === texts.length - 1 ? (loop ? 0 : prev) : prev + 1));
-  }, [texts.length, loop]);
+    if (controlledIndex !== undefined) return;
+    setInternalIndex((prev) => (prev === texts.length - 1 ? (loop ? 0 : prev) : prev + 1));
+  }, [texts.length, loop, controlledIndex]);
 
   useEffect(() => {
-    if (!auto) return;
+    if (!auto || controlledIndex !== undefined) return;
     const intervalId = setInterval(next, rotationInterval);
     return () => clearInterval(intervalId);
-  }, [next, rotationInterval, auto]);
+  }, [next, rotationInterval, auto, controlledIndex]);
 
   useImperativeHandle(ref, () => ({ next }), [next]);
 

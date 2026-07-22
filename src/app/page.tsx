@@ -216,18 +216,13 @@ const SCENES = [
   },
 ];
 
-function HeroBackground() {
-  const [active, setActive] = useState(0);
+function HeroBackground({ active, onActiveChange }: { active: number; onActiveChange: (i: number) => void }) {
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
 
-  const next = useCallback(() => {
-    setActive((prev) => (prev + 1) % SCENES.length);
-  }, []);
-
   useEffect(() => {
-    const timer = setInterval(next, 4500);
+    const timer = setInterval(() => onActiveChange((active + 1) % SCENES.length), 4500);
     return () => clearInterval(timer);
-  }, [next]);
+  }, [active, onActiveChange]);
 
   return (
     <div className="absolute inset-0 z-0">
@@ -269,7 +264,7 @@ function HeroBackground() {
         {SCENES.map((scene, i) => (
           <button
             key={scene.key}
-            onClick={() => setActive(i)}
+            onClick={() => onActiveChange(i)}
             className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
               i === active ? "w-8 bg-white" : "w-2.5 bg-white/40 hover:bg-white/60"
             }`}
@@ -286,6 +281,7 @@ function HeroBackground() {
 export default function Home() {
   const [petalKey, setPetalKey] = useState(0);
   const [scrolled, setScrolled] = useState(false);
+  const [activeScene, setActiveScene] = useState(0);
 
   useEffect(() => {
     setPetalKey(1);
@@ -320,7 +316,7 @@ export default function Home() {
       {/* HERO - FULL BACKGROUND */}
       <section className="relative min-h-[85vh] md:min-h-[92vh] flex items-center overflow-hidden">
         {/* Full-background image carousel */}
-        <HeroBackground />
+        <HeroBackground active={activeScene} onActiveChange={setActiveScene} />
 
         {/* Marigold Garlands - hidden on mobile */}
         <div className="relative z-[4] opacity-50 hidden md:block">
@@ -339,7 +335,9 @@ export default function Home() {
               Plan Your{" "}
               <RotatingText
                 texts={["Hindu", "Muslim", "Sikh", "Christian", "Jain"]}
-                rotationInterval={2500}
+                rotationInterval={4500}
+                auto={false}
+                currentIndex={activeScene}
                 className="text-[#FFD54F]"
               />{" "}
               Wedding
@@ -422,10 +420,10 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 relative">
             <div className="absolute top-10 left-[15%] right-[15%] h-0.5 hidden md:block" style={{ background: "linear-gradient(to right, transparent, #D4AF37, transparent)" }} />
             {[
-              { n: "1", t: "Tell Us", d: "Religion, region, budget, guest count, events." },
-              { n: "2", t: "Get Your Template", d: "Pre-filled rituals, budget categories, checklists." },
-              { n: "3", t: "Plan & Collaborate", d: "Track budget, manage vendors, organize guests." },
-              { n: "4", t: "Celebrate", d: "Zero chaos, pure joy." },
+              { n: "1", t: "Sign Up!", d: "Religion, region, budget, guest count, events." },
+              { n: "2", t: "Get Your Template!", d: "Pre-filled rituals, budget categories, checklists." },
+              { n: "3", t: "Plan & Collaborate!", d: "Track budget, manage vendors, organize guests." },
+              { n: "4", t: "Celebrate!", d: "Zero chaos, pure joy." },
             ].map((s, i) => (
               <ScrollReveal key={i} delay={i * 0.15} direction="up" distance={50} blur={false}>
                 <div className="text-center relative z-10">
