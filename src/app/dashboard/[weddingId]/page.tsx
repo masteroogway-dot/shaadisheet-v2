@@ -144,9 +144,8 @@ export default function WeddingDashboardPage() {
           >
             <i className="fas fa-bars text-lg" />
           </button>
-          <Link href="/dashboard" className="flex items-center gap-2.5 text-lg font-extrabold">
-            <span className="text-maroon text-xl">|||</span>
-            <span className="hidden sm:inline">ShaadiSheet</span>
+          <Link href="/dashboard" className="flex items-center gap-2.5">
+            <img src="/logo.png" alt="ShaadiSheet" className="h-8 w-auto" />
           </Link>
         </div>
         <div className="text-center">

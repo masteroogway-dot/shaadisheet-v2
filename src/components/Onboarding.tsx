@@ -143,9 +143,8 @@ export default function Onboarding({ onComplete }: Props) {
       )}
 
       <div className="flex items-center justify-between px-4 md:px-10 py-3 md:py-5">
-        <div className="flex items-center gap-2.5 text-xl font-extrabold">
-          <span className="text-maroon text-2xl tracking-tight">|||</span>
-          <span className="hidden sm:inline">ShaadiSheet</span>
+        <div className="flex items-center gap-2.5">
+          <img src="/logo.png" alt="ShaadiSheet" className="h-8 w-auto" />
         </div>
         <div className="flex items-center gap-2 md:gap-4">
           <div className="w-[100px] md:w-[200px] h-2 bg-gray-200 rounded-full overflow-hidden">
