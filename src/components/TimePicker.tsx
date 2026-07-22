@@ -114,10 +114,12 @@ export default function TimePicker({
                 type="number"
                 min={0}
                 max={59}
-                value={selMin}
+                value={selMin === "00" ? "" : selMin}
+                placeholder="00"
                 onChange={(e) => {
                   const v = parseInt(e.target.value);
                   if (!isNaN(v) && v >= 0 && v <= 59) setSelMin(String(v).padStart(2, "0"));
+                  if (e.target.value === "") setSelMin("00");
                 }}
                 className="w-14 h-8 text-center text-xs font-medium border border-gray-200 rounded-lg focus:outline-none focus:border-maroon bg-[#fafafa]"
               />
