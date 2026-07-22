@@ -29,19 +29,20 @@ function formatBudgetShort(n: number): string {
   return n.toLocaleString("en-IN");
 }
 
-export default function OverviewView({ wedding, onWeddingUpdate }: { wedding: any; onWeddingUpdate?: (w: any) => void }) {
-  const [budget, setBudget] = useState(wedding.budget || 0);
-  const [guestCount, setGuestCount] = useState(wedding.guestCount || 0);
+export default function OverviewView({ wedding, onUpdate }: { wedding: any; onUpdate?: () => void }) {
+  const [editBudget, setEditBudget] = useState("");
+  const [editGuests, setEditGuests] = useState("");
   const [editingBudget, setEditingBudget] = useState(false);
   const [editingGuests, setEditingGuests] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const handleSaveBudget = async () => {
+    const val = parseInt(editBudget) || 0;
     setSaving(true);
     try {
-      await updateWedding({ weddingId: wedding.id, budget });
+      await updateWedding({ weddingId: wedding.id, budget: val });
       setEditingBudget(false);
-      if (onWeddingUpdate) onWeddingUpdate({ ...wedding, budget });
+      if (onUpdate) onUpdate();
     } catch (e) {
       console.error(e);
     } finally {
@@ -50,17 +51,19 @@ export default function OverviewView({ wedding, onWeddingUpdate }: { wedding: an
   };
 
   const handleSaveGuests = async () => {
+    const val = parseInt(editGuests) || 0;
     setSaving(true);
     try {
-      await updateWedding({ weddingId: wedding.id, guestCount });
+      await updateWedding({ weddingId: wedding.id, guestCount: val });
       setEditingGuests(false);
-      if (onWeddingUpdate) onWeddingUpdate({ ...wedding, guestCount });
+      if (onUpdate) onUpdate();
     } catch (e) {
       console.error(e);
     } finally {
       setSaving(false);
     }
   };
+
   const totalBudget = wedding.budget || 0;
   const totalSpent = wedding.budgetItems?.reduce((s: number, i: any) => s + (i.paid || 0), 0) || 0;
   const totalGuests = wedding.guests?.length || 0;
@@ -187,16 +190,16 @@ export default function OverviewView({ wedding, onWeddingUpdate }: { wedding: an
                         <span className="text-gray-500 font-semibold">{"\u20B9"}</span>
                         <input
                           type="number"
-                          value={budget || ""}
-                          onChange={(e) => setBudget(parseInt(e.target.value) || 0)}
-                          placeholder="0"
+                          value={editBudget}
+                          onChange={(e) => setEditBudget(e.target.value)}
+                          placeholder={String(wedding.budget || "")}
                           className="w-36 px-3 py-1.5 border-2 border-maroon rounded-lg text-sm font-bold focus:outline-none"
                           min={0}
                         />
                       </div>
                     ) : (
                       <p className="text-lg font-extrabold text-gray-900">
-                        {"\u20B9"}{budget > 0 ? formatINR(budget) : "Not set"}
+                        {"\u20B9"}{totalBudget > 0 ? formatINR(totalBudget) : "Not set"}
                       </p>
                     )}
                   </div>
@@ -205,12 +208,12 @@ export default function OverviewView({ wedding, onWeddingUpdate }: { wedding: an
                       <button onClick={handleSaveBudget} disabled={saving} className="px-3 py-1.5 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
                         {saving ? "Saving..." : "Save"}
                       </button>
-                      <button onClick={() => { setEditingBudget(false); setBudget(wedding.budget || 0); }} className="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
+                      <button onClick={() => setEditingBudget(false)} className="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
                         Cancel
                       </button>
                     </div>
                   ) : (
-                    <button onClick={() => setEditingBudget(true)} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer">
+                    <button onClick={() => { setEditBudget(String(wedding.budget || "")); setEditingBudget(true); }} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer">
                       <i className="fas fa-pen mr-1" /> Edit
                     </button>
                   )}
@@ -222,16 +225,16 @@ export default function OverviewView({ wedding, onWeddingUpdate }: { wedding: an
                     <p className="text-xs text-gray-500 font-medium mb-1">Expected Guests</p>
                     {editingGuests ? (
                       <input
-                          type="number"
-                          value={guestCount || ""}
-                          onChange={(e) => setGuestCount(parseInt(e.target.value) || 0)}
-                          placeholder="0"
-                          className="w-36 px-3 py-1.5 border-2 border-maroon rounded-lg text-sm font-bold focus:outline-none"
-                          min={0}
-                        />
+                        type="number"
+                        value={editGuests}
+                        onChange={(e) => setEditGuests(e.target.value)}
+                        placeholder={String(wedding.guestCount || "")}
+                        className="w-36 px-3 py-1.5 border-2 border-maroon rounded-lg text-sm font-bold focus:outline-none"
+                        min={0}
+                      />
                     ) : (
                       <p className="text-lg font-extrabold text-gray-900">
-                        {guestCount > 0 ? guestCount.toLocaleString("en-IN") : "Not set"}
+                        {(wedding.guestCount || 0) > 0 ? (wedding.guestCount || 0).toLocaleString("en-IN") : "Not set"}
                       </p>
                     )}
                   </div>
@@ -240,12 +243,12 @@ export default function OverviewView({ wedding, onWeddingUpdate }: { wedding: an
                       <button onClick={handleSaveGuests} disabled={saving} className="px-3 py-1.5 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
                         {saving ? "Saving..." : "Save"}
                       </button>
-                      <button onClick={() => { setEditingGuests(false); setGuestCount(wedding.guestCount || 0); }} className="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
+                      <button onClick={() => setEditingGuests(false)} className="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
                         Cancel
                       </button>
                     </div>
                   ) : (
-                    <button onClick={() => setEditingGuests(true)} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer">
+                    <button onClick={() => { setEditGuests(String(wedding.guestCount || "")); setEditingGuests(true); }} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer">
                       <i className="fas fa-pen mr-1" /> Edit
                     </button>
                   )}

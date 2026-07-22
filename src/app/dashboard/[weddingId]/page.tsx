@@ -101,7 +101,7 @@ export default function WeddingDashboardPage() {
 
   const renderView = () => {
     switch (activeView) {
-      case "overview": return <OverviewView wedding={wedding} onWeddingUpdate={(updated) => setWedding(updated)} />;
+      case "overview": return <OverviewView wedding={wedding} onUpdate={loadWedding} />;
       case "budget": return <BudgetView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
       case "vendors": return <VendorsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
       case "guests": return <GuestsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
@@ -110,7 +110,7 @@ export default function WeddingDashboardPage() {
       case "seating": return <SeatingView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
       case "rooms": return <RoomAllocationView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
       case "timeline": return <TimelineView wedding={wedding} weddingId={weddingId} />;
-      default: return <OverviewView wedding={wedding} onWeddingUpdate={(updated) => setWedding(updated)} />;
+      default: return <OverviewView wedding={wedding} onUpdate={loadWedding} />;
     }
   };
 
