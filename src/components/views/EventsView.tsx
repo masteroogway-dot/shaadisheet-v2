@@ -354,7 +354,7 @@ export default function EventsView({ wedding, weddingId, canEdit = true }: { wed
                               </div>
                               <div className="flex gap-2">
                                 <button onClick={cancelEdit} className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg cursor-pointer">Cancel</button>
-                                <button onClick={() => handleSave(event.id)} className="px-4 py-1.5 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">Save</button>
+                                {canEdit && <button onClick={() => handleSave(event.id)} className="px-4 py-1.5 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">Save</button>}
                               </div>
                             </div>
                           </div>

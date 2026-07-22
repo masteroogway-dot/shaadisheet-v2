@@ -206,12 +206,12 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canE
                   <div className="flex items-center gap-2 shrink-0">
                     {isEditing ? (
                       <>
-                        <button onClick={() => handleSave(item.id)} className="btn-save"><i className="fas fa-check mr-1" /> Save</button>
+                        {canEdit && <button onClick={() => handleSave(item.id)} className="btn-save"><i className="fas fa-check mr-1" /> Save</button>}
                         <button onClick={() => { setEditing(null); setEditData({}); }} className="btn-cancel">Cancel</button>
                       </>
                     ) : (
                       <>
-                        <button onClick={() => { setEditing(item.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen mr-1" /> Edit</button>
+                        {canEdit && <button onClick={() => { setEditing(item.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen mr-1" /> Edit</button>}
                         {canEdit && (
                           <button onClick={() => handleDelete(item.id)} className="btn-delete"><i className="fas fa-trash mr-1" /> Delete</button>
                         )}

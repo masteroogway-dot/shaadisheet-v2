@@ -286,7 +286,7 @@ export default function TimelineView({ wedding, weddingId, canEdit = true }: { w
                       </div>
                       <div className="flex items-center justify-end gap-2">
                         <button onClick={cancelEdit} className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg cursor-pointer">Cancel</button>
-                        <button onClick={() => handleSave(item.id)} className="px-4 py-1.5 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">Save</button>
+                        {canEdit && <button onClick={() => handleSave(item.id)} className="px-4 py-1.5 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">Save</button>}
                       </div>
                     </div>
                   ) : (

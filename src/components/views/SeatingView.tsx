@@ -254,7 +254,7 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
                 <div className="flex gap-1.5 mt-2 ml-7">
                   {isEditing ? (
                     <>
-                      <button onClick={() => handleSaveTable(table.id)} className="btn-save text-xs py-1 px-3">Save</button>
+                      {canEdit && <button onClick={() => handleSaveTable(table.id)} className="btn-save text-xs py-1 px-3">Save</button>}
                       <button onClick={() => setEditing(null)} className="btn-cancel text-xs py-1 px-3">Cancel</button>
                     </>
                   ) : (

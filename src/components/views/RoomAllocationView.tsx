@@ -211,7 +211,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
                   <div className="flex items-center gap-2 shrink-0">
                     {isEditing ? (
                       <>
-                        <button onClick={() => handleSave(a.id)} className="btn-save"><i className="fas fa-check mr-1" /> Save</button>
+                        {canEdit && <button onClick={() => handleSave(a.id)} className="btn-save"><i className="fas fa-check mr-1" /> Save</button>}
                         <button onClick={() => { setEditing(null); setEditData({}); }} className="btn-cancel">Cancel</button>
                       </>
                     ) : (
