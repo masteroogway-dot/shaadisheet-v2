@@ -5,6 +5,9 @@ import { useState, useEffect, useCallback } from "react";
 import BlurText from "@/components/animations/BlurText";
 import ShinyText from "@/components/animations/ShinyText";
 import RotatingText from "@/components/animations/RotatingText";
+import ScrollReveal from "@/components/animations/ScrollReveal";
+import SpotlightCard from "@/components/animations/SpotlightCard";
+import { StaggerContainer, StaggerItem } from "@/components/animations/StaggerChildren";
 
 /* ─────────────────────────────────────────────
    ROSE PETAL ANIMATION
@@ -382,14 +385,16 @@ export default function Home() {
       <section id="features" className="py-28 relative">
         <div className="paisley-overlay" />
         <div className="max-w-6xl mx-auto px-6 relative">
-          <div className="text-center mb-16">
-            <div className="gold-divider mb-6">
-              <span className="wedding-badge">Features</span>
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <div className="gold-divider mb-6">
+                <span className="wedding-badge">Features</span>
+              </div>
+              <h2 className="text-[2.5rem] font-bold mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>Everything You Need</h2>
+              <p className="text-gray-500 max-w-[480px] mx-auto">Not a generic Western wedding planner. Built from the ground up for Indian traditions.</p>
             </div>
-            <h2 className="text-[2.5rem] font-bold mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>Everything You Need</h2>
-            <p className="text-gray-500 max-w-[480px] mx-auto">Not a generic Western wedding planner. Built from the ground up for Indian traditions.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          </ScrollReveal>
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" staggerDelay={0.1}>
             {[
               { icon: "💰", title: "Budget Tracker", desc: "Track every rupee with pre-filled categories for Indian weddings." },
               { icon: "🏪", title: "Vendor Manager", desc: "Track every vendor — from pandit to caterer to DJ." },
@@ -398,13 +403,15 @@ export default function Home() {
               { icon: "🤖", title: "AI Assistant", desc: "Get instant, intelligent recommendations for your wedding." },
               { icon: "🤝", title: "Real-time Collaboration", desc: "Share with family, planners, and vendors." },
             ].map((f, i) => (
-              <div key={i} className="wedding-card">
-                <div className="text-3xl mb-4">{f.icon}</div>
-                <h3 className="font-bold mb-1.5 text-gray-900">{f.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
-              </div>
+              <StaggerItem key={i}>
+                <SpotlightCard className="wedding-card h-full" spotlightColor="rgba(212, 175, 55, 0.12)">
+                  <div className="text-3xl mb-4">{f.icon}</div>
+                  <h3 className="font-bold mb-1.5 text-gray-900">{f.title}</h3>
+                  <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
+                </SpotlightCard>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
@@ -412,13 +419,15 @@ export default function Home() {
       <section id="how-it-works" className="py-28 bg-white relative">
         <div className="paisley-overlay" />
         <div className="max-w-6xl mx-auto px-6 relative">
-          <div className="text-center mb-16">
-            <div className="gold-divider mb-6">
-              <span className="wedding-badge">How It Works</span>
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <div className="gold-divider mb-6">
+                <span className="wedding-badge">How It Works</span>
+              </div>
+              <h2 className="text-[2.5rem] font-bold mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>From Signup to Wedding Day</h2>
+              <p className="text-gray-500">In 4 simple steps</p>
             </div>
-            <h2 className="text-[2.5rem] font-bold mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>From Signup to Wedding Day</h2>
-            <p className="text-gray-500">In 4 simple steps</p>
-          </div>
+          </ScrollReveal>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
             <div className="absolute top-10 left-[15%] right-[15%] h-0.5 hidden md:block" style={{ background: "linear-gradient(to right, transparent, #D4AF37, transparent)" }} />
             {[
@@ -427,11 +436,13 @@ export default function Home() {
               { n: "3", t: "Plan & Collaborate", d: "Track budget, manage vendors, organize guests." },
               { n: "4", t: "Celebrate", d: "Zero chaos, pure joy." },
             ].map((s, i) => (
-              <div key={i} className="text-center relative z-10">
-                <div className="wedding-step">{s.n}</div>
-                <h3 className="font-bold mb-1 text-gray-900">{s.t}</h3>
-                <p className="text-gray-500 text-sm">{s.d}</p>
-              </div>
+              <ScrollReveal key={i} delay={i * 0.15} direction="up" distance={50} blur={false}>
+                <div className="text-center relative z-10">
+                  <div className="wedding-step">{s.n}</div>
+                  <h3 className="font-bold mb-1 text-gray-900">{s.t}</h3>
+                  <p className="text-gray-500 text-sm">{s.d}</p>
+                </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>
@@ -441,13 +452,15 @@ export default function Home() {
       <section id="religions" className="py-28 relative">
         <div className="paisley-overlay" />
         <div className="max-w-6xl mx-auto px-6 relative">
-          <div className="text-center mb-16">
-            <div className="gold-divider mb-6">
-              <span className="wedding-badge">Weddings</span>
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <div className="gold-divider mb-6">
+                <span className="wedding-badge">Weddings</span>
+              </div>
+              <h2 className="text-[2.5rem] font-bold mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>Built for Every Indian Wedding</h2>
             </div>
-            <h2 className="text-[2.5rem] font-bold mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>Built for Every Indian Wedding</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
+          </ScrollReveal>
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5" staggerDelay={0.08}>
             {[
               {
                 bg: "bg-amber-50", border: "border-amber-200", title: "Hindu", desc: "Roka to Vidaai",
@@ -511,13 +524,15 @@ export default function Home() {
                 ),
               },
             ].map((t, i) => (
-              <div key={i} className={`religion-card ${t.bg}`} style={{ borderColor: "rgba(212, 175, 55, 0.15)" }}>
-                <div className="flex justify-center mb-3">{t.svg}</div>
-                <h3 className="font-bold text-gray-900">{t.title}</h3>
-                <p className="text-gray-500 text-xs mt-1">{t.desc}</p>
-              </div>
+              <StaggerItem key={i}>
+                <div className={`religion-card ${t.bg}`} style={{ borderColor: "rgba(212, 175, 55, 0.15)" }}>
+                  <div className="flex justify-center mb-3">{t.svg}</div>
+                  <h3 className="font-bold text-gray-900">{t.title}</h3>
+                  <p className="text-gray-500 text-xs mt-1">{t.desc}</p>
+                </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
@@ -525,14 +540,16 @@ export default function Home() {
       <section className="py-28 text-center wedding-cta text-white relative">
         <div className="paisley-overlay" style={{ opacity: 0.03 }} />
         <div className="max-w-6xl mx-auto px-6 relative">
-          <div className="gold-divider mb-8" style={{ filter: "brightness(2)" }}>
-            <svg className="w-6 h-6 text-[#D4AF37]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4h7.6l-6 4.6 2.3 7-6.3-4.6L5.7 21l2.3-7L2 9.4h7.6z" /></svg>
-          </div>
-          <h2 className="text-[2.5rem] font-bold text-white mb-4" style={{ fontFamily: "var(--font-display)" }}>Ready to Plan Your Wedding?</h2>
-          <p className="text-lg text-white/80 mb-10">Free to start. No credit card required.</p>
-          <Link href="/auth" className="px-10 py-4 text-base font-bold text-maroon bg-white rounded-xl hover:bg-gray-100 transition-all inline-flex items-center gap-2 shadow-2xl hover:shadow-white/20 hover:scale-105">
-            Start Planning Free →
-          </Link>
+          <ScrollReveal direction="up" distance={60}>
+            <div className="gold-divider mb-8" style={{ filter: "brightness(2)" }}>
+              <svg className="w-6 h-6 text-[#D4AF37]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4h7.6l-6 4.6 2.3 7-6.3-4.6L5.7 21l2.3-7L2 9.4h7.6z" /></svg>
+            </div>
+            <h2 className="text-[2.5rem] font-bold text-white mb-4" style={{ fontFamily: "var(--font-display)" }}>Ready to Plan Your Wedding?</h2>
+            <p className="text-lg text-white/80 mb-10">Free to start. No credit card required.</p>
+            <Link href="/auth" className="px-10 py-4 text-base font-bold text-maroon bg-white rounded-xl hover:bg-gray-100 transition-all inline-flex items-center gap-2 shadow-2xl hover:shadow-white/20 hover:scale-105">
+              Start Planning Free →
+            </Link>
+          </ScrollReveal>
         </div>
       </section>
 

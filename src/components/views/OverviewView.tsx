@@ -1,5 +1,9 @@
 "use client";
 
+import CountUp from "@/components/animations/CountUp";
+import ScrollReveal from "@/components/animations/ScrollReveal";
+import { StaggerContainer, StaggerItem } from "@/components/animations/StaggerChildren";
+
 function formatINR(n: number): string {
   if (n === 0) return "0";
   if (n >= 10000000) return (n / 10000000).toFixed(1).replace(/\.0$/, "") + " Cr";
@@ -99,77 +103,87 @@ export default function OverviewView({ wedding }: { wedding: any }) {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-5 mb-7">
+          <StaggerContainer className="grid grid-cols-2 lg:grid-cols-5 gap-5 mb-7" staggerDelay={0.08}>
             {[
-              { label: "Total Budget", value: totalBudget > 0 ? `\u20B9${formatINR(totalBudget)}` : "\u2014", sub: totalSpent > 0 ? `\u20B9${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
-              { label: "Guests", value: totalGuests > 0 ? totalGuests.toString() : "\u2014", sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : "No RSVPs yet", icon: "fa-users", gradient: "from-green to-green/80" },
-              { label: "Vendors", value: totalVendors > 0 ? `${vendorsBooked} / ${totalVendors}` : "\u2014", sub: totalVendors > 0 ? `${totalVendors - vendorsBooked} remaining` : "No vendors added", icon: "fa-store", gradient: "from-blue to-blue/80" },
-              { label: "Tasks", value: totalTasks > 0 ? `${tasksDone} / ${totalTasks}` : "\u2014", sub: totalTasks > 0 ? `${totalTasks - tasksDone} remaining` : "No tasks yet", icon: "fa-tasks", gradient: "from-orange-600 to-red-700" },
-              { label: "Rooms", value: totalRooms > 0 ? totalRooms.toString() : "\u2014", sub: roomsOccupied > 0 ? `${roomsOccupied} checked in` : totalRooms > 0 ? "None checked in" : "No rooms allocated", icon: "fa-bed", gradient: "from-purple-600 to-purple-800" },
+              { label: "Total Budget", numVal: totalBudget, prefix: totalBudget > 0 ? "\u20B9" : "", suffix: "", display: totalBudget > 0 ? "" : "\u2014", sub: totalSpent > 0 ? `\u20B9${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
+              { label: "Guests", numVal: totalGuests, prefix: "", suffix: "", display: totalGuests > 0 ? "" : "\u2014", sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : "No RSVPs yet", icon: "fa-users", gradient: "from-green to-green/80" },
+              { label: "Vendors", numVal: vendorsBooked, prefix: "", suffix: totalVendors > 0 ? ` / ${totalVendors}` : "", display: totalVendors > 0 ? "" : "\u2014", sub: totalVendors > 0 ? `${totalVendors - vendorsBooked} remaining` : "No vendors added", icon: "fa-store", gradient: "from-blue to-blue/80" },
+              { label: "Tasks", numVal: tasksDone, prefix: "", suffix: totalTasks > 0 ? ` / ${totalTasks}` : "", display: totalTasks > 0 ? "" : "\u2014", sub: totalTasks > 0 ? `${totalTasks - tasksDone} remaining` : "No tasks yet", icon: "fa-tasks", gradient: "from-orange-600 to-red-700" },
+              { label: "Rooms", numVal: totalRooms, prefix: "", suffix: "", display: totalRooms > 0 ? "" : "\u2014", sub: roomsOccupied > 0 ? `${roomsOccupied} checked in` : totalRooms > 0 ? "None checked in" : "No rooms allocated", icon: "fa-bed", gradient: "from-purple-600 to-purple-800" },
             ].map((s, i) => (
-              <div key={i} className="bg-white rounded-xl p-5 border border-gray-200 flex items-center gap-4 hover:shadow-md transition-shadow">
-                <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${s.gradient} flex items-center justify-center text-white shrink-0`}>
-                  <i className={`fas ${s.icon}`} />
+              <StaggerItem key={i}>
+                <div className="bg-white rounded-xl p-5 border border-gray-200 flex items-center gap-4 hover:shadow-md transition-shadow">
+                  <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${s.gradient} flex items-center justify-center text-white shrink-0`}>
+                    <i className={`fas ${s.icon}`} />
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-500 font-medium">{s.label}</span>
+                    <div className="text-xl font-extrabold">
+                      {s.display === "\u2014" ? "\u2014" : (
+                        <CountUp target={s.numVal} prefix={s.prefix} suffix={s.suffix} duration={1.5} />
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-500">{s.sub}</span>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-xs text-gray-500 font-medium">{s.label}</span>
-                  <div className="text-xl font-extrabold">{s.value}</div>
-                  <span className="text-xs text-gray-500">{s.sub}</span>
-                </div>
-              </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="flex items-center justify-between px-6 pt-5 pb-0">
-                <h3 className="font-bold">Upcoming Events</h3>
-              </div>
-              <div className="p-6">
-                {upcomingEvents.length === 0 ? (
-                  <p className="text-gray-400 text-center py-5">No upcoming events</p>
-                ) : upcomingEvents.map((event: any) => {
-                  const d = new Date(event.date + "T00:00:00");
-                  const day = d.getDate();
-                  const month = d.toLocaleString("en-US", { month: "short" });
-                  const isWedding = event.name?.includes("Wedding") || event.name?.includes("Nikah") || event.name?.includes("Anand Karaj");
-                  const daysUntil = Math.ceil((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                  return (
-                    <div key={event.id} className="flex items-center gap-4 py-3.5 border-b border-gray-100 last:border-0">
-                      <div className={`w-[52px] h-[52px] rounded-lg flex flex-col items-center justify-center shrink-0 ${isWedding ? "bg-gradient-to-br from-maroon to-maroon-light text-white" : "bg-gray-100"}`}>
-                        <span className="text-lg font-extrabold leading-none">{day}</span>
-                        <span className="text-[0.7rem] uppercase font-semibold opacity-80">{month}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <strong className="text-sm">{event.name}</strong>
-                        <span className="block text-xs text-gray-500">
-                          {event.location || wedding.weddingCity || "Venue TBD"} {'\u2022'} {formatTime(event.startTime)}
+            <ScrollReveal delay={0.1}>
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="flex items-center justify-between px-6 pt-5 pb-0">
+                  <h3 className="font-bold">Upcoming Events</h3>
+                </div>
+                <div className="p-6">
+                  {upcomingEvents.length === 0 ? (
+                    <p className="text-gray-400 text-center py-5">No upcoming events</p>
+                  ) : upcomingEvents.map((event: any) => {
+                    const d = new Date(event.date + "T00:00:00");
+                    const day = d.getDate();
+                    const month = d.toLocaleString("en-US", { month: "short" });
+                    const isWedding = event.name?.includes("Wedding") || event.name?.includes("Nikah") || event.name?.includes("Anand Karaj");
+                    const daysUntil = Math.ceil((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                    return (
+                      <div key={event.id} className="flex items-center gap-4 py-3.5 border-b border-gray-100 last:border-0">
+                        <div className={`w-[52px] h-[52px] rounded-lg flex flex-col items-center justify-center shrink-0 ${isWedding ? "bg-gradient-to-br from-maroon to-maroon-light text-white" : "bg-gray-100"}`}>
+                          <span className="text-lg font-extrabold leading-none">{day}</span>
+                          <span className="text-[0.7rem] uppercase font-semibold opacity-80">{month}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <strong className="text-sm">{event.name}</strong>
+                          <span className="block text-xs text-gray-500">
+                            {event.location || wedding.weddingCity || "Venue TBD"} {'\u2022'} {formatTime(event.startTime)}
+                          </span>
+                        </div>
+                        <span className={`status-badge ${daysUntil <= 7 ? "planning" : "pending"}`}>
+                          {daysUntil === 0 ? "Today" : daysUntil === 1 ? "Tomorrow" : daysUntil <= 7 ? "This Week" : "Upcoming"}
                         </span>
                       </div>
-                      <span className={`status-badge ${daysUntil <= 7 ? "planning" : "pending"}`}>
-                        {daysUntil === 0 ? "Today" : daysUntil === 1 ? "Tomorrow" : daysUntil <= 7 ? "This Week" : "Upcoming"}
-                      </span>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            </ScrollReveal>
 
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="px-6 pt-5 pb-0">
-                <h3 className="font-bold">Quick Tips</h3>
-              </div>
-              <div className="p-6">
-                {dynamicTips.map((tip, i) => (
-                  <div key={i} className="flex items-start gap-3 py-3.5 border-b border-gray-100 last:border-0">
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: tip.color }}><i className={`fas ${tip.icon} text-sm`} /></div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm">{tip.text}</p>
+            <ScrollReveal delay={0.2}>
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="px-6 pt-5 pb-0">
+                  <h3 className="font-bold">Quick Tips</h3>
+                </div>
+                <div className="p-6">
+                  {dynamicTips.map((tip, i) => (
+                    <div key={i} className="flex items-start gap-3 py-3.5 border-b border-gray-100 last:border-0">
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: tip.color }}><i className={`fas ${tip.icon} text-sm`} /></div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm">{tip.text}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            </ScrollReveal>
           </div>
 
           {wedding.budgetItems && wedding.budgetItems.length > 0 && (
