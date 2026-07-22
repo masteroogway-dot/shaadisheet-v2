@@ -722,7 +722,7 @@ export async function seedWeddingEvents(weddingId: string) {
   if (!session?.user?.id) throw new Error("Not authenticated");
 
   const wedding = await prisma.wedding.findFirst({
-    where: { id: weddingId, userId: session.user.id },
+    where: { id: weddingId },
   });
   if (!wedding) throw new Error("Wedding not found");
 
