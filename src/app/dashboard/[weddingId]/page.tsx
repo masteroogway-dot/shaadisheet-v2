@@ -165,8 +165,10 @@ export default function WeddingDashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setAiOpen(!aiOpen)} className="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-maroon transition-all cursor-pointer" title="AI Assistant">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 .125a2.25 2.25 0 01-2.25 2.25L.105 21.03a2.25 2.25 0 01-.16-.52L3 15.75l-.125-1a2.25 2.25 0 012.25-2.25l.04-.04M9.75 17A2.25 2.25 0 0112 14.25a2.25 2.25 0 012.25 2.25m-2.25-2.25l.975-.975a9 9 0 017.802-2.442 2.25 2.25 0 011.654 1.654l.75.75a9 9 0 01-2.442 7.802 2.25 2.25 0 01-1.654 1.654l-.75.75a9 9 0 01-7.802 2.442 2.25 2.25 0 01-1.654-1.654l-.75-.75z" />
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24">
+              <path d="M12 2L9.5 8.5 3 11l6.5 2.5L12 20l2.5-6.5L21 11l-6.5-2.5z" fill="currentColor" />
+              <path d="M19 15l-1.5 4-3.5-3 4-1z" fill="currentColor" opacity="0.6" />
+              <path d="M5 15l1.5 4 3.5-3-4-1z" fill="currentColor" opacity="0.6" />
             </svg>
           </button>
           <ProfileMenu user={session?.user} />
