@@ -303,7 +303,7 @@ export default function Home() {
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-cream/95 backdrop-blur-xl border-b border-gray-200/60" : "bg-transparent"}`}>
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-[70px]">
           <Link href="/" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="ShaadiSheet" style={{ height: "65px", width: "auto", filter: "invert(1) brightness(2)" }} />
+            <img src="/logo.png" alt="ShaadiSheet" style={{ height: "65px", width: "auto", filter: scrolled ? "none" : "invert(1) brightness(2)" }} />
           </Link>
           <div className="hidden md:flex gap-8 text-sm font-medium">
             <a href="#features" className={`${scrolled ? "text-gray-600 hover:text-maroon" : "text-white/80 hover:text-white"} transition-colors`}>Features</a>
