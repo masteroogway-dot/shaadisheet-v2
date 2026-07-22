@@ -19,6 +19,14 @@ function formatTime(time: string): string {
   return `${hr}:${String(m).padStart(2, "0")} ${ampm}`;
 }
 
+function formatBudgetShort(n: number): string {
+  if (n === 0) return "0";
+  if (n >= 10000000) return (n / 10000000).toFixed(2).replace(/\.0+$/, "").replace(/(\.\d)0$/, "$1") + " Cr";
+  if (n >= 100000) return (n / 100000).toFixed(1).replace(/\.0$/, "") + " L";
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + " K";
+  return n.toLocaleString("en-IN");
+}
+
 export default function OverviewView({ wedding }: { wedding: any }) {
   const totalBudget = wedding.budget || 0;
   const totalSpent = wedding.budgetItems?.reduce((s: number, i: any) => s + (i.paid || 0), 0) || 0;
@@ -105,11 +113,11 @@ export default function OverviewView({ wedding }: { wedding: any }) {
           <ScrollReveal>
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-5 mb-7">
               {[
-                { label: "Total Budget", numVal: totalBudget, prefix: totalBudget > 0 ? "\u20B9" : "", suffix: "", display: totalBudget > 0 ? "" : "\u2014", sub: totalSpent > 0 ? `\u20B9${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
-                { label: "Guests", numVal: totalGuests, prefix: "", suffix: "", display: totalGuests > 0 ? "" : "\u2014", sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : "No RSVPs yet", icon: "fa-users", gradient: "from-green to-green/80" },
-                { label: "Vendors", numVal: vendorsBooked, prefix: "", suffix: totalVendors > 0 ? ` / ${totalVendors}` : "", display: totalVendors > 0 ? "" : "\u2014", sub: totalVendors > 0 ? `${totalVendors - vendorsBooked} remaining` : "No vendors added", icon: "fa-store", gradient: "from-blue to-blue/80" },
-                { label: "Tasks", numVal: tasksDone, prefix: "", suffix: totalTasks > 0 ? ` / ${totalTasks}` : "", display: totalTasks > 0 ? "" : "\u2014", sub: totalTasks > 0 ? `${totalTasks - tasksDone} remaining` : "No tasks yet", icon: "fa-tasks", gradient: "from-orange-600 to-red-700" },
-                { label: "Rooms", numVal: totalRooms, prefix: "", suffix: "", display: totalRooms > 0 ? "" : "\u2014", sub: roomsOccupied > 0 ? `${roomsOccupied} checked in` : totalRooms > 0 ? "None checked in" : "No rooms allocated", icon: "fa-bed", gradient: "from-purple-600 to-purple-800" },
+                { label: "Total Budget", numVal: totalBudget, prefix: totalBudget > 0 ? "\u20B9" : "", suffix: "", formatFn: totalBudget > 0 ? formatBudgetShort : undefined, sub: totalSpent > 0 ? `\u20B9${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
+                { label: "Guests", numVal: totalGuests, prefix: "", suffix: "", formatFn: undefined, sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : "No RSVPs yet", icon: "fa-users", gradient: "from-green to-green/80" },
+                { label: "Vendors", numVal: vendorsBooked, prefix: "", suffix: totalVendors > 0 ? ` / ${totalVendors}` : "", formatFn: undefined, sub: totalVendors > 0 ? `${totalVendors - vendorsBooked} remaining` : "No vendors added", icon: "fa-store", gradient: "from-blue to-blue/80" },
+                { label: "Tasks", numVal: tasksDone, prefix: "", suffix: totalTasks > 0 ? ` / ${totalTasks}` : "", formatFn: undefined, sub: totalTasks > 0 ? `${totalTasks - tasksDone} remaining` : "No tasks yet", icon: "fa-tasks", gradient: "from-orange-600 to-red-700" },
+                { label: "Rooms", numVal: totalRooms, prefix: "", suffix: "", formatFn: undefined, sub: roomsOccupied > 0 ? `${roomsOccupied} checked in` : totalRooms > 0 ? "None checked in" : "No rooms allocated", icon: "fa-bed", gradient: "from-purple-600 to-purple-800" },
               ].map((s, i) => (
                 <div key={i} className="bg-white rounded-xl p-5 border border-gray-200 flex items-center gap-4 hover:shadow-md transition-shadow">
                   <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${s.gradient} flex items-center justify-center text-white shrink-0`}>
@@ -117,9 +125,9 @@ export default function OverviewView({ wedding }: { wedding: any }) {
                   </div>
                   <div className="min-w-0">
                     <span className="text-xs text-gray-500 font-medium">{s.label}</span>
-                    <div className="text-xl font-extrabold truncate">
-                      {s.display === "\u2014" ? "\u2014" : (
-                        <CountUp target={s.numVal} prefix={s.prefix} suffix={s.suffix} duration={1.5} />
+                    <div className="text-xl font-extrabold">
+                      {s.numVal === 0 && s.label !== "Total Budget" ? "\u2014" : (
+                        <CountUp target={s.numVal} prefix={s.prefix} suffix={s.suffix} formatValue={s.formatFn} duration={1.5} />
                       )}
                     </div>
                     <span className="text-xs text-gray-500 block">{s.sub}</span>
