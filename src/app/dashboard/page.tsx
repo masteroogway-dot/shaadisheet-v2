@@ -4,13 +4,14 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { getUserWeddings, createWedding, updateWedding, deleteWedding } from "@/lib/actions";
+import { getAllWeddings, createWedding, updateWedding, deleteWedding } from "@/lib/actions";
 import ProfileMenu from "@/components/ProfileMenu";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [weddings, setWeddings] = useState<any[]>([]);
+  const [collaborated, setCollaborated] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -32,8 +33,9 @@ export default function DashboardPage() {
 
   const loadWeddings = async () => {
     try {
-      const data = await getUserWeddings();
-      setWeddings(data);
+      const data = await getAllWeddings();
+      setWeddings(data.owned);
+      setCollaborated(data.collaborated);
     } catch (e) {
       console.error(e);
     } finally {
@@ -152,7 +154,7 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        {weddings.length === 0 ? (
+        {weddings.length === 0 && collaborated.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-200 p-8 md:p-16 text-center">
             <div className="w-20 h-20 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-6">
               <svg className="w-10 h-10 text-maroon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,6 +172,7 @@ export default function DashboardPage() {
             </button>
           </div>
         ) : (
+          <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {weddings.map((wedding) => (
               <div
@@ -270,6 +273,60 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
+
+          {collaborated.length > 0 && (
+            <div className="mt-10">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Shared with You</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                {collaborated.map((wedding: any) => (
+                  <div key={wedding.id} className="bg-white rounded-2xl border border-gray-200 hover:border-maroon/30 hover:shadow-xl transition-all duration-300 overflow-hidden group">
+                    <div className="h-3 bg-gradient-to-r from-blue-500 to-blue-400" />
+                    <div className="p-4 md:p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg font-bold text-gray-900 truncate">{wedding.name || "Unnamed Wedding"}</h3>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {wedding.religion ? wedding.religion.charAt(0).toUpperCase() + wedding.religion.slice(1) : "Not set"}
+                            {wedding.region && " \u2022 " + wedding.region}
+                          </p>
+                        </div>
+                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-600">
+                          {wedding.userRole === "co-owner" ? "Co-Owner" : wedding.userRole === "editor" ? "Editor" : "Viewer"}
+                        </span>
+                      </div>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex items-center gap-3 text-gray-600">
+                          <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          <span>{formatDate(wedding.weddingDate)}</span>
+                          {wedding.weddingCity && (
+                            <>
+                              <span className="text-gray-300">{"\u2022"}</span>
+                              <span>{wedding.weddingCity}</span>
+                            </>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 text-gray-600">
+                          <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          <span>by {wedding.owner?.name || wedding.owner?.email || "Unknown"}</span>
+                        </div>
+                      </div>
+                      <div className="mt-5 pt-4 border-t border-gray-100">
+                        <Link href={`/dashboard/${wedding.id}`}
+                          className="block text-center py-2.5 text-sm font-semibold text-maroon bg-maroon/5 rounded-xl hover:bg-maroon/10 transition-colors">
+                          Open Planner {"\u2192"}
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          </>
         )}
       </div>
     </div>

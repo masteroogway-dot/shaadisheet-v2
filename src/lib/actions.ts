@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import bcrypt from "bcryptjs";
+import { getUserRole } from "@/lib/permissions";
 
 // ═══════════════════════════════════════════════════════════════
 // AUTH: SIGNUP
@@ -39,6 +40,7 @@ async function getCurrentWedding(weddingId?: string) {
 
   let wedding;
   if (weddingId) {
+    // Check if user is owner
     wedding = await prisma.wedding.findFirst({
       where: { id: weddingId, userId: session.user.id },
       include: {
@@ -51,8 +53,34 @@ async function getCurrentWedding(weddingId?: string) {
         roomAllocations: { orderBy: { order: "asc" } },
         events: { orderBy: { order: "asc" } },
         timelineItems: { orderBy: { order: "asc" } },
+        collaborators: { where: { status: "accepted" }, include: { user: { select: { id: true, name: true, email: true, image: true } } } },
       },
     });
+
+    // If not owner, check if collaborator
+    if (!wedding) {
+      const collab = await prisma.weddingCollaborator.findFirst({
+        where: { weddingId, userId: session.user.id, status: "accepted" },
+      });
+      if (collab) {
+        wedding = await prisma.wedding.findFirst({
+          where: { id: weddingId },
+          include: {
+            budgetItems: { orderBy: { order: "asc" } },
+            vendors: { orderBy: { order: "asc" } },
+            guests: { orderBy: { order: "asc" } },
+            tasks: { orderBy: { order: "asc" } },
+            seatingTables: { orderBy: { order: "asc" } },
+            aiMessages: { orderBy: { createdAt: "asc" } },
+            roomAllocations: { orderBy: { order: "asc" } },
+            events: { orderBy: { order: "asc" } },
+            timelineItems: { orderBy: { order: "asc" } },
+            collaborators: { where: { status: "accepted" }, include: { user: { select: { id: true, name: true, email: true, image: true } } } },
+          },
+        });
+      }
+    }
+
     if (!wedding) throw new Error("Wedding not found");
   } else {
     wedding = await prisma.wedding.findFirst({
@@ -82,6 +110,45 @@ async function getCurrentWedding(weddingId?: string) {
 
 export async function getWedding(weddingId?: string) {
   return getCurrentWedding(weddingId);
+}
+
+export async function getWeddingWithRole(weddingId: string) {
+  const wedding = await getCurrentWedding(weddingId);
+  const role = await getUserRole(weddingId);
+  return { ...wedding, userRole: role };
+}
+
+export async function getAllWeddings() {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const owned = await prisma.wedding.findMany({
+    where: { userId: session.user.id },
+    orderBy: { updatedAt: "desc" },
+    include: {
+      _count: { select: { budgetItems: true, vendors: true, guests: true, tasks: true, events: true } },
+    },
+  });
+
+  const collabEntries = await prisma.weddingCollaborator.findMany({
+    where: { userId: session.user.id, status: "accepted" },
+    include: {
+      wedding: {
+        include: {
+          _count: { select: { budgetItems: true, vendors: true, guests: true, tasks: true, events: true } },
+          user: { select: { id: true, name: true, email: true } },
+        },
+      },
+    },
+  });
+
+  const collaborated = collabEntries.map((c) => ({
+    ...c.wedding,
+    userRole: c.role,
+    owner: c.wedding.user,
+  }));
+
+  return { owned, collaborated };
 }
 
 export async function updateWedding(data: {

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
-import { getWedding, updateWedding, updateTask, seedWeddingEvents } from "@/lib/actions";
+import { getWedding, getWeddingWithRole, updateWedding, updateTask, seedWeddingEvents } from "@/lib/actions";
 import Onboarding from "@/components/Onboarding";
 import Sidebar from "@/components/Sidebar";
 import OverviewView from "@/components/views/OverviewView";
@@ -33,6 +33,7 @@ export default function WeddingDashboardPage() {
   const [aiOpen, setAiOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [userRole, setUserRole] = useState<string>("owner");
 
   const addToast = useCallback((message: string, type: "success" | "error" = "success") => {
     const id = ++toastId;
@@ -45,12 +46,14 @@ export default function WeddingDashboardPage() {
 
   const loadWedding = useCallback(async () => {
     try {
-      const w = await getWedding(weddingId);
+      const w = await getWeddingWithRole(weddingId);
       setWedding(w);
+      setUserRole(w.userRole || "owner");
       if (w.weddingDate) {
         await seedWeddingEvents(weddingId);
-        const updated = await getWedding(weddingId);
+        const updated = await getWeddingWithRole(weddingId);
         setWedding(updated);
+        setUserRole(updated.userRole || "owner");
       }
     } catch (e) {
       console.error(e);
@@ -110,7 +113,7 @@ export default function WeddingDashboardPage() {
 
   const renderView = () => {
     switch (activeView) {
-      case "overview": return <OverviewView wedding={wedding} onUpdate={refreshWedding} />;
+      case "overview": return <OverviewView wedding={wedding} onUpdate={refreshWedding} userRole={userRole} />;
       case "budget": return <BudgetView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
       case "vendors": return <VendorsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;
       case "guests": return <GuestsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} />;

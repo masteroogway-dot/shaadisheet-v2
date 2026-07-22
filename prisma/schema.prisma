@@ -17,7 +17,36 @@ model User {
   accounts      Account[]
   sessions      Session[]
   weddings      Wedding[]
-  createdAt     DateTime  @default(now())
+  collaborations WeddingCollaborator[]
+  sentInvites   WeddingInvite[]
+  createdAt   DateTime @default(now())
+}
+
+model WeddingInvite {
+  id          String   @id @default(cuid())
+  weddingId   String
+  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  inviterId   String
+  inviter     User     @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+  token       String   @unique
+  role        String   @default("viewer")
+  status      String   @default("pending")
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+}
+
+model WeddingCollaborator {
+  id          String   @id @default(cuid())
+  weddingId   String
+  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        String   @default("viewer")
+  invitedBy   String
+  status      String   @default("accepted")
+  createdAt   DateTime @default(now())
+
+  @@unique([weddingId, userId])
 }
 
 model Account {
@@ -78,6 +107,8 @@ model Wedding {
   events          WeddingEvent[]
   timelineItems   WeddingTimelineItem[]
   roomAllocations RoomAllocation[]
+  collaborators   WeddingCollaborator[]
+  invites         WeddingInvite[]
 }
 
 model RoomAllocation {

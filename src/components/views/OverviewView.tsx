@@ -3,7 +3,8 @@
 import { useState } from "react";
 import CountUp from "@/components/animations/CountUp";
 import ScrollReveal from "@/components/animations/ScrollReveal";
-import { updateWedding, getWedding } from "@/lib/actions";
+import { updateWedding } from "@/lib/actions";
+import InviteModal from "@/components/InviteModal";
 
 function formatINR(n: number): string {
   if (n === 0) return "0";
@@ -29,12 +30,19 @@ function formatBudgetShort(n: number): string {
   return n.toLocaleString("en-IN");
 }
 
-export default function OverviewView({ wedding, onUpdate }: { wedding: any; onUpdate?: () => void }) {
+export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: { wedding: any; onUpdate?: () => void; userRole?: string }) {
   const [editBudget, setEditBudget] = useState("");
   const [editGuests, setEditGuests] = useState("");
   const [editingBudget, setEditingBudget] = useState(false);
   const [editingGuests, setEditingGuests] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [collaborators, setCollaborators] = useState<any[]>(wedding.collaborators || []);
+  const [editingCollab, setEditingCollab] = useState<string | null>(null);
+  const [collabRole, setCollabRole] = useState("");
+
+  const canEditBudget = userRole === "owner" || userRole === "co-owner";
+  const canManageCollabs = userRole === "owner" || userRole === "co-owner";
 
   const handleSaveBudget = async () => {
     const val = parseInt(editBudget) || 0;
@@ -62,6 +70,25 @@ export default function OverviewView({ wedding, onUpdate }: { wedding: any; onUp
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleChangeCollabRole = async (userId: string, newRole: string) => {
+    try {
+      await fetch(`/api/weddings/${wedding.id}/collaborators/${userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: newRole }),
+      });
+      setCollaborators((prev) => prev.map((c) => c.user.id === userId ? { ...c, role: newRole } : c));
+      setEditingCollab(null);
+    } catch {}
+  };
+
+  const handleRemoveCollab = async (userId: string) => {
+    try {
+      await fetch(`/api/weddings/${wedding.id}/collaborators/${userId}`, { method: "DELETE" });
+      setCollaborators((prev) => prev.filter((c) => c.user.id !== userId));
+    } catch {}
   };
 
   const totalBudget = wedding.budget || 0;
@@ -214,9 +241,11 @@ export default function OverviewView({ wedding, onUpdate }: { wedding: any; onUp
                       </button>
                     </div>
                   ) : (
-                    <button onClick={() => { setEditBudget(String(wedding.budget || "")); setEditingBudget(true); }} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer">
-                      <i className="fas fa-pen mr-1" /> Edit
-                    </button>
+                    canEditBudget && (
+                      <button onClick={() => { setEditBudget(String(wedding.budget || "")); setEditingBudget(true); }} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer">
+                        <i className="fas fa-pen mr-1" /> Edit
+                      </button>
+                    )
                   )}
                 </div>
 
@@ -249,14 +278,83 @@ export default function OverviewView({ wedding, onUpdate }: { wedding: any; onUp
                       </button>
                     </div>
                   ) : (
-                    <button onClick={() => { setEditGuests(String(wedding.guestCount || "")); setEditingGuests(true); }} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer">
-                      <i className="fas fa-pen mr-1" /> Edit
-                    </button>
+                    canEditBudget && (
+                      <button onClick={() => { setEditGuests(String(wedding.guestCount || "")); setEditingGuests(true); }} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer">
+                        <i className="fas fa-pen mr-1" /> Edit
+                      </button>
+                    )
                   )}
                 </div>
               </div>
             </div>
           </ScrollReveal>
+
+          {/* Collaborators Section */}
+          {canManageCollabs && (
+            <ScrollReveal>
+              <div className="bg-white rounded-xl border border-gray-200 p-5 md:p-6 mb-6 md:mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-gray-900">
+                    <i className="fas fa-users text-gray-400 mr-2" />
+                    Collaborators
+                  </h3>
+                  <button onClick={() => setInviteOpen(true)}
+                    className="px-3 py-1.5 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark cursor-pointer">
+                    <i className="fas fa-plus mr-1" /> Invite
+                  </button>
+                </div>
+                {collaborators.length === 0 ? (
+                  <p className="text-gray-400 text-sm text-center py-4">No collaborators yet. Invite someone to help plan!</p>
+                ) : (
+                  <div className="space-y-2">
+                    {collaborators.map((c: any) => (
+                      <div key={c.user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-maroon/10 flex items-center justify-center text-maroon font-bold text-sm">
+                            {c.user.name?.[0] || c.user.email?.[0] || "?"}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">{c.user.name || c.user.email}</p>
+                            <p className="text-xs text-gray-400">{c.user.email}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {editingCollab === c.user.id ? (
+                            <div className="flex items-center gap-1">
+                              <select value={collabRole} onChange={(e) => setCollabRole(e.target.value)}
+                                className="px-2 py-1 border border-gray-200 rounded text-xs focus:outline-none focus:border-maroon">
+                                <option value="viewer">Viewer</option>
+                                <option value="editor">Editor</option>
+                                <option value="co-owner">Co-Owner</option>
+                              </select>
+                              <button onClick={() => handleChangeCollabRole(c.user.id, collabRole)}
+                                className="px-2 py-1 bg-maroon text-white text-xs rounded cursor-pointer">Save</button>
+                              <button onClick={() => setEditingCollab(null)}
+                                className="px-2 py-1 bg-gray-200 text-gray-600 text-xs rounded cursor-pointer">X</button>
+                            </div>
+                          ) : (
+                            <>
+                              <span className="text-xs px-2 py-0.5 bg-maroon/10 text-maroon rounded-full font-semibold">{c.role}</span>
+                              <button onClick={() => { setEditingCollab(c.user.id); setCollabRole(c.role); }}
+                                className="text-xs text-gray-400 hover:text-maroon cursor-pointer px-1">
+                                <i className="fas fa-pen" />
+                              </button>
+                              <button onClick={() => handleRemoveCollab(c.user.id)}
+                                className="text-xs text-gray-400 hover:text-red-500 cursor-pointer px-1">
+                                <i className="fas fa-times" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </ScrollReveal>
+          )}
+
+          <InviteModal weddingId={wedding.id} weddingName={wedding.name || "My Wedding"} open={inviteOpen} onClose={() => setInviteOpen(false)} />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <ScrollReveal delay={0.1}>
