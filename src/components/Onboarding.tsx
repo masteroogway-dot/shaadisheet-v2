@@ -12,11 +12,11 @@ const REGIONS: Record<string, string[]> = {
 };
 
 const EVENTS: Record<string, string[]> = {
-  hindu: ["Roka", "Engagement", "Mehendi", "Sangeet", "Haldi", "Wedding Day", "Reception"],
+  hindu: ["Roka", "Engagement", "Mehendi", "Sangeet", "Haldi", "Wedding", "Reception"],
   muslim: ["Mangni", "Mehendi", "Nikah", "Walima"],
   sikh: ["Kurmai", "Mehendi", "Sangeet", "Anand Karaj", "Langar", "Reception"],
   christian: ["Engagement", "Roce Ceremony", "Church Wedding", "Reception"],
-  jain: ["Roka", "Engagement", "Mehendi", "Sangeet", "Wedding Ceremony", "Reception"],
+  jain: ["Roka", "Engagement", "Mehendi", "Sangeet", "Wedding", "Reception"],
 };
 
 function formatBudgetDisplay(value: number): string {

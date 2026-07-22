@@ -787,6 +787,12 @@ export async function seedWeddingEvents(weddingId: string) {
     selectedNames = template.map((t) => t.name);
   }
 
+  // Normalize legacy names: "Wedding Day" / "Wedding Ceremony" -> "Wedding"
+  selectedNames = selectedNames.map((n) => {
+    if (n === "Wedding Day" || n === "Wedding Ceremony") return "Wedding";
+    return n;
+  });
+
   // Filter template to only selected events
   const filteredTemplate = selectedNames.length > 0
     ? template.filter((t) => selectedNames.includes(t.name))
@@ -993,6 +999,12 @@ export async function seedWeddingTimeline(weddingId: string) {
   };
 
   const template = TIMELINE[wedding.religion] || TIMELINE.hindu;
+
+  // Normalize legacy names: "Wedding Day" / "Wedding Ceremony" -> "Wedding"
+  selectedNames = selectedNames.map((n) => {
+    if (n === "Wedding Day" || n === "Wedding Ceremony") return "Wedding";
+    return n;
+  });
 
   // If no events selected, show nothing (user can add manually)
   const filteredTemplate = selectedNames.length > 0
