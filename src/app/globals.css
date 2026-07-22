@@ -27,6 +27,46 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Rose Petal Fall ── */
+@keyframes petalFall {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) rotate(0deg) translateX(0);
+  }
+  10% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh) rotate(720deg) translateX(80px);
+  }
+}
+
+/* ── Marigold Garland Sway ── */
+@keyframes garlandSwayLeft {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(2deg);
+  }
+  75% {
+    transform: rotate(-2deg);
+  }
+}
+
+@keyframes garlandSwayRight {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-2deg);
+  }
+  75% {
+    transform: rotate(2deg);
+  }
+}
+
 /* ── Spreadsheet Table ── */
 .spreadsheet {
   width: 100%;
