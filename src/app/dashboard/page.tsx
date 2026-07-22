@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { getUserWeddings, createWedding, updateWedding, deleteWedding } from "@/lib/actions";
+import ProfileMenu from "@/components/ProfileMenu";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -125,6 +126,15 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Top header */}
+      <div className="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-50 shrink-0">
+        <Link href="/dashboard" className="flex items-center gap-2.5 text-lg font-extrabold">
+          <span className="text-maroon text-xl">|||</span>
+          <span>ShaadiSheet</span>
+        </Link>
+        <ProfileMenu user={session?.user} />
+      </div>
+
       <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="flex items-center justify-between mb-10">
           <div>
