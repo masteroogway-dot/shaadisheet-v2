@@ -288,7 +288,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen wedding-bg">
       {/* Rose Petals */}
       {petalKey > 0 && <RosePetals key={petalKey} />}
 
@@ -359,11 +359,14 @@ export default function Home() {
       </section>
 
       {/* FEATURES */}
-      <section id="features" className="py-24">
-        <div className="max-w-6xl mx-auto px-6">
+      <section id="features" className="py-28 relative">
+        <div className="paisley-overlay" />
+        <div className="max-w-6xl mx-auto px-6 relative">
           <div className="text-center mb-16">
-            <span className="inline-block px-4 py-1.5 bg-maroon/5 rounded-full text-xs font-semibold text-maroon mb-4">Features</span>
-            <h2 className="text-[2.25rem] font-bold mb-4 text-gray-900">Everything You Need</h2>
+            <div className="gold-divider mb-6">
+              <span className="wedding-badge">Features</span>
+            </div>
+            <h2 className="text-[2.5rem] font-bold mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>Everything You Need</h2>
             <p className="text-gray-500 max-w-[480px] mx-auto">Not a generic Western wedding planner. Built from the ground up for Indian traditions.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -375,7 +378,7 @@ export default function Home() {
               { icon: "🤖", title: "AI Assistant", desc: "Get instant, intelligent recommendations for your wedding." },
               { icon: "🤝", title: "Real-time Collaboration", desc: "Share with family, planners, and vendors." },
             ].map((f, i) => (
-              <div key={i} className="bg-white p-7 rounded-2xl border border-gray-200 hover:shadow-lg transition-shadow">
+              <div key={i} className="wedding-card">
                 <div className="text-3xl mb-4">{f.icon}</div>
                 <h3 className="font-bold mb-1.5 text-gray-900">{f.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
@@ -386,15 +389,18 @@ export default function Home() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="how-it-works" className="py-24 bg-white">
-        <div className="max-w-6xl mx-auto px-6">
+      <section id="how-it-works" className="py-28 bg-white relative">
+        <div className="paisley-overlay" />
+        <div className="max-w-6xl mx-auto px-6 relative">
           <div className="text-center mb-16">
-            <span className="inline-block px-4 py-1.5 bg-maroon/5 rounded-full text-xs font-semibold text-maroon mb-4">How It Works</span>
-            <h2 className="text-[2.25rem] font-bold mb-4 text-gray-900">From Signup to Wedding Day</h2>
+            <div className="gold-divider mb-6">
+              <span className="wedding-badge">How It Works</span>
+            </div>
+            <h2 className="text-[2.5rem] font-bold mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>From Signup to Wedding Day</h2>
             <p className="text-gray-500">In 4 simple steps</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
-            <div className="absolute top-10 left-[15%] right-[15%] h-0.5 bg-gray-200 hidden md:block" />
+            <div className="absolute top-10 left-[15%] right-[15%] h-0.5 hidden md:block" style={{ background: "linear-gradient(to right, transparent, #D4AF37, transparent)" }} />
             {[
               { n: "1", t: "Tell Us", d: "Religion, region, budget, guest count, events." },
               { n: "2", t: "Get Your Template", d: "Pre-filled rituals, budget categories, checklists." },
@@ -402,7 +408,7 @@ export default function Home() {
               { n: "4", t: "Celebrate", d: "Zero chaos, pure joy." },
             ].map((s, i) => (
               <div key={i} className="text-center relative z-10">
-                <div className="w-16 h-16 rounded-full bg-maroon text-white text-lg font-extrabold flex items-center justify-center mx-auto mb-4">{s.n}</div>
+                <div className="wedding-step">{s.n}</div>
                 <h3 className="font-bold mb-1 text-gray-900">{s.t}</h3>
                 <p className="text-gray-500 text-sm">{s.d}</p>
               </div>
@@ -412,11 +418,14 @@ export default function Home() {
       </section>
 
       {/* RELIGIONS */}
-      <section id="religions" className="py-24">
-        <div className="max-w-6xl mx-auto px-6">
+      <section id="religions" className="py-28 relative">
+        <div className="paisley-overlay" />
+        <div className="max-w-6xl mx-auto px-6 relative">
           <div className="text-center mb-16">
-            <span className="inline-block px-4 py-1.5 bg-maroon/5 rounded-full text-xs font-semibold text-maroon mb-4">Weddings</span>
-            <h2 className="text-[2.25rem] font-bold mb-4 text-gray-900">Built for Every Indian Wedding</h2>
+            <div className="gold-divider mb-6">
+              <span className="wedding-badge">Weddings</span>
+            </div>
+            <h2 className="text-[2.5rem] font-bold mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>Built for Every Indian Wedding</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
             {[
@@ -482,7 +491,7 @@ export default function Home() {
                 ),
               },
             ].map((t, i) => (
-              <div key={i} className={`${t.bg} ${t.border} border rounded-2xl p-6 text-center hover:shadow-lg transition-shadow`}>
+              <div key={i} className={`religion-card ${t.bg}`} style={{ borderColor: "rgba(212, 175, 55, 0.15)" }}>
                 <div className="flex justify-center mb-3">{t.svg}</div>
                 <h3 className="font-bold text-gray-900">{t.title}</h3>
                 <p className="text-gray-500 text-xs mt-1">{t.desc}</p>
@@ -493,23 +502,27 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 text-center bg-maroon text-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-[2.25rem] font-bold text-white mb-4">Ready to Plan Your Wedding?</h2>
-          <p className="text-lg opacity-90 mb-8">Free to start. No credit card required.</p>
-          <Link href="/auth" className="px-8 py-3.5 text-base font-bold text-maroon bg-white rounded-xl hover:bg-gray-100 transition-colors inline-flex items-center gap-2">
+      <section className="py-28 text-center wedding-cta text-white relative">
+        <div className="paisley-overlay" style={{ opacity: 0.03 }} />
+        <div className="max-w-6xl mx-auto px-6 relative">
+          <div className="gold-divider mb-8" style={{ filter: "brightness(2)" }}>
+            <svg className="w-6 h-6 text-[#D4AF37]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4h7.6l-6 4.6 2.3 7-6.3-4.6L5.7 21l2.3-7L2 9.4h7.6z" /></svg>
+          </div>
+          <h2 className="text-[2.5rem] font-bold text-white mb-4" style={{ fontFamily: "var(--font-display)" }}>Ready to Plan Your Wedding?</h2>
+          <p className="text-lg text-white/80 mb-10">Free to start. No credit card required.</p>
+          <Link href="/auth" className="px-10 py-4 text-base font-bold text-maroon bg-white rounded-xl hover:bg-gray-100 transition-all inline-flex items-center gap-2 shadow-2xl hover:shadow-white/20 hover:scale-105">
             Start Planning Free →
           </Link>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-gray-900 text-white py-16 pb-8">
+      <footer className="py-16 pb-8 relative" style={{ background: "linear-gradient(135deg, #1a0a0a 0%, #2d0f0f 50%, #1a0a0a 100%)" }}>
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
             <div>
               <div className="flex items-center gap-2.5 text-xl font-extrabold mb-3">
-                <span className="text-maroon text-2xl">|||</span>
+                <span className="text-[#D4AF37] text-2xl">|||</span>
                 <span className="text-white">ShaadiSheet</span>
               </div>
               <p className="text-gray-400 text-sm">Har Shaadi Ka Plan. Built with love from Nashik, India.</p>
@@ -520,14 +533,14 @@ export default function Home() {
               { title: "Legal", links: ["Privacy", "Terms", "Security"] },
             ].map((col, i) => (
               <div key={i}>
-                <h4 className="mb-4 text-sm uppercase tracking-wider font-semibold text-gray-300">{col.title}</h4>
+                <h4 className="mb-4 text-sm uppercase tracking-wider font-semibold text-[#D4AF37]">{col.title}</h4>
                 {col.links.map((l, j) => (
                   <a key={j} href="#" className="block py-1 text-gray-400 text-sm hover:text-white transition-colors">{l}</a>
                 ))}
               </div>
             ))}
           </div>
-          <div className="flex justify-between items-center pt-8 border-t border-white/10">
+          <div className="flex justify-between items-center pt-8" style={{ borderTop: "1px solid rgba(212, 175, 55, 0.15)" }}>
             <p className="text-gray-500 text-sm">&copy; 2026 ShaadiSheet. All rights reserved.</p>
           </div>
         </div>

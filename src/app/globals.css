@@ -434,3 +434,151 @@ input[type="number"]::placeholder {
 ::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
 }
+
+/* ── Wedding Vibe: Subtle Paisley/Mandala Background ── */
+.wedding-bg {
+  background-color: #FFF8F0;
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(139, 0, 0, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 60% 80%, rgba(212, 175, 55, 0.03) 0%, transparent 50%);
+}
+
+/* ── Gold Ornate Divider ── */
+.gold-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.gold-divider::before,
+.gold-divider::after {
+  content: "";
+  flex: 1;
+  max-width: 120px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #D4AF37, transparent);
+}
+
+/* ── Wedding Section Badge ── */
+.wedding-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: linear-gradient(135deg, rgba(139, 0, 0, 0.06), rgba(212, 175, 55, 0.08));
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #8B0000;
+  letter-spacing: 0.3px;
+}
+
+/* ── Wedding Feature Card ── */
+.wedding-card {
+  background: white;
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: 16px;
+  padding: 28px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.wedding-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(to right, #8B0000, #D4AF37);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.wedding-card:hover {
+  box-shadow: 0 8px 32px rgba(139, 0, 0, 0.08), 0 2px 8px rgba(212, 175, 55, 0.06);
+  border-color: rgba(212, 175, 55, 0.3);
+  transform: translateY(-2px);
+}
+
+.wedding-card:hover::before {
+  opacity: 1;
+}
+
+/* ── Wedding CTA Section ── */
+.wedding-cta {
+  background: linear-gradient(135deg, #8B0000 0%, #5C0000 40%, #8B0000 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.wedding-cta::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 50%);
+  animation: ctaGlow 8s ease-in-out infinite;
+}
+
+@keyframes ctaGlow {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(5%, 3%); }
+}
+
+/* ── Wedding Step Circle ── */
+.wedding-step {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8B0000, #C62828);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 4px 16px rgba(139, 0, 0, 0.25);
+  position: relative;
+}
+
+.wedding-step::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid rgba(212, 175, 55, 0.3);
+}
+
+/* ── Wedding Religion Card ── */
+.religion-card {
+  border-radius: 16px;
+  padding: 28px 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  border: 1.5px solid transparent;
+}
+
+.religion-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Paisley Pattern Overlay ── */
+.paisley-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0.015;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath d='M30 5c-8 0-15 7-15 15 0 12 15 25 15 25s15-13 15-25c0-8-7-15-15-15z' fill='none' stroke='%238B0000' stroke-width='0.5'/%3E%3Ccircle cx='30' cy='20' r='3' fill='none' stroke='%23D4AF37' stroke-width='0.3'/%3E%3C/svg%3E");
+  background-size: 60px 60px;
+}
