@@ -51,6 +51,30 @@ export default function AboutPage() {
             families in mind.
           </p>
 
+          <h2 className="text-xl font-bold text-gray-900 mt-8 mb-3">Founder</h2>
+          <div className="bg-white border border-gray-200 rounded-xl p-6 flex items-start gap-5">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-maroon to-maroon-light flex items-center justify-center text-white text-xl font-bold shrink-0">
+              MC
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 text-lg">Manan Chandak</h3>
+              <p className="text-maroon text-sm font-medium mb-2">Founder & Developer</p>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Built ShaadiSheet from Nashik, India. Experienced the chaos of Indian wedding planning
+                firsthand and decided to build a better way. Everything in this product is crafted with
+                real families and real weddings in mind.
+              </p>
+              <div className="flex items-center gap-4 mt-3">
+                <a href="mailto:theshaadisheet@gmail.com" className="text-xs text-gray-400 hover:text-maroon transition-colors">
+                  <i className="fas fa-envelope mr-1" /> theshaadisheet@gmail.com
+                </a>
+                <a href="https://github.com/masteroogway-dot" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-400 hover:text-maroon transition-colors">
+                  <i className="fab fa-github mr-1" /> GitHub
+                </a>
+              </div>
+            </div>
+          </div>
+
           <div className="bg-maroon/5 border border-maroon/10 rounded-xl p-6 mt-8">
             <h3 className="font-bold text-gray-900 mb-2">Get in Touch</h3>
             <p className="text-gray-600 text-sm mb-4">Have questions or want to collaborate? We&apos;d love to hear from you.</p>
