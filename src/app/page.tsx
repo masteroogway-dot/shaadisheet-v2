@@ -420,14 +420,70 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
             {[
-              { icon: "🛕", bg: "bg-amber-50", border: "border-amber-200", title: "Hindu", desc: "Roka to Vidaai" },
-              { icon: "🕌", bg: "bg-green-50", border: "border-green-200", title: "Muslim", desc: "Nikah to Walima" },
-              { icon: "🏛️", bg: "bg-orange-50", border: "border-orange-200", title: "Sikh", desc: "Anand Karaj" },
-              { icon: "⛪", bg: "bg-blue-50", border: "border-blue-200", title: "Christian", desc: "Church Ceremony" },
-              { icon: "🙏", bg: "bg-purple-50", border: "border-purple-200", title: "Jain", desc: "Panch Kalyanak" },
+              {
+                bg: "bg-amber-50", border: "border-amber-200", title: "Hindu", desc: "Roka to Vidaai",
+                svg: (
+                  <svg className="w-10 h-10 text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+                    <path d="M4 18h16" /><path d="M5 18v-4h14v4" /><path d="M7 14v-3h10v3" /><path d="M8 11V8h8v3" />
+                    <path d="M9 8c0-3 1.5-5 3-5s3 2 3 5" />
+                    <circle cx="12" cy="2.5" r="1" fill="currentColor" opacity="0.3" /><path d="M11.5 3.5v1" />
+                    <line x1="7" y1="14" x2="7" y2="18" /><line x1="17" y1="14" x2="17" y2="18" />
+                  </svg>
+                ),
+              },
+              {
+                bg: "bg-green-50", border: "border-green-200", title: "Muslim", desc: "Nikah to Walima",
+                svg: (
+                  <svg className="w-10 h-10 text-green-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 18h18v2H3z" fill="currentColor" opacity="0.15" />
+                    <path d="M3 18h18" /><path d="M5 18v-5h14v5" /><path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
+                    <line x1="4" y1="8" x2="4" y2="18" /><line x1="20" y1="8" x2="20" y2="18" />
+                    <circle cx="4" cy="7.5" r="0.8" fill="currentColor" opacity="0.3" />
+                    <circle cx="20" cy="7.5" r="0.8" fill="currentColor" opacity="0.3" />
+                    <path d="M11 4.5a1.5 1.5 0 1 0 2 0 1.5 1.5 0 0 0-2 0" fill="currentColor" opacity="0.4" />
+                  </svg>
+                ),
+              },
+              {
+                bg: "bg-orange-50", border: "border-orange-200", title: "Sikh", desc: "Anand Karaj",
+                svg: (
+                  <svg className="w-10 h-10 text-orange-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 18h18v2H3z" fill="currentColor" opacity="0.15" />
+                    <path d="M3 18h18" /><path d="M6 18v-4h12v4" />
+                    <path d="M8 14c0-4 2-7 4-7s4 3 4 7" />
+                    <path d="M10.5 7c0-1.5.7-3 1.5-3s1.5 1.5 1.5 3" />
+                    <line x1="12" y1="5" x2="12" y2="3" /><circle cx="12" cy="2.5" r="0.6" fill="currentColor" />
+                  </svg>
+                ),
+              },
+              {
+                bg: "bg-blue-50", border: "border-blue-200", title: "Christian", desc: "Church Ceremony",
+                svg: (
+                  <svg className="w-10 h-10 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+                    <path d="M4 18h16" /><path d="M6 18v-6h12v6" />
+                    <path d="M10 12V7l2-4 2 4v5" />
+                    <line x1="12" y1="1" x2="12" y2="3" /><line x1="11" y1="2" x2="13" y2="2" />
+                    <path d="M10.5 18v-3h3v3" /><circle cx="12" cy="14.5" r="1" />
+                  </svg>
+                ),
+              },
+              {
+                bg: "bg-purple-50", border: "border-purple-200", title: "Jain", desc: "Panch Kalyanak",
+                svg: (
+                  <svg className="w-10 h-10 text-purple-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+                    <path d="M4 18h16" /><path d="M6 18v-5h12v5" />
+                    <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
+                    <circle cx="12" cy="12" r="2.5" /><circle cx="12" cy="12" r="1" fill="currentColor" opacity="0.3" />
+                    <line x1="12" y1="6" x2="12" y2="4" /><circle cx="12" cy="3.5" r="0.5" fill="currentColor" opacity="0.4" />
+                  </svg>
+                ),
+              },
             ].map((t, i) => (
               <div key={i} className={`${t.bg} ${t.border} border rounded-2xl p-6 text-center hover:shadow-lg transition-shadow`}>
-                <div className="text-4xl mb-3">{t.icon}</div>
+                <div className="flex justify-center mb-3">{t.svg}</div>
                 <h3 className="font-bold text-gray-900">{t.title}</h3>
                 <p className="text-gray-500 text-xs mt-1">{t.desc}</p>
               </div>
