@@ -145,7 +145,7 @@ export default function WeddingDashboardPage() {
             <i className="fas fa-bars text-lg" />
           </button>
           <Link href="/dashboard" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="ShaadiSheet" className="h-12 w-auto" />
+            <img src="/logo.png" alt="ShaadiSheet" style={{ height: "45px", width: "auto" }} />
           </Link>
         </div>
         <div className="text-center">
