@@ -75,7 +75,7 @@ export default function OverviewView({ wedding }: { wedding: any }) {
     dynamicTips.push({ icon: "fa-handshake", color: "#FDE68A", text: `${totalVendors - vendorsBooked} vendor${totalVendors - vendorsBooked > 1 ? "s" : ""} pending contract signing.` });
   }
   if (totalTasks > 0 && tasksDone < totalTasks) {
-    dynamicTips.push({ icon: "fa-list-check", color: "#E9D5FF", text: `${totalTasks - tasksDone} task${totalTasks - tasksDone > 1 ? "s" : ""} remaining — stay on track!` });
+    dynamicTips.push({ icon: "fa-list-check", color: "#E9D5FF", text: `${totalTasks - tasksDone} task${totalTasks - tasksDone > 1 ? "s" : ""} remaining - stay on track!` });
   }
   if (totalRooms > 0 && roomsOccupied === 0) {
     dynamicTips.push({ icon: "fa-bed", color: "#FEE2E2", text: "No guests have checked in yet. Update room statuses as the day approaches." });

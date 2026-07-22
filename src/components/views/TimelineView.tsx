@@ -183,7 +183,7 @@ export default function TimelineView({ wedding, weddingId }: { wedding: any; wed
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
           <span className="text-sm font-medium text-red-700">
-            {overlapCount} timeline item{overlapCount > 1 ? "s" : ""} overlap{overlapCount === 1 ? "s" : ""} — adjust times or durations to resolve
+            {overlapCount} timeline item{overlapCount > 1 ? "s" : ""} overlap{overlapCount === 1 ? "s" : ""} - adjust times or durations to resolve
           </span>
         </div>
       )}
@@ -289,7 +289,7 @@ export default function TimelineView({ wedding, weddingId }: { wedding: any; wed
                     <div className="flex gap-4">
                       <div className="flex-1">
                         <div className="text-xs font-bold text-maroon uppercase tracking-wide mb-1">
-                          {formatTime(item.startTime)} — {formatTime(getEndTimeStr(item.startTime, item.duration))}
+                          {formatTime(item.startTime)} - {formatTime(getEndTimeStr(item.startTime, item.duration))}
                           <span className="text-gray-400 ml-2 normal-case">({formatDuration(item.duration)})</span>
                         </div>
                         <h4 className="font-bold text-sm">{item.title}</h4>

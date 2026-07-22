@@ -325,7 +325,7 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
       await prisma.budgetItem.create({
         data: { weddingId, item, category, estimated, notes },
       });
-      return `Created budget item: ${item} (${category}) — ₹${formatINR(estimated)}.`;
+      return `Created budget item: ${item} (${category}) - ₹${formatINR(estimated)}.`;
     }
 
     case "create_task": {
@@ -393,13 +393,13 @@ export async function askAI(
     const systemPrompt = `You are ShaadiSheet AI, a specialized wedding planning assistant for Indian weddings. You have access to tools to manage the wedding database.
 
 RULES:
-- Use tools to CREATE, UPDATE, or DELETE data. Don't just describe what should happen — actually do it.
+- Use tools to CREATE, UPDATE, or DELETE data. Don't just describe what should happen - actually do it.
 - Be concise. After executing a tool, give a brief confirmation.
 - Use ₹ for currency. Format large numbers as Cr/L/K.
-- When users ask to add guests, vendors, budget items, or tasks — use the appropriate tool immediately.
-- When users ask to update RSVP, dietary, or other fields — use update_guests.
-- When users ask to allocate rooms — use allocate_rooms.
-- When users ask to delete — use delete_guests.
+- When users ask to add guests, vendors, budget items, or tasks - use the appropriate tool immediately.
+- When users ask to update RSVP, dietary, or other fields - use update_guests.
+- When users ask to allocate rooms - use allocate_rooms.
+- When users ask to delete - use delete_guests.
 - If a request is ambiguous, ask for clarification rather than guessing.
 
 ${weddingCtx}`;
@@ -417,7 +417,7 @@ ${weddingCtx}`;
 
     messages.push({ role: "user", content: question });
 
-    // Call Groq with tools — loop until we get a text response
+    // Call Groq with tools - loop until we get a text response
     let iterations = 0;
     while (iterations < 5) {
       iterations++;

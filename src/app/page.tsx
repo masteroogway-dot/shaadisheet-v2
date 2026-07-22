@@ -94,7 +94,7 @@ function MarigoldGarland({ side }: { side: "left" | "right" }) {
 
         {flowers.map((f, i) => (
           <g key={i}>
-            {/* Pom-pom petals — dense radial pattern */}
+            {/* Pom-pom petals - dense radial pattern */}
             {Array.from({ length: 16 }, (_, j) => {
               const angle = (j * 22.5 * Math.PI) / 180;
               const petalR = f.r * 0.55;
@@ -133,7 +133,7 @@ function MarigoldGarland({ side }: { side: "left" | "right" }) {
             <circle cx={cx} cy={f.cy} r={f.r * 0.3} fill={f.orange ? "#BF360C" : "#F57F17"} />
             <circle cx={cx} cy={f.cy} r={f.r * 0.18} fill={f.orange ? "#E65100" : "#FFC107"} opacity="0.8" />
 
-            {/* Fluffy outer edges — extra petal bumps */}
+            {/* Fluffy outer edges - extra petal bumps */}
             {Array.from({ length: 12 }, (_, j) => {
               const angle = (j * 30 * Math.PI) / 180;
               return (
@@ -179,7 +179,7 @@ function MarigoldGarland({ side }: { side: "left" | "right" }) {
 }
 
 /* ─────────────────────────────────────────────
-   WEDDING SCENE CAROUSEL — FULL BACKGROUND
+    WEDDING SCENE CAROUSEL - FULL BACKGROUND
    ───────────────────────────────────────────── */
 
 const SCENES = [
@@ -317,12 +317,12 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* HERO — FULL BACKGROUND */}
+      {/* HERO - FULL BACKGROUND */}
       <section className="relative min-h-[85vh] md:min-h-[92vh] flex items-center overflow-hidden">
         {/* Full-background image carousel */}
         <HeroBackground />
 
-        {/* Marigold Garlands — hidden on mobile */}
+        {/* Marigold Garlands - hidden on mobile */}
         <div className="relative z-[4] opacity-50 hidden md:block">
           <MarigoldGarland side="left" />
           <MarigoldGarland side="right" />
@@ -353,7 +353,7 @@ export default function Home() {
               />
             </h1>
             <BlurText
-              text="Track every guest, every vendor, every ritual — all in one place. From engagement to reception, plan every moment flawlessly."
+              text="Track every guest, every vendor, every ritual - all in one place. From engagement to reception, plan every moment flawlessly."
               className="text-sm md:text-lg text-white/80 max-w-[560px] mb-6 md:mb-10 leading-relaxed mx-auto drop-shadow"
               delay={150}
               animateBy="words"
@@ -397,8 +397,8 @@ export default function Home() {
           <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" staggerDelay={0.1}>
             {[
               { icon: "💰", title: "Budget Tracker", desc: "Track every rupee with pre-filled categories for Indian weddings." },
-              { icon: "🏪", title: "Vendor Manager", desc: "Track every vendor — from pandit to caterer to DJ." },
-              { icon: "📋", title: "Ritual Checklists", desc: "Every ritual in order — from Roka to Vidaai, Nikah to Walima." },
+              { icon: "🏪", title: "Vendor Manager", desc: "Track every vendor - from pandit to caterer to DJ." },
+              { icon: "📋", title: "Ritual Checklists", desc: "Every ritual in order - from Roka to Vidaai, Nikah to Walima." },
               { icon: "👥", title: "Guest Management", desc: "RSVP tracking, dietary preferences, seating arrangements." },
               { icon: "🤖", title: "AI Assistant", desc: "Get instant, intelligent recommendations for your wedding." },
               { icon: "🤝", title: "Real-time Collaboration", desc: "Share with family, planners, and vendors." },

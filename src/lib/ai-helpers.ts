@@ -1,7 +1,7 @@
 export function shouldUseAI(query: string): boolean {
   const q = query.toLowerCase().trim();
 
-  // Simple CRUD commands — use fast parser
+  // Simple CRUD commands - use fast parser
   const simplePatterns = [
     /^(mark|set|change|update|make|turn|switch|assign)\s+/,
     /^(delete|remove|clear)\s+/,
@@ -11,7 +11,7 @@ export function shouldUseAI(query: string): boolean {
   ];
   if (simplePatterns.some((p) => p.test(q))) return false;
 
-  // Complex queries — use AI
+  // Complex queries - use AI
   const complexPatterns = [
     /summar/i,
     /suggest/i,
@@ -48,7 +48,7 @@ export function shouldUseAI(query: string): boolean {
   ];
   if (complexPatterns.some((p) => p.test(q))) return true;
 
-  // Long queries with multiple words — likely complex
+  // Long queries with multiple words - likely complex
   if (q.split(/\s+/).length > 6) return true;
 
   // Default to parser

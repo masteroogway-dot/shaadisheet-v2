@@ -200,7 +200,7 @@ export default function EventsView({ wedding, weddingId }: { wedding: any; weddi
       <div className="flex justify-between items-start mb-7">
         <div>
           <h2 className="text-2xl font-bold">Event Timeline</h2>
-          <p className="text-gray-500 text-sm">Every event, every ritual, every detail — on schedule</p>
+          <p className="text-gray-500 text-sm">Every event, every ritual, every detail - on schedule</p>
         </div>
         <button
           onClick={handleAdd}
@@ -216,7 +216,7 @@ export default function EventsView({ wedding, weddingId }: { wedding: any; weddi
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
           <span className="text-sm font-medium text-red-700">
-            {overlapCount} event{overlapCount > 1 ? "s" : ""} overlap{overlapCount === 1 ? "s" : ""} — adjust times or dates to resolve
+            {overlapCount} event{overlapCount > 1 ? "s" : ""} overlap{overlapCount === 1 ? "s" : ""} - adjust times or dates to resolve
           </span>
         </div>
       )}
@@ -379,7 +379,7 @@ export default function EventsView({ wedding, weddingId }: { wedding: any; weddi
                                   return (
                                     <span className="flex items-center gap-1">
                                       <i className="fas fa-clock" />
-                                      {formatTime(event.startTime)} — {formatTime(endStr)}
+                                      {formatTime(event.startTime)} - {formatTime(endStr)}
                                       <span className="text-gray-400">({formatDuration(event.duration)})</span>
                                     </span>
                                   );

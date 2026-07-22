@@ -231,7 +231,7 @@ export function autoMapColumns(
     if (!usedFields.has(field)) {
       warnings.push({
         field,
-        message: `No column found for "${field}" — this is required. Please map it manually or add a column with ${field} data.`,
+        message: `No column found for "${field}" - this is required. Please map it manually or add a column with ${field} data.`,
       });
     }
   }

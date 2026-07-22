@@ -498,7 +498,7 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
           });
           const data = await res.json();
           if (!res.ok || data.error) {
-            // Gemini failed — fall back to rule-based parser
+            // Gemini failed - fall back to rule-based parser
             const fallback = await parseCommand(userMsg);
             setMessages((prev) => {
               const without = prev.slice(0, -1);
@@ -520,7 +520,7 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
         onUpdate();
         return;
         } catch (geminiErr) {
-          // Gemini failed — fall back to rule-based parser
+          // Gemini failed - fall back to rule-based parser
           const fallback = await parseCommand(userMsg);
           setMessages((prev) => {
             const without = prev.slice(0, -1);

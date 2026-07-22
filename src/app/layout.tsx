@@ -3,7 +3,7 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 
 export const metadata: Metadata = {
-  title: "ShaadiSheet — Plan Your Indian Wedding Without the Chaos",
+  title: "ShaadiSheet - Plan Your Indian Wedding Without the Chaos",
   description:
     "Budget tracking. Vendor management. Ritual checklists. AI assistance. Everything you need for Hindu, Muslim, Sikh, and Christian weddings.",
 };
