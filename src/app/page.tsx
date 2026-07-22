@@ -381,7 +381,7 @@ export default function Home() {
       </section>
 
       {/* FEATURES */}
-      <section className="py-16 md:py-28 relative">
+      <section id="features" className="py-16 md:py-28 relative">
         <div className="paisley-overlay" />
         <div className="max-w-6xl mx-auto px-4 md:px-6 relative">
           <ScrollReveal>
