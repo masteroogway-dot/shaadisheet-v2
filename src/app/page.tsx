@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
+import BlurText from "@/components/animations/BlurText";
+import ShinyText from "@/components/animations/ShinyText";
+import RotatingText from "@/components/animations/RotatingText";
 
 /* ─────────────────────────────────────────────
    ROSE PETAL ANIMATION
@@ -330,12 +333,29 @@ export default function Home() {
               Built for Indian Weddings
             </div>
             <h1 className="text-4xl md:text-[3.5rem] font-extrabold leading-[1.08] mb-6 tracking-tight text-white drop-shadow-lg">
-              Plan Your Indian Wedding<br />
-              <span className="text-[#FFD54F]">Without the Chaos</span>
+              Plan Your{" "}
+              <RotatingText
+                texts={["Hindu", "Muslim", "Sikh", "Christian", "Jain"]}
+                rotationInterval={2500}
+                className="text-[#FFD54F]"
+              />{" "}
+              Wedding
+              <br />
+              <ShinyText
+                text="Without the Chaos"
+                className="text-[#FFD54F]"
+                speed={3}
+                shineColor="#FFFFFF"
+                color="rgba(255,213,79,0.6)"
+              />
             </h1>
-            <p className="text-lg text-white/80 max-w-[520px] mb-10 leading-relaxed mx-auto drop-shadow">
-              Budget tracking. Vendor management. Ritual checklists. AI assistance. Built for Hindu, Muslim, Sikh, Christian, and Jain weddings.
-            </p>
+            <BlurText
+              text="Budget tracking. Vendor management. Ritual checklists. AI assistance. Built for Hindu, Muslim, Sikh, Christian, and Jain weddings."
+              className="text-lg text-white/80 max-w-[560px] mb-10 leading-relaxed mx-auto drop-shadow"
+              delay={150}
+              animateBy="words"
+              direction="bottom"
+            />
             <div className="flex gap-4 justify-center flex-wrap mb-10">
               <Link href="/auth" className="px-8 py-3.5 text-base font-bold text-maroon bg-white rounded-xl hover:bg-gray-100 transition-colors inline-flex items-center gap-2 shadow-2xl">
                 Start Planning Free →
