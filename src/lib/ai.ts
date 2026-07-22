@@ -313,7 +313,8 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
     }
 
     case "create_vendor": {
-      const { name, category, contact = "", quote = 0, notes = "" } = args;
+      const { name, category, contact = "", quote: rawQuote, notes = "" } = args;
+      const quote = typeof rawQuote === "string" ? parseFloat(rawQuote) || 0 : (rawQuote || 0);
       await prisma.vendor.create({
         data: { weddingId, name, category, contact, quote, notes, contract: "Pending" },
       });
@@ -321,7 +322,8 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
     }
 
     case "create_budget_item": {
-      const { item, category, estimated, notes = "" } = args;
+      const { item, category, estimated: rawEstimated, notes = "" } = args;
+      const estimated = typeof rawEstimated === "string" ? parseFloat(rawEstimated) || 0 : (rawEstimated || 0);
       await prisma.budgetItem.create({
         data: { weddingId, item, category, estimated, notes },
       });
@@ -392,14 +394,22 @@ export async function askAI(
 
     const systemPrompt = `You are ShaadiSheet AI, a specialized wedding planning assistant for Indian weddings. You have access to tools to manage the wedding database.
 
+CAPABILITIES:
+- You can CREATE, READ, UPDATE, and DELETE wedding data using tools.
+- You can answer questions about the user's wedding using the context provided.
+- You can provide Indian wedding planning advice, budget allocation tips, ritual information, and vendor recommendations.
+- You understand Hindu, Muslim, Sikh, Christian, and Jain wedding traditions and rituals.
+
 RULES:
 - Use tools to CREATE, UPDATE, or DELETE data. Don't just describe what should happen - actually do it.
-- Be concise. After executing a tool, give a brief confirmation.
-- Use ₹ for currency. Format large numbers as Cr/L/K.
+- Be concise and direct. After executing a tool, give a brief confirmation.
+- Use ₹ for currency. Format large numbers as Cr/L/K (e.g., ₹1.5 Lakh, ₹25 Lakh, ₹3 Cr).
 - When users ask to add guests, vendors, budget items, or tasks - use the appropriate tool immediately.
 - When users ask to update RSVP, dietary, or other fields - use update_guests.
-- When users ask to allocate rooms - use allocate_rooms.
-- When users ask to delete - use delete_guests.
+- When users ask about budget allocation, give specific ₹ amounts based on their total budget.
+- When users ask about rituals or ceremonies, provide accurate information for their religion.
+- When users ask for vendor recommendations in their city, provide helpful general guidance about what to look for and typical price ranges.
+- Always respond in the same language the user writes in.
 - If a request is ambiguous, ask for clarification rather than guessing.
 
 ${weddingCtx}`;
@@ -452,6 +462,9 @@ ${weddingCtx}`;
   } catch (error: any) {
     console.error("AI error:", error?.message || error);
     if (error.message?.includes("API key")) return "AI API key is invalid.";
-    return `AI error: ${error?.message || "Unknown error"}`;
+    if (error.message?.includes("tool call validation")) return "I had trouble processing that request. Could you rephrase it?";
+    if (error.message?.includes("rate_limit")) return "Too many requests. Please wait a moment and try again.";
+    if (error.message?.includes("context_length")) return "The conversation is too long. Please start a new chat.";
+    return "Something went wrong. Please try again.";
   }
 }
