@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import CountUp from "@/components/animations/CountUp";
 import ScrollReveal from "@/components/animations/ScrollReveal";
 import { updateWedding } from "@/lib/actions";
 import InviteModal from "@/components/InviteModal";
+import ToastContainer, { Toast } from "@/components/Toast";
 
 function formatINR(n: number): string {
   if (n === 0) return "0";
@@ -40,19 +41,40 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
   const [collaborators, setCollaborators] = useState<any[]>(wedding.collaborators || []);
   const [editingCollab, setEditingCollab] = useState<string | null>(null);
   const [collabRole, setCollabRole] = useState("");
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  let toastId = 0;
+  const addToast = useCallback((message: string, type: "success" | "error") => {
+    const id = ++toastId;
+    setToasts((prev) => [...prev, { id, message, type }]);
+  }, []);
+  const dismissToast = useCallback((id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
 
   const canEditBudget = userRole === "owner" || userRole === "co-owner";
   const canManageCollabs = userRole === "owner" || userRole === "co-owner";
 
+  const BUDGET_MIN = 100000;
+  const BUDGET_MAX = 100000000;
+  const GUEST_MIN = 50;
+  const GUEST_MAX = 5000;
+
   const handleSaveBudget = async () => {
     const val = parseInt(editBudget) || 0;
+    if (val < BUDGET_MIN || val > BUDGET_MAX) {
+      addToast("Budget must be between \u20B910 Lakh and \u20B910 Crore", "error");
+      return;
+    }
     setSaving(true);
     try {
       await updateWedding({ weddingId: wedding.id, budget: val });
       setEditingBudget(false);
+      addToast("Budget updated successfully", "success");
       if (onUpdate) onUpdate();
     } catch (e) {
       console.error(e);
+      addToast("Failed to update budget", "error");
     } finally {
       setSaving(false);
     }
@@ -60,13 +82,19 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
 
   const handleSaveGuests = async () => {
     const val = parseInt(editGuests) || 0;
+    if (val < GUEST_MIN || val > GUEST_MAX) {
+      addToast(`Guest count must be between ${GUEST_MIN.toLocaleString("en-IN")} and ${GUEST_MAX.toLocaleString("en-IN")}`, "error");
+      return;
+    }
     setSaving(true);
     try {
       await updateWedding({ weddingId: wedding.id, guestCount: val });
       setEditingGuests(false);
+      addToast("Guest count updated successfully", "success");
       if (onUpdate) onUpdate();
     } catch (e) {
       console.error(e);
+      addToast("Failed to update guest count", "error");
     } finally {
       setSaving(false);
     }
@@ -214,16 +242,20 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
                   <div>
                     <p className="text-xs text-gray-500 font-medium mb-1">Total Budget</p>
                     {editingBudget ? (
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-500 font-semibold">{"\u20B9"}</span>
-                        <input
-                          type="number"
-                          value={editBudget}
-                          onChange={(e) => setEditBudget(e.target.value)}
-                          placeholder={String(wedding.budget || "")}
-                          className="w-36 px-3 py-1.5 border-2 border-maroon rounded-lg text-sm font-bold focus:outline-none"
-                          min={0}
-                        />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500 font-semibold">{"\u20B9"}</span>
+                          <input
+                            type="number"
+                            value={editBudget}
+                            onChange={(e) => setEditBudget(e.target.value)}
+                            placeholder={String(wedding.budget || "")}
+                            className="w-36 px-3 py-1.5 border-2 border-gray-200 focus:border-maroon rounded-lg text-sm font-bold focus:outline-none transition-colors"
+                            min={BUDGET_MIN}
+                            max={BUDGET_MAX}
+                          />
+                        </div>
+                        <p className="text-[0.65rem] text-gray-400 mt-1 ml-7">Min: \u20B910 Lakh, Max: \u20B910 Crore</p>
                       </div>
                     ) : (
                       <p className="text-lg font-extrabold text-gray-900">
@@ -254,14 +286,18 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
                   <div>
                     <p className="text-xs text-gray-500 font-medium mb-1">Expected Guests</p>
                     {editingGuests ? (
-                      <input
-                        type="number"
-                        value={editGuests}
-                        onChange={(e) => setEditGuests(e.target.value)}
-                        placeholder={String(wedding.guestCount || "")}
-                        className="w-36 px-3 py-1.5 border-2 border-maroon rounded-lg text-sm font-bold focus:outline-none"
-                        min={0}
-                      />
+                      <div>
+                        <input
+                          type="number"
+                          value={editGuests}
+                          onChange={(e) => setEditGuests(e.target.value)}
+                          placeholder={String(wedding.guestCount || "")}
+                          className="w-36 px-3 py-1.5 border-2 border-gray-200 focus:border-maroon rounded-lg text-sm font-bold focus:outline-none transition-colors"
+                          min={GUEST_MIN}
+                          max={GUEST_MAX}
+                        />
+                        <p className="text-[0.65rem] text-gray-400 mt-1">Min: 50, Max: 5,000</p>
+                      </div>
                     ) : (
                       <p className="text-lg font-extrabold text-gray-900">
                         {(wedding.guestCount || 0) > 0 ? (wedding.guestCount || 0).toLocaleString("en-IN") : "Not set"}
@@ -460,6 +496,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
           )}
         </>
       )}
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }
