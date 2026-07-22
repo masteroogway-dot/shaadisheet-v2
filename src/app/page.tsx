@@ -7,17 +7,17 @@ import { useState, useEffect, useCallback } from "react";
    ROSE PETAL ANIMATION
    ───────────────────────────────────────────── */
 function RosePetals() {
-  const [petals, setPetals] = useState<{ id: number; left: number; size: number; delay: number; duration: number; rotation: number; sway: number }[]>([]);
+  const [petals, setPetals] = useState<{ id: number; left: number; size: number; delay: number; duration: number; rotation: number; type: number }[]>([]);
 
   useEffect(() => {
-    const generated = Array.from({ length: 25 }, (_, i) => ({
+    const generated = Array.from({ length: 45 }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
-      size: 12 + Math.random() * 14,
-      delay: Math.random() * 2,
-      duration: 3 + Math.random() * 3,
+      size: 10 + Math.random() * 18,
+      delay: Math.random() * 2.5,
+      duration: 3 + Math.random() * 3.5,
       rotation: Math.random() * 360,
-      sway: 30 + Math.random() * 60,
+      type: Math.floor(Math.random() * 3),
     }));
     setPetals(generated);
   }, []);
@@ -37,18 +37,22 @@ function RosePetals() {
           }}
           viewBox="0 0 20 20"
         >
-          <ellipse
-            cx="10" cy="10" rx="5" ry="8"
-            fill="#E53935"
-            opacity="0.85"
-            transform={`rotate(${p.rotation} 10 10)`}
-          />
-          <ellipse
-            cx="10" cy="10" rx="3" ry="6"
-            fill="#C62828"
-            opacity="0.5"
-            transform={`rotate(${p.rotation + 20} 10 10)`}
-          />
+          {p.type === 0 ? (
+            <>
+              <ellipse cx="10" cy="10" rx="5" ry="8" fill="#E53935" opacity="0.85" transform={`rotate(${p.rotation} 10 10)`} />
+              <ellipse cx="10" cy="10" rx="3" ry="6" fill="#C62828" opacity="0.5" transform={`rotate(${p.rotation + 20} 10 10)`} />
+            </>
+          ) : p.type === 1 ? (
+            <>
+              <ellipse cx="10" cy="10" rx="6" ry="7" fill="#EF5350" opacity="0.8" transform={`rotate(${p.rotation} 10 10)`} />
+              <ellipse cx="10" cy="10" rx="4" ry="5" fill="#D32F2F" opacity="0.4" transform={`rotate(${p.rotation + 30} 10 10)`} />
+            </>
+          ) : (
+            <>
+              <circle cx="10" cy="10" r="6" fill="#FFCDD2" opacity="0.7" />
+              <circle cx="10" cy="10" r="3.5" fill="#EF9A9A" opacity="0.5" />
+            </>
+          )}
         </svg>
       ))}
     </div>
@@ -60,77 +64,109 @@ function RosePetals() {
    ───────────────────────────────────────────── */
 function MarigoldGarland({ side }: { side: "left" | "right" }) {
   const isLeft = side === "left";
-  const flowers = [
-    { cx: isLeft ? 38 : 62, cy: 30, r: 7 },
-    { cx: isLeft ? 32 : 68, cy: 55, r: 8 },
-    { cx: isLeft ? 40 : 60, cy: 80, r: 6 },
-    { cx: isLeft ? 28 : 72, cy: 105, r: 7 },
-    { cx: isLeft ? 36 : 64, cy: 130, r: 8 },
-    { cx: isLeft ? 30 : 70, cy: 155, r: 6 },
-    { cx: isLeft ? 38 : 62, cy: 180, r: 7 },
-    { cx: isLeft ? 34 : 66, cy: 205, r: 8 },
-    { cx: isLeft ? 40 : 60, cy: 230, r: 6 },
-    { cx: isLeft ? 32 : 68, cy: 255, r: 7 },
-  ];
+  const cx = isLeft ? 45 : 55;
+
+  // Dense pom-pom marigold flowers stacked tightly
+  const flowers = Array.from({ length: 14 }, (_, i) => ({
+    cy: 20 + i * 22,
+    r: 14 + (i % 2) * 2,
+    orange: i % 2 === 0,
+  }));
 
   return (
     <div
       className={`absolute top-0 ${isLeft ? "left-0" : "right-0"} h-full pointer-events-none`}
       style={{
-        width: 100,
-        animation: `garlandSway${isLeft ? "Left" : "Right"} 4s ease-in-out infinite`,
+        width: 120,
+        animation: `garlandSway${isLeft ? "Left" : "Right"} 5s ease-in-out infinite`,
         transformOrigin: "top center",
       }}
     >
-      <svg viewBox="0 0 100 280" className="w-full h-full" fill="none">
-        {/* String */}
-        <path
-          d={isLeft
-            ? "M40 0 Q25 40 35 80 Q45 120 30 160 Q20 200 35 240 Q40 260 38 280"
-            : "M60 0 Q75 40 65 80 Q55 120 70 160 Q80 200 65 240 Q60 260 62 280"
-          }
-          stroke="#8B6914"
-          strokeWidth="1.5"
-          opacity="0.6"
-        />
-        {/* Flowers */}
+      <svg viewBox="0 0 100 340" className="w-full h-full" fill="none">
+        {/* Main string */}
+        <line x1={cx} y1="0" x2={cx} y2="340" stroke="#8B6914" strokeWidth="2" opacity="0.4" />
+
         {flowers.map((f, i) => (
           <g key={i}>
-            {/* Outer petals */}
-            {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => (
-              <ellipse
-                key={angle}
-                cx={f.cx + Math.cos((angle * Math.PI) / 180) * f.r * 0.6}
-                cy={f.cy + Math.sin((angle * Math.PI) / 180) * f.r * 0.6}
-                rx={f.r * 0.45}
-                ry={f.r * 0.25}
-                fill={i % 2 === 0 ? "#FF8F00" : "#FFB300"}
-                transform={`rotate(${angle} ${f.cx + Math.cos((angle * Math.PI) / 180) * f.r * 0.6} ${f.cy + Math.sin((angle * Math.PI) / 180) * f.r * 0.6})`}
-                opacity="0.9"
-              />
-            ))}
-            {/* Center */}
-            <circle cx={f.cx} cy={f.cy} r={f.r * 0.35} fill="#E65100" />
-            <circle cx={f.cx} cy={f.cy} r={f.r * 0.2} fill="#FF6F00" />
+            {/* Pom-pom petals — dense radial pattern */}
+            {Array.from({ length: 16 }, (_, j) => {
+              const angle = (j * 22.5 * Math.PI) / 180;
+              const petalR = f.r * 0.55;
+              const dist = f.r * 0.45;
+              return (
+                <ellipse
+                  key={j}
+                  cx={cx + Math.cos(angle) * dist}
+                  cy={f.cy + Math.sin(angle) * dist}
+                  rx={petalR}
+                  ry={petalR * 0.6}
+                  fill={f.orange ? "#FF8F00" : "#FFD54F"}
+                  transform={`rotate(${j * 22.5} ${cx + Math.cos(angle) * dist} ${f.cy + Math.sin(angle) * dist})`}
+                  opacity={0.85 + (j % 3) * 0.05}
+                />
+              );
+            })}
+            {/* Inner petals layer */}
+            {Array.from({ length: 8 }, (_, j) => {
+              const angle = ((j * 45 + 22.5) * Math.PI) / 180;
+              const dist = f.r * 0.22;
+              return (
+                <ellipse
+                  key={`inner-${j}`}
+                  cx={cx + Math.cos(angle) * dist}
+                  cy={f.cy + Math.sin(angle) * dist}
+                  rx={f.r * 0.3}
+                  ry={f.r * 0.2}
+                  fill={f.orange ? "#E65100" : "#FFB300"}
+                  transform={`rotate(${j * 45 + 22.5} ${cx + Math.cos(angle) * dist} ${f.cy + Math.sin(angle) * dist})`}
+                  opacity="0.9"
+                />
+              );
+            })}
+            {/* Center pom-pom */}
+            <circle cx={cx} cy={f.cy} r={f.r * 0.3} fill={f.orange ? "#BF360C" : "#F57F17"} />
+            <circle cx={cx} cy={f.cy} r={f.r * 0.18} fill={f.orange ? "#E65100" : "#FFC107"} opacity="0.8" />
+
+            {/* Fluffy outer edges — extra petal bumps */}
+            {Array.from({ length: 12 }, (_, j) => {
+              const angle = (j * 30 * Math.PI) / 180;
+              return (
+                <circle
+                  key={`edge-${j}`}
+                  cx={cx + Math.cos(angle) * f.r * 0.85}
+                  cy={f.cy + Math.sin(angle) * f.r * 0.85}
+                  r={f.r * 0.22}
+                  fill={f.orange ? (j % 2 === 0 ? "#FF8F00" : "#FFB300") : (j % 2 === 0 ? "#FFD54F" : "#FFCA28")}
+                  opacity="0.75"
+                />
+              );
+            })}
           </g>
         ))}
-        {/* Leaves between flowers */}
-        {[1, 3, 5, 7].map((idx) => {
+
+        {/* Green leaf tassels between flowers */}
+        {[1, 3, 5, 7, 9, 11].map((idx) => {
           const f = flowers[idx];
-          const leafX = isLeft ? f.cx - 8 : f.cx + 8;
+          const leafX = isLeft ? cx - 14 : cx + 14;
           return (
-            <ellipse
-              key={idx}
-              cx={leafX}
-              cy={f.cy + 12}
-              rx="4"
-              ry="7"
-              fill="#558B2F"
-              opacity="0.6"
-              transform={`rotate(${isLeft ? -15 : 15} ${leafX} ${f.cy + 12})`}
-            />
+            <g key={`leaf-${idx}`}>
+              <ellipse cx={leafX} cy={f.cy + 8} rx="5" ry="9" fill="#558B2F" opacity="0.5" transform={`rotate(${isLeft ? -20 : 20} ${leafX} ${f.cy + 8})`} />
+              <ellipse cx={leafX + (isLeft ? -4 : 4)} cy={f.cy + 4} rx="4" ry="7" fill="#689F38" opacity="0.4" transform={`rotate(${isLeft ? -35 : 35} ${leafX + (isLeft ? -4 : 4)} ${f.cy + 4})`} />
+            </g>
           );
         })}
+
+        {/* Bottom tassel */}
+        {(() => {
+          const lastF = flowers[flowers.length - 1];
+          return (
+            <g>
+              <line x1={cx} y1={lastF.cy + lastF.r} x2={cx} y2={lastF.cy + lastF.r + 20} stroke="#8B6914" strokeWidth="1.5" opacity="0.4" />
+              <circle cx={cx} cy={lastF.cy + lastF.r + 22} r="4" fill="#FF8F00" opacity="0.5" />
+              <circle cx={cx} cy={lastF.cy + lastF.r + 22} r="2" fill="#E65100" opacity="0.6" />
+            </g>
+          );
+        })()}
       </svg>
     </div>
   );
