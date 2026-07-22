@@ -712,12 +712,32 @@ export async function seedWeddingEvents(weddingId: string) {
 
   const template = EVENTS[wedding.religion] || EVENTS.hindu;
 
+  // Parse selectedEvents from JSON string
+  let selectedNames: string[];
+  try {
+    selectedNames = JSON.parse(wedding.selectedEvents || "[]");
+  } catch {
+    selectedNames = template.map((t) => t.name);
+  }
+
+  // Filter template to only selected events
+  const filteredTemplate = selectedNames.length > 0
+    ? template.filter((t) => selectedNames.includes(t.name))
+    : template;
+
   // If events already exist, check if dates match the wedding date. If not, update them.
   if (existing.length > 0) {
+    // Remove events that are no longer selected
+    for (const evt of existing) {
+      if (!filteredTemplate.some((t) => t.name === evt.name)) {
+        await prisma.weddingEvent.delete({ where: { id: evt.id } });
+      }
+    }
+
     let needsUpdate = false;
     for (const evt of existing) {
       const expectedDate = new Date(weddingDate);
-      const templateEntry = template.find((t) => t.name === evt.name);
+      const templateEntry = filteredTemplate.find((t) => t.name === evt.name);
       if (templateEntry) {
         expectedDate.setDate(expectedDate.getDate() + templateEntry.dayOffset);
         const expectedStr = expectedDate.toISOString().split("T")[0];
@@ -732,7 +752,7 @@ export async function seedWeddingEvents(weddingId: string) {
 
     // Update dates for existing events
     for (const evt of existing) {
-      const templateEntry = template.find((t) => t.name === evt.name);
+      const templateEntry = filteredTemplate.find((t) => t.name === evt.name);
       if (templateEntry) {
         const newDate = new Date(weddingDate);
         newDate.setDate(newDate.getDate() + templateEntry.dayOffset);
@@ -747,7 +767,7 @@ export async function seedWeddingEvents(weddingId: string) {
 
   // Create events from template
   let order = 0;
-  for (const t of template) {
+  for (const t of filteredTemplate) {
     const date = new Date(weddingDate);
     date.setDate(date.getDate() + t.dayOffset);
     const dateStr = date.toISOString().split("T")[0];

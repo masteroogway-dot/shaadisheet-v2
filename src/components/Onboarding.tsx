@@ -45,6 +45,7 @@ export default function Onboarding({ onComplete }: Props) {
     selectedEvents: [] as string[],
     weddingDate: "",
     weddingCity: "",
+    customCity: "",
     userName: "",
   });
   const [budgetInput, setBudgetInput] = useState("1000000");
@@ -364,6 +365,10 @@ export default function Onboarding({ onComplete }: Props) {
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
+                  {data.weddingCity === "Other" && (
+                    <input type="text" placeholder="Type your city" value={data.customCity || ""} onChange={(e) => setData({ ...data, customCity: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-maroon transition-colors mt-2" />
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Your Name</label>

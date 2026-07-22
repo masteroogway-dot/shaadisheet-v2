@@ -85,7 +85,7 @@ export default function WeddingDashboardPage() {
         weddingDays: data.weddingDays,
         selectedEvents: data.selectedEvents,
         weddingDate: data.weddingDate ? new Date(data.weddingDate) : undefined,
-        weddingCity: data.weddingCity,
+        weddingCity: data.weddingCity === "Other" && data.customCity ? data.customCity : data.weddingCity,
       });
       await loadWedding();
     } catch (e) {
