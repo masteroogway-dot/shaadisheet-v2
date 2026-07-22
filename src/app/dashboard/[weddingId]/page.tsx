@@ -31,6 +31,7 @@ export default function WeddingDashboardPage() {
   const [wedding, setWedding] = useState<any>(null);
   const [activeView, setActiveView] = useState("overview");
   const [aiOpen, setAiOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const addToast = useCallback((message: string, type: "success" | "error" = "success") => {
@@ -135,11 +136,19 @@ export default function WeddingDashboardPage() {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-      <div className="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-50 shrink-0">
-        <Link href="/dashboard" className="flex items-center gap-2.5 text-lg font-extrabold">
-          <span className="text-maroon text-xl">|||</span>
-          <span>ShaadiSheet</span>
-        </Link>
+      <div className="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 sticky top-0 z-50 shrink-0">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="w-10 h-10 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 lg:hidden cursor-pointer"
+          >
+            <i className="fas fa-bars text-lg" />
+          </button>
+          <Link href="/dashboard" className="flex items-center gap-2.5 text-lg font-extrabold">
+            <span className="text-maroon text-xl">|||</span>
+            <span className="hidden sm:inline">ShaadiSheet</span>
+          </Link>
+        </div>
         <div className="text-center">
           <div className="font-bold text-sm">{wedding.name || "My Wedding"}</div>
           <div className="text-xs text-gray-500">
@@ -157,8 +166,8 @@ export default function WeddingDashboardPage() {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar activeView={activeView} onViewChange={setActiveView} />
-        <main className="flex-1 overflow-y-auto p-8">
+        <Sidebar activeView={activeView} onViewChange={setActiveView} mobileOpen={sidebarOpen} onMobileClose={() => setSidebarOpen(false)} />
+        <main className="flex-1 overflow-y-auto p-4 md:p-8">
           {renderView()}
         </main>
       </div>

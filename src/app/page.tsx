@@ -318,24 +318,24 @@ export default function Home() {
       </nav>
 
       {/* HERO — FULL BACKGROUND */}
-      <section className="relative min-h-[92vh] flex items-center overflow-hidden">
+      <section className="relative min-h-[85vh] md:min-h-[92vh] flex items-center overflow-hidden">
         {/* Full-background image carousel */}
         <HeroBackground />
 
-        {/* Marigold Garlands — transparent over image */}
-        <div className="relative z-[4] opacity-50">
+        {/* Marigold Garlands — hidden on mobile */}
+        <div className="relative z-[4] opacity-50 hidden md:block">
           <MarigoldGarland side="left" />
           <MarigoldGarland side="right" />
         </div>
 
         {/* Content over background */}
-        <div className="relative z-[5] w-full pt-[100px] pb-28 px-6">
+        <div className="relative z-[5] w-full pt-[90px] md:pt-[100px] pb-16 md:pb-28 px-4 md:px-6">
           <div className="max-w-6xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-sm font-medium text-white/90 mb-8">
+            <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-xs md:text-sm font-medium text-white/90 mb-6 md:mb-8">
               <span className="w-2 h-2 rounded-full bg-green animate-pulse" />
               Built for Indian Weddings
             </div>
-            <h1 className="text-4xl md:text-[3.5rem] font-extrabold leading-[1.08] mb-6 tracking-tight text-white drop-shadow-lg">
+            <h1 className="text-[2rem] md:text-4xl lg:text-[3.5rem] font-extrabold leading-[1.08] mb-4 md:mb-6 tracking-tight text-white drop-shadow-lg">
               Plan Your{" "}
               <RotatingText
                 texts={["Hindu", "Muslim", "Sikh", "Christian", "Jain"]}
@@ -354,16 +354,16 @@ export default function Home() {
             </h1>
             <BlurText
               text="Budget tracking. Vendor management. Ritual checklists. AI assistance. Built for Hindu, Muslim, Sikh, Christian, and Jain weddings."
-              className="text-lg text-white/80 max-w-[560px] mb-10 leading-relaxed mx-auto drop-shadow"
+              className="text-sm md:text-lg text-white/80 max-w-[560px] mb-6 md:mb-10 leading-relaxed mx-auto drop-shadow"
               delay={150}
               animateBy="words"
               direction="bottom"
             />
-            <div className="flex gap-4 justify-center flex-wrap mb-10">
-              <Link href="/auth" className="px-8 py-3.5 text-base font-bold text-maroon bg-white rounded-xl hover:bg-gray-100 transition-colors inline-flex items-center gap-2 shadow-2xl">
+            <div className="flex gap-3 md:gap-4 justify-center flex-wrap mb-8 md:mb-10">
+              <Link href="/auth" className="px-6 md:px-8 py-3 md:py-3.5 text-sm md:text-base font-bold text-maroon bg-white rounded-xl hover:bg-gray-100 transition-colors inline-flex items-center gap-2 shadow-2xl">
                 Start Planning Free →
               </Link>
-              <a href="#how-it-works" className="px-8 py-3.5 text-base font-bold border-2 border-white/30 rounded-xl text-white hover:bg-white/10 transition-all backdrop-blur-sm">
+              <a href="#how-it-works" className="px-6 md:px-8 py-3 md:py-3.5 text-sm md:text-base font-bold border-2 border-white/30 rounded-xl text-white hover:bg-white/10 transition-all backdrop-blur-sm">
                 See How It Works
               </a>
             </div>
@@ -382,19 +382,19 @@ export default function Home() {
       </section>
 
       {/* FEATURES */}
-      <section id="features" className="py-28 relative">
+      <section className="py-16 md:py-28 relative">
         <div className="paisley-overlay" />
-        <div className="max-w-6xl mx-auto px-6 relative">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 relative">
           <ScrollReveal>
-            <div className="text-center mb-16">
-              <div className="gold-divider mb-6">
+            <div className="text-center mb-10 md:mb-16">
+              <div className="gold-divider mb-4 md:mb-6">
                 <span className="wedding-badge">Features</span>
               </div>
-              <h2 className="text-[2.5rem] font-bold mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>Everything You Need</h2>
-              <p className="text-gray-500 max-w-[480px] mx-auto">Not a generic Western wedding planner. Built from the ground up for Indian traditions.</p>
+              <h2 className="text-2xl md:text-[2.5rem] font-bold mb-3 md:mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>Everything You Need</h2>
+              <p className="text-gray-500 text-sm md:text-base max-w-lg mx-auto">One app to plan the perfect Indian wedding. No spreadsheets, no chaos.</p>
             </div>
           </ScrollReveal>
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" staggerDelay={0.1}>
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" staggerDelay={0.1}>
             {[
               { icon: "💰", title: "Budget Tracker", desc: "Track every rupee with pre-filled categories for Indian weddings." },
               { icon: "🏪", title: "Vendor Manager", desc: "Track every vendor — from pandit to caterer to DJ." },
@@ -405,9 +405,9 @@ export default function Home() {
             ].map((f, i) => (
               <StaggerItem key={i}>
                 <SpotlightCard className="wedding-card h-full" spotlightColor="rgba(212, 175, 55, 0.12)">
-                  <div className="text-3xl mb-4">{f.icon}</div>
-                  <h3 className="font-bold mb-1.5 text-gray-900">{f.title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
+                  <div className="text-2xl md:text-3xl mb-3 md:mb-4">{f.icon}</div>
+                  <h3 className="font-bold mb-1.5 text-gray-900 text-sm md:text-base">{f.title}</h3>
+                  <p className="text-gray-500 text-xs md:text-sm leading-relaxed">{f.desc}</p>
                 </SpotlightCard>
               </StaggerItem>
             ))}
@@ -416,19 +416,19 @@ export default function Home() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="how-it-works" className="py-28 bg-white relative">
+      <section id="how-it-works" className="py-16 md:py-28 bg-white relative">
         <div className="paisley-overlay" />
-        <div className="max-w-6xl mx-auto px-6 relative">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 relative">
           <ScrollReveal>
-            <div className="text-center mb-16">
-              <div className="gold-divider mb-6">
+            <div className="text-center mb-10 md:mb-16">
+              <div className="gold-divider mb-4 md:mb-6">
                 <span className="wedding-badge">How It Works</span>
               </div>
-              <h2 className="text-[2.5rem] font-bold mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>From Signup to Wedding Day</h2>
-              <p className="text-gray-500">In 4 simple steps</p>
+              <h2 className="text-2xl md:text-[2.5rem] font-bold mb-3 md:mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>From Signup to Wedding Day</h2>
+              <p className="text-gray-500 text-sm md:text-base">In 4 simple steps</p>
             </div>
           </ScrollReveal>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 relative">
             <div className="absolute top-10 left-[15%] right-[15%] h-0.5 hidden md:block" style={{ background: "linear-gradient(to right, transparent, #D4AF37, transparent)" }} />
             {[
               { n: "1", t: "Tell Us", d: "Religion, region, budget, guest count, events." },
@@ -439,8 +439,8 @@ export default function Home() {
               <ScrollReveal key={i} delay={i * 0.15} direction="up" distance={50} blur={false}>
                 <div className="text-center relative z-10">
                   <div className="wedding-step">{s.n}</div>
-                  <h3 className="font-bold mb-1 text-gray-900">{s.t}</h3>
-                  <p className="text-gray-500 text-sm">{s.d}</p>
+                  <h3 className="font-bold mb-1 text-gray-900 text-sm md:text-base">{s.t}</h3>
+                  <p className="text-gray-500 text-xs md:text-sm leading-relaxed">{s.d}</p>
                 </div>
               </ScrollReveal>
             ))}
@@ -449,23 +449,23 @@ export default function Home() {
       </section>
 
       {/* RELIGIONS */}
-      <section id="religions" className="py-28 relative">
+      <section id="religions" className="py-16 md:py-28 relative">
         <div className="paisley-overlay" />
-        <div className="max-w-6xl mx-auto px-6 relative">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 relative">
           <ScrollReveal>
-            <div className="text-center mb-16">
-              <div className="gold-divider mb-6">
+            <div className="text-center mb-10 md:mb-16">
+              <div className="gold-divider mb-4 md:mb-6">
                 <span className="wedding-badge">Weddings</span>
               </div>
-              <h2 className="text-[2.5rem] font-bold mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>Built for Every Indian Wedding</h2>
+              <h2 className="text-2xl md:text-[2.5rem] font-bold mb-3 md:mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>Built for Every Indian Wedding</h2>
             </div>
           </ScrollReveal>
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5" staggerDelay={0.08}>
+          <StaggerContainer className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-5" staggerDelay={0.08}>
             {[
               {
                 bg: "bg-amber-50", border: "border-amber-200", title: "Hindu", desc: "Roka to Vidaai",
                 svg: (
-                  <svg className="w-10 h-10 text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="w-8 h-8 md:w-10 md:h-10 text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
                     <path d="M4 18h16" /><path d="M5 18v-4h14v4" /><path d="M7 14v-3h10v3" /><path d="M8 11V8h8v3" />
                     <path d="M9 8c0-3 1.5-5 3-5s3 2 3 5" />
@@ -477,7 +477,7 @@ export default function Home() {
               {
                 bg: "bg-green-50", border: "border-green-200", title: "Muslim", desc: "Nikah to Walima",
                 svg: (
-                  <svg className="w-10 h-10 text-green-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="w-8 h-8 md:w-10 md:h-10 text-green-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 18h18v2H3z" fill="currentColor" opacity="0.15" />
                     <path d="M3 18h18" /><path d="M5 18v-5h14v5" /><path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
                     <line x1="4" y1="8" x2="4" y2="18" /><line x1="20" y1="8" x2="20" y2="18" />
@@ -490,7 +490,7 @@ export default function Home() {
               {
                 bg: "bg-orange-50", border: "border-orange-200", title: "Sikh", desc: "Anand Karaj",
                 svg: (
-                  <svg className="w-10 h-10 text-orange-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="w-8 h-8 md:w-10 md:h-10 text-orange-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 18h18v2H3z" fill="currentColor" opacity="0.15" />
                     <path d="M3 18h18" /><path d="M6 18v-4h12v4" />
                     <path d="M8 14c0-4 2-7 4-7s4 3 4 7" />
@@ -502,7 +502,7 @@ export default function Home() {
               {
                 bg: "bg-blue-50", border: "border-blue-200", title: "Christian", desc: "Church Ceremony",
                 svg: (
-                  <svg className="w-10 h-10 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="w-8 h-8 md:w-10 md:h-10 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
                     <path d="M4 18h16" /><path d="M6 18v-6h12v6" />
                     <path d="M10 12V7l2-4 2 4v5" />
@@ -514,7 +514,7 @@ export default function Home() {
               {
                 bg: "bg-purple-50", border: "border-purple-200", title: "Jain", desc: "Panch Kalyanak",
                 svg: (
-                  <svg className="w-10 h-10 text-purple-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="w-8 h-8 md:w-10 md:h-10 text-purple-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
                     <path d="M4 18h16" /><path d="M6 18v-5h12v5" />
                     <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
@@ -526,9 +526,9 @@ export default function Home() {
             ].map((t, i) => (
               <StaggerItem key={i}>
                 <div className={`religion-card ${t.bg}`} style={{ borderColor: "rgba(212, 175, 55, 0.15)" }}>
-                  <div className="flex justify-center mb-3">{t.svg}</div>
-                  <h3 className="font-bold text-gray-900">{t.title}</h3>
-                  <p className="text-gray-500 text-xs mt-1">{t.desc}</p>
+                  <div className="flex justify-center mb-2 md:mb-3">{t.svg}</div>
+                  <h3 className="font-bold text-gray-900 text-sm md:text-base">{t.title}</h3>
+                  <p className="text-gray-500 text-[0.65rem] md:text-xs mt-1">{t.desc}</p>
                 </div>
               </StaggerItem>
             ))}
@@ -537,16 +537,16 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section className="py-28 text-center wedding-cta text-white relative">
+      <section className="py-16 md:py-28 text-center wedding-cta text-white relative">
         <div className="paisley-overlay" style={{ opacity: 0.03 }} />
-        <div className="max-w-6xl mx-auto px-6 relative">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 relative">
           <ScrollReveal direction="up" distance={60}>
-            <div className="gold-divider mb-8" style={{ filter: "brightness(2)" }}>
-              <svg className="w-6 h-6 text-[#D4AF37]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4h7.6l-6 4.6 2.3 7-6.3-4.6L5.7 21l2.3-7L2 9.4h7.6z" /></svg>
+            <div className="gold-divider mb-5 md:mb-8" style={{ filter: "brightness(2)" }}>
+              <svg className="w-5 h-5 md:w-6 md:h-6 text-[#D4AF37]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4h7.6l-6 4.6 2.3 7-6.3-4.6L5.7 21l2.3-7L2 9.4h7.6z" /></svg>
             </div>
-            <h2 className="text-[2.5rem] font-bold text-white mb-4" style={{ fontFamily: "var(--font-display)" }}>Ready to Plan Your Wedding?</h2>
-            <p className="text-lg text-white/80 mb-10">Free to start. No credit card required.</p>
-            <Link href="/auth" className="px-10 py-4 text-base font-bold text-maroon bg-white rounded-xl hover:bg-gray-100 transition-all inline-flex items-center gap-2 shadow-2xl hover:shadow-white/20 hover:scale-105">
+            <h2 className="text-2xl md:text-[2.5rem] font-bold text-white mb-3 md:mb-4" style={{ fontFamily: "var(--font-display)" }}>Ready to Plan Your Wedding?</h2>
+            <p className="text-sm md:text-lg text-white/80 mb-6 md:mb-10">Free to start. No credit card required.</p>
+            <Link href="/auth" className="px-7 md:px-10 py-3 md:py-4 text-sm md:text-base font-bold text-maroon bg-white rounded-xl hover:bg-gray-100 transition-all inline-flex items-center gap-2 shadow-2xl hover:shadow-white/20 hover:scale-105">
               Start Planning Free →
             </Link>
           </ScrollReveal>
@@ -554,10 +554,10 @@ export default function Home() {
       </section>
 
       {/* FOOTER */}
-      <footer className="py-16 pb-8 relative" style={{ background: "linear-gradient(135deg, #1a0a0a 0%, #2d0f0f 50%, #1a0a0a 100%)" }}>
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
-            <div>
+      <footer className="py-10 md:py-16 pb-6 md:pb-8 relative" style={{ background: "linear-gradient(135deg, #1a0a0a 0%, #2d0f0f 50%, #1a0a0a 100%)" }}>
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 mb-6 md:mb-10">
+            <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2.5 text-xl font-extrabold mb-3">
                 <span className="text-[#D4AF37] text-2xl">|||</span>
                 <span className="text-white">ShaadiSheet</span>
@@ -570,15 +570,15 @@ export default function Home() {
               { title: "Legal", links: ["Privacy", "Terms", "Security"] },
             ].map((col, i) => (
               <div key={i}>
-                <h4 className="mb-4 text-sm uppercase tracking-wider font-semibold text-[#D4AF37]">{col.title}</h4>
+                <h4 className="mb-3 md:mb-4 text-xs md:text-sm uppercase tracking-wider font-semibold text-[#D4AF37]">{col.title}</h4>
                 {col.links.map((l, j) => (
-                  <a key={j} href="#" className="block py-1 text-gray-400 text-sm hover:text-white transition-colors">{l}</a>
+                  <a key={j} href="#" className="block py-0.5 md:py-1 text-gray-400 text-xs md:text-sm hover:text-white transition-colors">{l}</a>
                 ))}
               </div>
             ))}
           </div>
-          <div className="flex justify-between items-center pt-8" style={{ borderTop: "1px solid rgba(212, 175, 55, 0.15)" }}>
-            <p className="text-gray-500 text-sm">&copy; 2026 ShaadiSheet. All rights reserved.</p>
+          <div className="flex justify-between items-center pt-6 md:pt-8" style={{ borderTop: "1px solid rgba(212, 175, 55, 0.15)" }}>
+            <p className="text-gray-500 text-xs md:text-sm">&copy; 2026 ShaadiSheet. All rights reserved.</p>
           </div>
         </div>
       </footer>

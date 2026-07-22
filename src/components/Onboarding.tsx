@@ -142,26 +142,26 @@ export default function Onboarding({ onComplete }: Props) {
         </div>
       )}
 
-      <div className="flex items-center justify-between px-10 py-5">
+      <div className="flex items-center justify-between px-4 md:px-10 py-3 md:py-5">
         <div className="flex items-center gap-2.5 text-xl font-extrabold">
           <span className="text-maroon text-2xl tracking-tight">|||</span>
-          <span>ShaadiSheet</span>
+          <span className="hidden sm:inline">ShaadiSheet</span>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="w-[200px] h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="flex items-center gap-2 md:gap-4">
+          <div className="w-[100px] md:w-[200px] h-2 bg-gray-200 rounded-full overflow-hidden">
             <div className="h-full bg-gradient-to-r from-maroon to-gold rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
           </div>
-          <span className="text-sm text-gray-500 font-medium whitespace-nowrap">Step {step} of {totalSteps}</span>
+          <span className="text-xs md:text-sm text-gray-500 font-medium whitespace-nowrap">Step {step} of {totalSteps}</span>
         </div>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-6">
+      <div className="flex-1 flex items-center justify-center px-4 md:px-6">
         <div className="w-full max-w-[720px]">
           {step === 1 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
-              <h2 className="text-3xl font-bold mb-2">What type of wedding are you planning?</h2>
-              <p className="text-gray-500 mb-8">This helps us load the right rituals, templates, and budget categories.</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <h2 className="text-xl md:text-3xl font-bold mb-2">What type of wedding are you planning?</h2>
+              <p className="text-gray-500 mb-6 md:mb-8 text-sm md:text-base">This helps us load the right rituals, templates, and budget categories.</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                 {[
                   { id: "hindu", label: "Hindu Wedding", icon: <DiyaIcon /> },
                   { id: "muslim", label: "Muslim Wedding", icon: <CrescentIcon /> },
@@ -170,11 +170,11 @@ export default function Onboarding({ onComplete }: Props) {
                   { id: "jain", label: "Jain Wedding", icon: <AhimsaIcon /> },
                 ].map((r) => (
                   <button key={r.id} onClick={() => selectReligion(r.id)}
-                    className={`flex flex-col items-center gap-3 p-7 bg-white border-2 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md ${data.religion === r.id ? "border-maroon shadow-[0_0_0_3px_rgba(139,0,0,0.1)] bg-gradient-to-br from-maroon/5 to-gold/5" : "border-gray-200"}`}>
-                    <div className={`w-14 h-14 flex items-center justify-center rounded-full transition-colors ${data.religion === r.id ? "bg-maroon text-white" : "bg-gradient-to-br from-maroon/10 to-gold/10 text-maroon"}`}>
+                    className={`flex flex-col items-center gap-2 md:gap-3 p-4 md:p-7 bg-white border-2 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md ${data.religion === r.id ? "border-maroon shadow-[0_0_0_3px_rgba(139,0,0,0.1)] bg-gradient-to-br from-maroon/5 to-gold/5" : "border-gray-200"}`}>
+                    <div className={`w-10 h-10 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-colors ${data.religion === r.id ? "bg-maroon text-white" : "bg-gradient-to-br from-maroon/10 to-gold/10 text-maroon"}`}>
                       {r.icon}
                     </div>
-                    <span className="font-semibold text-sm">{r.label}</span>
+                    <span className="font-semibold text-xs md:text-sm">{r.label}</span>
                   </button>
                 ))}
               </div>
@@ -183,13 +183,13 @@ export default function Onboarding({ onComplete }: Props) {
 
           {step === 2 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
-              <h2 className="text-3xl font-bold mb-2">Which region/community?</h2>
-              <p className="text-gray-500 mb-8">This customizes the specific rituals and traditions.</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <h2 className="text-xl md:text-3xl font-bold mb-2">Which region/community?</h2>
+              <p className="text-gray-500 mb-6 md:mb-8 text-sm md:text-base">This customizes the specific rituals and traditions.</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                 {(REGIONS[data.religion] || REGIONS.hindu).map((r) => (
                   <button key={r} onClick={() => setData({ ...data, region: r })}
-                    className={`flex flex-col items-center gap-3 p-7 bg-white border-2 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md ${data.region === r ? "border-maroon shadow-[0_0_0_3px_rgba(139,0,0,0.1)] bg-gradient-to-br from-maroon/5 to-gold/5" : "border-gray-200"}`}>
-                    <div className={`w-14 h-14 flex items-center justify-center rounded-full transition-colors ${data.region === r ? "bg-maroon text-white" : "bg-gradient-to-br from-maroon/10 to-gold/10 text-maroon"}`}>
+                    className={`flex flex-col items-center gap-2 md:gap-3 p-4 md:p-7 bg-white border-2 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md ${data.region === r ? "border-maroon shadow-[0_0_0_3px_rgba(139,0,0,0.1)] bg-gradient-to-br from-maroon/5 to-gold/5" : "border-gray-200"}`}>
+                    <div className={`w-10 h-10 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-colors ${data.region === r ? "bg-maroon text-white" : "bg-gradient-to-br from-maroon/10 to-gold/10 text-maroon"}`}>
                       <MapPinIcon />
                     </div>
                     <span className="font-semibold text-sm">{r}</span>
@@ -201,12 +201,12 @@ export default function Onboarding({ onComplete }: Props) {
 
           {step === 3 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
-              <h2 className="text-3xl font-bold mb-2">What&apos;s your wedding budget?</h2>
-              <p className="text-gray-500 mb-1">This helps us suggest realistic allocations.</p>
-              <p className="text-sm text-gray-400 mb-8 italic">Can always be changed later</p>
-              <div className="bg-white border border-gray-200 rounded-2xl p-8">
-                <div className="text-center mb-8">
-                  <span className="text-5xl font-extrabold text-maroon">{formatBudgetDisplay(data.budget)}</span>
+              <h2 className="text-xl md:text-3xl font-bold mb-2">What&apos;s your wedding budget?</h2>
+              <p className="text-gray-500 mb-1 text-sm md:text-base">This helps us suggest realistic allocations.</p>
+              <p className="text-xs md:text-sm text-gray-400 mb-6 md:mb-8 italic">Can always be changed later</p>
+              <div className="bg-white border border-gray-200 rounded-2xl p-5 md:p-8">
+                <div className="text-center mb-6 md:mb-8">
+                  <span className="text-3xl md:text-5xl font-extrabold text-maroon">{formatBudgetDisplay(data.budget)}</span>
                 </div>
                 <input
                   type="range"
@@ -243,13 +243,13 @@ export default function Onboarding({ onComplete }: Props) {
 
           {step === 4 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
-              <h2 className="text-3xl font-bold mb-2">How many guests are you expecting?</h2>
-              <p className="text-gray-500 mb-1">This affects your catering budget and venue selection.</p>
-              <p className="text-sm text-gray-400 mb-8 italic">Can always be changed later</p>
-              <div className="bg-white border border-gray-200 rounded-2xl p-8">
-                <div className="text-center mb-8">
-                  <span className="text-5xl font-extrabold text-maroon">{data.guestCount.toLocaleString("en-IN")}</span>
-                  <span className="text-lg text-gray-500 ml-2">guests</span>
+              <h2 className="text-xl md:text-3xl font-bold mb-2">How many guests are you expecting?</h2>
+              <p className="text-gray-500 mb-1 text-sm md:text-base">This affects your catering budget and venue selection.</p>
+              <p className="text-xs md:text-sm text-gray-400 mb-6 md:mb-8 italic">Can always be changed later</p>
+              <div className="bg-white border border-gray-200 rounded-2xl p-5 md:p-8">
+                <div className="text-center mb-6 md:mb-8">
+                  <span className="text-3xl md:text-5xl font-extrabold text-maroon">{data.guestCount.toLocaleString("en-IN")}</span>
+                  <span className="text-base md:text-lg text-gray-500 ml-2">guests</span>
                 </div>
                 <input
                   type="range"
@@ -283,12 +283,12 @@ export default function Onboarding({ onComplete }: Props) {
 
           {step === 5 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
-              <h2 className="text-3xl font-bold mb-2">How many days will the main wedding span?</h2>
-              <p className="text-gray-500 mb-8">Indian weddings often span multiple days. This helps us plan the timeline.</p>
-              <div className="bg-white border border-gray-200 rounded-2xl p-8">
-                <div className="text-center mb-8">
-                  <span className="text-5xl font-extrabold text-maroon">{data.weddingDays}</span>
-                  <span className="text-lg text-gray-500 ml-2">{data.weddingDays === 1 ? "day" : "days"}</span>
+              <h2 className="text-xl md:text-3xl font-bold mb-2">How many days will the main wedding span?</h2>
+              <p className="text-gray-500 mb-6 md:mb-8 text-sm md:text-base">Indian weddings often span multiple days. This helps us plan the timeline.</p>
+              <div className="bg-white border border-gray-200 rounded-2xl p-5 md:p-8">
+                <div className="text-center mb-6 md:mb-8">
+                  <span className="text-3xl md:text-5xl font-extrabold text-maroon">{data.weddingDays}</span>
+                  <span className="text-base md:text-lg text-gray-500 ml-2">{data.weddingDays === 1 ? "day" : "days"}</span>
                 </div>
                 <input
                   type="range"
@@ -326,10 +326,10 @@ export default function Onboarding({ onComplete }: Props) {
 
           {step === 6 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
-              <h2 className="text-3xl font-bold mb-2">Which events are you planning?</h2>
-              <p className="text-gray-500 mb-1">Select all that apply. We&apos;ll create a timeline for each.</p>
-              <p className="text-sm text-gray-400 mb-6 italic">You can add more events later</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <h2 className="text-xl md:text-3xl font-bold mb-2">Which events are you planning?</h2>
+              <p className="text-gray-500 mb-1 text-sm md:text-base">Select all that apply. We&apos;ll create a timeline for each.</p>
+              <p className="text-xs md:text-sm text-gray-400 mb-4 md:mb-6 italic">You can add more events later</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
                 {(EVENTS[data.religion] || EVENTS.hindu).map((e) => (
                   <button key={e} onClick={() => toggleEvent(e)}
                     className={`flex items-center gap-3 p-4 bg-white border-2 rounded-lg cursor-pointer transition-all ${data.selectedEvents.includes(e) ? "border-maroon bg-maroon/5" : "border-gray-200"}`}>
@@ -349,9 +349,9 @@ export default function Onboarding({ onComplete }: Props) {
 
           {step === 7 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
-              <h2 className="text-3xl font-bold mb-2">Almost done! When and where?</h2>
-              <p className="text-gray-500 mb-8">We&apos;ll set up reminders based on your wedding date.</p>
-              <div className="max-w-[400px] space-y-5">
+              <h2 className="text-xl md:text-3xl font-bold mb-2">Almost done! When and where?</h2>
+              <p className="text-gray-500 mb-6 md:mb-8 text-sm md:text-base">We&apos;ll set up reminders based on your wedding date.</p>
+              <div className="max-w-[400px] space-y-4 md:space-y-5">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Wedding Date</label>
                   <DatePicker value={data.weddingDate} min={new Date().toISOString().split("T")[0]} onChange={(val) => setData({ ...data, weddingDate: val })} />
@@ -375,9 +375,9 @@ export default function Onboarding({ onComplete }: Props) {
             </div>
           )}
 
-          <div className="flex justify-between items-center mt-10 pt-6 border-t border-gray-200">
+          <div className="flex justify-between items-center mt-6 md:mt-10 pt-4 md:pt-6 border-t border-gray-200">
             {step > 1 ? (
-              <button onClick={() => setStep(step - 1)} className="flex items-center gap-2 text-gray-600 hover:text-maroon font-medium transition-colors">
+              <button onClick={() => setStep(step - 1)} className="flex items-center gap-2 text-gray-600 hover:text-maroon font-medium transition-colors text-sm md:text-base">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                 </svg>
@@ -386,7 +386,7 @@ export default function Onboarding({ onComplete }: Props) {
             ) : <div />}
             {step < totalSteps ? (
               <button onClick={handleContinue}
-                className={`flex items-center gap-2 px-8 py-4 text-lg font-bold rounded-lg transition-all ${
+                className={`flex items-center gap-2 px-5 md:px-8 py-2.5 md:py-4 text-sm md:text-lg font-bold rounded-lg transition-all ${
                   canContinue()
                     ? "text-white bg-gradient-to-br from-maroon to-maroon-light shadow-[0_4px_15px_rgba(139,0,0,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(139,0,0,0.4)] cursor-pointer"
                     : "bg-gray-200 text-gray-400 cursor-not-allowed"
@@ -398,7 +398,7 @@ export default function Onboarding({ onComplete }: Props) {
               </button>
             ) : (
               <button onClick={() => onComplete(data)}
-                className="flex items-center gap-2 px-8 py-4 text-lg font-bold text-white bg-gradient-to-br from-maroon to-maroon-light rounded-lg shadow-[0_4px_15px_rgba(139,0,0,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(139,0,0,0.4)] transition-all cursor-pointer">
+                className="flex items-center gap-2 px-5 md:px-8 py-2.5 md:py-4 text-sm md:text-lg font-bold text-white bg-gradient-to-br from-maroon to-maroon-light rounded-lg shadow-[0_4px_15px_rgba(139,0,0,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(139,0,0,0.4)] transition-all cursor-pointer">
                 Create My Wedding Plan
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />

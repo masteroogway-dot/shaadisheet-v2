@@ -47,23 +47,23 @@ export default function SubscriptionsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-50 shrink-0">
+      <div className="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 sticky top-0 z-50 shrink-0">
         <Link href="/dashboard" className="flex items-center gap-2.5 text-lg font-extrabold">
           <span className="text-maroon text-xl">|||</span>
-          <span>ShaadiSheet</span>
+          <span className="hidden sm:inline">ShaadiSheet</span>
         </Link>
-        <Link href="/dashboard" className="text-sm font-medium text-gray-600 hover:text-maroon transition-colors cursor-pointer">
+        <Link href="/dashboard" className="text-xs sm:text-sm font-medium text-gray-600 hover:text-maroon transition-colors cursor-pointer">
           Back to Dashboard
         </Link>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-12">
+      <div className="max-w-5xl mx-auto px-4 md:px-6 py-8 md:py-12">
         {/* Current plan banner */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-10">
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-6 mb-6 md:mb-10">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Current Plan: Free</h2>
-              <p className="text-sm text-gray-500 mt-1">You are on the Free plan. Upgrade to unlock all features.</p>
+              <h2 className="text-base md:text-lg font-bold text-gray-900">Current Plan: Free</h2>
+              <p className="text-xs md:text-sm text-gray-500 mt-1">You are on the Free plan. Upgrade to unlock all features.</p>
             </div>
             <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
               <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -75,13 +75,13 @@ export default function SubscriptionsPage() {
 
         {/* Plans */}
         <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Choose Your Plan</h1>
-        <p className="text-gray-500 mb-8">Pick the plan that works best for your wedding planning needs.</p>
+        <p className="text-gray-500 mb-6 md:mb-8 text-sm md:text-base">Pick the plan that works best for your wedding planning needs.</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {PLANS.map((plan) => (
             <div
               key={plan.name}
-              className={`bg-white rounded-2xl border-2 p-6 flex flex-col ${
+              className={`bg-white rounded-2xl border-2 p-4 md:p-6 flex flex-col ${
                 plan.popular ? "border-maroon shadow-lg relative" : "border-gray-200"
               }`}
             >
@@ -128,17 +128,17 @@ export default function SubscriptionsPage() {
         </div>
 
         {/* FAQ */}
-        <div className="mt-16">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
-          <div className="space-y-4">
+        <div className="mt-10 md:mt-16">
+          <h2 className="text-lg font-bold text-gray-900 mb-4 md:mb-6">Frequently Asked Questions</h2>
+          <div className="space-y-3 md:space-y-4">
             {[
               { q: "Can I cancel anytime?", a: "Yes, you can cancel your subscription at any time. Your plan will remain active until the end of the billing period." },
               { q: "Do you offer refunds?", a: "We offer a full refund within 7 days of purchase if you're not satisfied." },
               { q: "Can I switch plans?", a: "Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately with prorated billing." },
             ].map((faq) => (
-              <div key={faq.q} className="bg-white border border-gray-200 rounded-xl p-5">
-                <h3 className="font-bold text-sm text-gray-900 mb-1">{faq.q}</h3>
-                <p className="text-sm text-gray-500">{faq.a}</p>
+              <div key={faq.q} className="bg-white border border-gray-200 rounded-xl p-3 md:p-5">
+                <h3 className="font-bold text-xs md:text-sm text-gray-900 mb-1">{faq.q}</h3>
+                <p className="text-xs md:text-sm text-gray-500">{faq.a}</p>
               </div>
             ))}
           </div>

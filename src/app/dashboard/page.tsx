@@ -127,7 +127,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top header */}
-      <div className="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-50 shrink-0">
+      <div className="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 sticky top-0 z-50 shrink-0">
         <Link href="/dashboard" className="flex items-center gap-2.5 text-lg font-extrabold">
           <span className="text-maroon text-xl">|||</span>
           <span>ShaadiSheet</span>
@@ -135,16 +135,16 @@ export default function DashboardPage() {
         <ProfileMenu user={session?.user} />
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="flex items-center justify-between mb-10">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-12">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-10">
           <div>
-            <h1 className="text-3xl font-extrabold text-gray-900">My Weddings</h1>
-            <p className="text-gray-500 mt-1">Manage all your wedding plans in one place</p>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900">My Weddings</h1>
+            <p className="text-gray-500 mt-1 text-sm md:text-base">Manage all your wedding plans in one place</p>
           </div>
           <button
             onClick={handleCreateWedding}
             disabled={creating}
-            className="px-6 py-3 bg-maroon text-white font-semibold rounded-lg hover:bg-maroon-dark transition-colors flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+            className="px-5 md:px-6 py-2.5 md:py-3 bg-maroon text-white font-semibold rounded-lg hover:bg-maroon-dark transition-colors flex items-center gap-2 disabled:opacity-50 cursor-pointer text-sm md:text-base"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -154,7 +154,7 @@ export default function DashboardPage() {
         </div>
 
         {weddings.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-200 p-16 text-center">
+          <div className="bg-white rounded-2xl border border-gray-200 p-8 md:p-16 text-center">
             <div className="w-20 h-20 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-6">
               <svg className="w-10 h-10 text-maroon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -171,14 +171,14 @@ export default function DashboardPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {weddings.map((wedding) => (
               <div
                 key={wedding.id}
                 className="bg-white rounded-2xl border border-gray-200 hover:border-maroon/30 hover:shadow-xl transition-all duration-300 overflow-hidden group"
               >
                 <div className="h-3 bg-gradient-to-r from-maroon to-gold" />
-                <div className="p-6">
+                <div className="p-4 md:p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1 min-w-0">
                       {editingId === wedding.id ? (

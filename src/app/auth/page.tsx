@@ -80,7 +80,7 @@ export default function AuthPage() {
       </div>
 
       {/* Right Panel */}
-      <div className="flex-1 flex items-center justify-center p-16 bg-cream">
+      <div className="flex-1 flex items-center justify-center p-6 md:p-16 bg-cream">
         <div className="w-full max-w-[400px]">
           <h2 className="text-2xl font-bold mb-2 text-gray-900">{mode === "signup" ? "Create Your Account" : "Welcome Back"}</h2>
           <p className="text-gray-500 mb-8 text-sm">

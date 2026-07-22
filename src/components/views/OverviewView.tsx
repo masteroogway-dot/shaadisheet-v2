@@ -96,7 +96,7 @@ export default function OverviewView({ wedding }: { wedding: any }) {
       </div>
 
       {!hasData ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+        <div className="bg-white rounded-xl border border-gray-200 p-8 md:p-16 text-center">
           <div className="w-16 h-16 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-4">
             <i className="fas fa-rocket text-maroon text-xl" />
           </div>
@@ -119,7 +119,7 @@ export default function OverviewView({ wedding }: { wedding: any }) {
                 { label: "Tasks", numVal: tasksDone, prefix: "", suffix: totalTasks > 0 ? ` / ${totalTasks}` : "", formatFn: undefined, sub: totalTasks > 0 ? `${totalTasks - tasksDone} remaining` : "No tasks yet", icon: "fa-tasks", gradient: "from-orange-600 to-red-700" },
                 { label: "Rooms", numVal: totalRooms, prefix: "", suffix: "", formatFn: undefined, sub: roomsOccupied > 0 ? `${roomsOccupied} checked in` : totalRooms > 0 ? "None checked in" : "No rooms allocated", icon: "fa-bed", gradient: "from-purple-600 to-purple-800" },
               ].map((s, i) => (
-                <div key={i} className="bg-white rounded-xl p-5 border border-gray-200 flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div key={i} className={`bg-white rounded-xl p-4 md:p-5 border border-gray-200 flex items-center gap-3 md:gap-4 hover:shadow-md transition-shadow ${i === 4 ? "col-span-2 lg:col-span-1" : ""}`}>
                   <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${s.gradient} flex items-center justify-center text-white shrink-0`}>
                     <i className={`fas ${s.icon}`} />
                   </div>

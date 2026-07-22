@@ -25,21 +25,21 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-50 shrink-0">
+      <div className="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 sticky top-0 z-50 shrink-0">
         <Link href="/dashboard" className="flex items-center gap-2.5 text-lg font-extrabold">
           <span className="text-maroon text-xl">|||</span>
-          <span>ShaadiSheet</span>
+          <span className="hidden sm:inline">ShaadiSheet</span>
         </Link>
-        <Link href="/dashboard" className="text-sm font-medium text-gray-600 hover:text-maroon transition-colors cursor-pointer">
+        <Link href="/dashboard" className="text-xs sm:text-sm font-medium text-gray-600 hover:text-maroon transition-colors cursor-pointer">
           Back to Dashboard
         </Link>
       </div>
 
-      <div className="max-w-2xl mx-auto px-6 py-12">
-        <h1 className="text-2xl font-extrabold text-gray-900 mb-8">Settings</h1>
+      <div className="max-w-2xl mx-auto px-4 md:px-6 py-8 md:py-12">
+        <h1 className="text-xl md:text-2xl font-extrabold text-gray-900 mb-6 md:mb-8">Settings</h1>
 
         {/* Profile */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-6">
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-6 mb-4 md:mb-6">
           <h2 className="text-lg font-bold text-gray-900 mb-4">Profile</h2>
           <div className="space-y-4">
             <div>
@@ -81,8 +81,8 @@ export default function SettingsPage() {
         </div>
 
         {/* Danger zone */}
-        <div className="bg-white border border-red-200 rounded-2xl p-6">
-          <h2 className="text-lg font-bold text-red-600 mb-2">Danger Zone</h2>
+        <div className="bg-white border border-red-200 rounded-2xl p-4 md:p-6">
+          <h2 className="text-base md:text-lg font-bold text-red-600 mb-2">Danger Zone</h2>
           <p className="text-sm text-gray-500 mb-4">Permanently delete your account and all associated data.</p>
           <button className="px-4 py-2 text-sm font-semibold text-red-600 border border-red-300 rounded-xl hover:bg-red-50 transition-colors cursor-pointer">
             Delete Account
