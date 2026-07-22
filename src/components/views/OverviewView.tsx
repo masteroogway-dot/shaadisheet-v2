@@ -187,8 +187,9 @@ export default function OverviewView({ wedding, onWeddingUpdate }: { wedding: an
                         <span className="text-gray-500 font-semibold">{"\u20B9"}</span>
                         <input
                           type="number"
-                          value={budget}
+                          value={budget || ""}
                           onChange={(e) => setBudget(parseInt(e.target.value) || 0)}
+                          placeholder="0"
                           className="w-36 px-3 py-1.5 border-2 border-maroon rounded-lg text-sm font-bold focus:outline-none"
                           min={0}
                         />
@@ -221,12 +222,13 @@ export default function OverviewView({ wedding, onWeddingUpdate }: { wedding: an
                     <p className="text-xs text-gray-500 font-medium mb-1">Expected Guests</p>
                     {editingGuests ? (
                       <input
-                        type="number"
-                        value={guestCount}
-                        onChange={(e) => setGuestCount(parseInt(e.target.value) || 0)}
-                        className="w-36 px-3 py-1.5 border-2 border-maroon rounded-lg text-sm font-bold focus:outline-none"
-                        min={0}
-                      />
+                          type="number"
+                          value={guestCount || ""}
+                          onChange={(e) => setGuestCount(parseInt(e.target.value) || 0)}
+                          placeholder="0"
+                          className="w-36 px-3 py-1.5 border-2 border-maroon rounded-lg text-sm font-bold focus:outline-none"
+                          min={0}
+                        />
                     ) : (
                       <p className="text-lg font-extrabold text-gray-900">
                         {guestCount > 0 ? guestCount.toLocaleString("en-IN") : "Not set"}
