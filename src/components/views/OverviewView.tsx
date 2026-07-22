@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import CountUp from "@/components/animations/CountUp";
 import ScrollReveal from "@/components/animations/ScrollReveal";
+import { updateWedding } from "@/lib/actions";
 
 function formatINR(n: number): string {
   if (n === 0) return "0";
@@ -27,7 +29,38 @@ function formatBudgetShort(n: number): string {
   return n.toLocaleString("en-IN");
 }
 
-export default function OverviewView({ wedding }: { wedding: any }) {
+export default function OverviewView({ wedding, onWeddingUpdate }: { wedding: any; onWeddingUpdate?: (w: any) => void }) {
+  const [budget, setBudget] = useState(wedding.budget || 0);
+  const [guestCount, setGuestCount] = useState(wedding.guestCount || 0);
+  const [editingBudget, setEditingBudget] = useState(false);
+  const [editingGuests, setEditingGuests] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const handleSaveBudget = async () => {
+    setSaving(true);
+    try {
+      await updateWedding({ weddingId: wedding.id, budget });
+      setEditingBudget(false);
+      if (onWeddingUpdate) onWeddingUpdate({ ...wedding, budget });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveGuests = async () => {
+    setSaving(true);
+    try {
+      await updateWedding({ weddingId: wedding.id, guestCount });
+      setEditingGuests(false);
+      if (onWeddingUpdate) onWeddingUpdate({ ...wedding, guestCount });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSaving(false);
+    }
+  };
   const totalBudget = wedding.budget || 0;
   const totalSpent = wedding.budgetItems?.reduce((s: number, i: any) => s + (i.paid || 0), 0) || 0;
   const totalGuests = wedding.guests?.length || 0;
@@ -134,6 +167,88 @@ export default function OverviewView({ wedding }: { wedding: any }) {
                   </div>
                 </div>
               ))}
+            </div>
+          </ScrollReveal>
+
+          {/* Wedding Settings */}
+          <ScrollReveal>
+            <div className="bg-white rounded-xl border border-gray-200 p-5 md:p-6 mb-6 md:mb-8">
+              <h3 className="font-bold text-gray-900 mb-4">
+                <i className="fas fa-cog text-gray-400 mr-2" />
+                Wedding Settings
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Budget */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium mb-1">Total Budget</p>
+                    {editingBudget ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 font-semibold">{"\u20B9"}</span>
+                        <input
+                          type="number"
+                          value={budget}
+                          onChange={(e) => setBudget(parseInt(e.target.value) || 0)}
+                          className="w-36 px-3 py-1.5 border-2 border-maroon rounded-lg text-sm font-bold focus:outline-none"
+                          min={0}
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-lg font-extrabold text-gray-900">
+                        {"\u20B9"}{budget > 0 ? formatINR(budget) : "Not set"}
+                      </p>
+                    )}
+                  </div>
+                  {editingBudget ? (
+                    <div className="flex gap-2">
+                      <button onClick={handleSaveBudget} disabled={saving} className="px-3 py-1.5 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
+                        {saving ? "Saving..." : "Save"}
+                      </button>
+                      <button onClick={() => { setEditingBudget(false); setBudget(wedding.budget || 0); }} className="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button onClick={() => setEditingBudget(true)} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer">
+                      <i className="fas fa-pen mr-1" /> Edit
+                    </button>
+                  )}
+                </div>
+
+                {/* Guest Count */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium mb-1">Expected Guests</p>
+                    {editingGuests ? (
+                      <input
+                        type="number"
+                        value={guestCount}
+                        onChange={(e) => setGuestCount(parseInt(e.target.value) || 0)}
+                        className="w-36 px-3 py-1.5 border-2 border-maroon rounded-lg text-sm font-bold focus:outline-none"
+                        min={0}
+                      />
+                    ) : (
+                      <p className="text-lg font-extrabold text-gray-900">
+                        {guestCount > 0 ? guestCount.toLocaleString("en-IN") : "Not set"}
+                      </p>
+                    )}
+                  </div>
+                  {editingGuests ? (
+                    <div className="flex gap-2">
+                      <button onClick={handleSaveGuests} disabled={saving} className="px-3 py-1.5 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
+                        {saving ? "Saving..." : "Save"}
+                      </button>
+                      <button onClick={() => { setEditingGuests(false); setGuestCount(wedding.guestCount || 0); }} className="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button onClick={() => setEditingGuests(true)} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer">
+                      <i className="fas fa-pen mr-1" /> Edit
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </ScrollReveal>
 
