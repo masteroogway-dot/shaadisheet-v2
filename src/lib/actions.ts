@@ -1014,9 +1014,12 @@ export async function seedWeddingTimeline(weddingId: string) {
   // If timeline items already exist, check if they match the selected events.
   // If not, delete old items and re-seed.
   if (existing.length > 0) {
+    const existingTitles = new Set(existing.map((item) => item.title));
     const templateTitles = new Set(filteredTemplate.map((t) => t.title));
-    const mismatch = existing.some((item) => !templateTitles.has(item.title));
-    if (!mismatch) return; // Already in sync
+    // Check both directions: existing items not in template, OR template items missing from DB
+    const hasStale = existing.some((item) => !templateTitles.has(item.title));
+    const hasMissing = filteredTemplate.some((t) => !existingTitles.has(t.title));
+    if (!hasStale && !hasMissing) return; // Already in sync
     // Delete all existing timeline items and re-seed
     await prisma.weddingTimelineItem.deleteMany({ where: { weddingId } });
   }
