@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 1);
-const MINUTES = ["00", "15", "30", "45"];
 
 function formatDisplay(val: string): string {
   if (!val) return "";
@@ -27,10 +26,8 @@ function parseTime(val: string): { hour: number; minute: string; period: string 
   if (isNaN(h) || isNaN(m)) return { hour: 10, minute: "00", period: "AM" };
   const period = h >= 12 ? "PM" : "AM";
   const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  const closestMin = MINUTES.reduce((prev, curr) =>
-    Math.abs(parseInt(curr) - m) < Math.abs(parseInt(prev) - m) ? curr : prev
-  );
-  return { hour: h12, minute: closestMin, period };
+  const clamped = Math.max(0, Math.min(59, m));
+  return { hour: h12, minute: String(clamped).padStart(2, "0"), period };
 }
 
 export default function TimePicker({
@@ -112,19 +109,32 @@ export default function TimePicker({
           {/* Minute */}
           <div className="mb-3">
             <div className="text-[11px] font-semibold text-gray-400 uppercase mb-1.5">Minutes</div>
-            <div className="grid grid-cols-4 gap-1">
-              {MINUTES.map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setSelMin(m)}
-                  className={`h-8 text-xs rounded-lg font-medium transition-colors cursor-pointer ${
-                    selMin === m ? "bg-maroon text-white" : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  {m}
-                </button>
-              ))}
+            <div className="flex items-center gap-2 mb-1.5">
+              <input
+                type="number"
+                min={0}
+                max={59}
+                value={selMin}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value);
+                  if (!isNaN(v) && v >= 0 && v <= 59) setSelMin(String(v).padStart(2, "0"));
+                }}
+                className="w-14 h-8 text-center text-xs font-medium border border-gray-200 rounded-lg focus:outline-none focus:border-maroon bg-[#fafafa]"
+              />
+              <div className="flex gap-1 flex-1">
+                {[0, 5, 10, 15, 30, 45].map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setSelMin(String(m).padStart(2, "0"))}
+                    className={`h-8 flex-1 text-[11px] rounded-lg font-medium transition-colors cursor-pointer ${
+                      selMin === String(m).padStart(2, "0") ? "bg-maroon text-white" : "text-gray-600 hover:bg-gray-100"
+                    }`}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
