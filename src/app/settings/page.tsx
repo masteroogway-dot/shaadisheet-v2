@@ -27,7 +27,7 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 sticky top-0 z-50 shrink-0">
         <Link href="/dashboard" className="flex items-center gap-2.5">
-          <img src="/logo.png" alt="ShaadiSheet" className="h-8 w-auto" />
+          <img src="/logo.png" alt="ShaadiSheet" className="h-12 w-auto" />
         </Link>
         <Link href="/dashboard" className="text-xs sm:text-sm font-medium text-gray-600 hover:text-maroon transition-colors cursor-pointer">
           Back to Dashboard
