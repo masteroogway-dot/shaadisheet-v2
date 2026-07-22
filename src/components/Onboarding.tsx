@@ -415,31 +415,57 @@ export default function Onboarding({ onComplete }: Props) {
 function DiyaIcon() {
   return (
     <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3c-1.5 2-3.5 3-3.5 6 0 1.8 1.3 3 3.5 3s3.5-1.2 3.5-3c0-3-2-4-3.5-6z" fill="currentColor" opacity="0.15" />
-      <path d="M12 3c-1.5 2-3.5 3-3.5 6 0 1.8 1.3 3 3.5 3s3.5-1.2 3.5-3c0-3-2-4-3.5-6z" />
-      <path d="M8.5 12h7l1 4H7.5l1-4z" />
-      <path d="M7 16h10v1c0 1.5-2 3-5 3s-5-1.5-5-3v-1z" />
+      {/* Temple dome */}
+      <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+      <path d="M4 18h16" />
+      <path d="M5 18v-4h14v4" />
+      <path d="M7 14v-3h10v3" />
+      <path d="M8 11V8h8v3" />
+      {/* Dome */}
+      <path d="M9 8c0-3 1.5-5 3-5s3 2 3 5" />
+      {/* Kalash on top */}
+      <circle cx="12" cy="2.5" r="1" fill="currentColor" opacity="0.3" />
+      <path d="M11.5 3.5v1" />
+      {/* Pillars */}
+      <line x1="7" y1="14" x2="7" y2="18" />
+      <line x1="17" y1="14" x2="17" y2="18" />
     </svg>
   );
 }
 
 function CrescentIcon() {
   return (
-    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M15.5 3.5a8 8 0 1 0 0 17 8 8 0 0 1 0-17z" opacity="0.15" />
-      <path d="M15.5 3.5a8 8 0 1 0 0 17 8 8 0 0 1 0-17zm-3.5 4a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      {/* Mosque dome */}
+      <path d="M3 18h18v2H3z" fill="currentColor" opacity="0.15" />
+      <path d="M3 18h18" />
+      <path d="M5 18v-5h14v5" />
+      <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
+      {/* Minarets */}
+      <line x1="4" y1="8" x2="4" y2="18" />
+      <line x1="20" y1="8" x2="20" y2="18" />
+      <circle cx="4" cy="7.5" r="0.8" fill="currentColor" opacity="0.3" />
+      <circle cx="20" cy="7.5" r="0.8" fill="currentColor" opacity="0.3" />
+      {/* Crescent on top */}
+      <path d="M11 4.5a1.5 1.5 0 1 0 2 0 1.5 1.5 0 0 0-2 0" fill="currentColor" opacity="0.4" />
     </svg>
   );
 }
 
 function KhandaIcon() {
   return (
-    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-      <line x1="12" y1="3" x2="12" y2="21" />
-      <circle cx="12" cy="13" r="4" />
-      <path d="M8 5.5c1.5 1.5 2.5 3.5 2.5 7.5" />
-      <path d="M16 5.5c-1.5 1.5-2.5 3.5-2.5 7.5" />
-      <path d="M8.5 4h7" />
+    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      {/* Gurdwara dome structure */}
+      <path d="M3 18h18v2H3z" fill="currentColor" opacity="0.15" />
+      <path d="M3 18h18" />
+      <path d="M6 18v-4h12v4" />
+      {/* Main dome */}
+      <path d="M8 14c0-4 2-7 4-7s4 3 4 7" />
+      {/* Small dome on top */}
+      <path d="M10.5 7c0-1.5.7-3 1.5-3s1.5 1.5 1.5 3" />
+      {/* Khanda symbol on dome */}
+      <line x1="12" y1="5" x2="12" y2="3" />
+      <circle cx="12" cy="2.5" r="0.6" fill="currentColor" />
     </svg>
   );
 }
@@ -447,9 +473,19 @@ function KhandaIcon() {
 function CrossIcon() {
   return (
     <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3v18" />
-      <path d="M5 8h14" />
-      <circle cx="12" cy="5.5" r="1" fill="currentColor" opacity="0.2" />
+      {/* Church building */}
+      <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+      <path d="M4 18h16" />
+      <path d="M6 18v-6h12v6" />
+      {/* Steeple */}
+      <path d="M10 12V7l2-4 2 4v5" />
+      {/* Cross on top */}
+      <line x1="12" y1="1" x2="12" y2="3" />
+      <line x1="11" y1="2" x2="13" y2="2" />
+      {/* Door */}
+      <path d="M10.5 18v-3h3v3" />
+      {/* Window */}
+      <circle cx="12" cy="14.5" r="1" />
     </svg>
   );
 }
@@ -457,9 +493,18 @@ function CrossIcon() {
 function AhimsaIcon() {
   return (
     <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 21c-4 0-7-3-7-7 0-3 2-5 4-6l3-6 3 6c2 1 4 3 4 6 0 4-3 7-7 7z" opacity="0.1" fill="currentColor" />
-      <path d="M12 21c-4 0-7-3-7-7 0-3 2-5 4-6l3-6 3 6c2 1 4 3 4 6 0 4-3 7-7 7z" />
-      <circle cx="12" cy="14" r="2" />
+      {/* Jain temple / Ahimsa hand */}
+      <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+      <path d="M4 18h16" />
+      <path d="M6 18v-5h12v5" />
+      {/* Dome */}
+      <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
+      {/* Ahimsa hand (palm with wheel) */}
+      <circle cx="12" cy="12" r="2.5" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" opacity="0.3" />
+      {/* Small spire on top */}
+      <line x1="12" y1="6" x2="12" y2="4" />
+      <circle cx="12" cy="3.5" r="0.5" fill="currentColor" opacity="0.4" />
     </svg>
   );
 }
