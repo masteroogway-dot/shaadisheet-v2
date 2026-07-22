@@ -173,48 +173,43 @@ function MarigoldGarland({ side }: { side: "left" | "right" }) {
 }
 
 /* ─────────────────────────────────────────────
-   WEDDING SCENE CAROUSEL — IMAGE BASED
+   WEDDING SCENE CAROUSEL — FULL BACKGROUND
    ───────────────────────────────────────────── */
 
 const SCENES = [
   {
     key: "hindu",
     label: "Hindu Wedding",
-    gradient: "linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 30%, #FFCC80 60%, #FFB74D 100%)",
-    accent: "#D4AF37",
+    gradient: "linear-gradient(135deg, #3B1A08 0%, #5C2E0E 50%, #8B4513 100%)",
     image: "/weddings/hindu.jpg",
   },
   {
     key: "muslim",
     label: "Muslim Wedding",
-    gradient: "linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 30%, #A5D6A7 60%, #81C784 100%)",
-    accent: "#2E7D32",
+    gradient: "linear-gradient(135deg, #0A2E12 0%, #1B5E20 50%, #2E7D32 100%)",
     image: "/weddings/muslim.jpg",
   },
   {
     key: "sikh",
     label: "Sikh Wedding",
-    gradient: "linear-gradient(135deg, #FFF8E1 0%, #FFECB3 30%, #FFD54F 60%, #FFCA28 100%)",
-    accent: "#E65100",
+    gradient: "linear-gradient(135deg, #3E1A00 0%, #7A3B00 50%, #E65100 100%)",
     image: "/weddings/sikh.jpg",
   },
   {
     key: "christian",
     label: "Christian Wedding",
-    gradient: "linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 30%, #90CAF9 60%, #64B5F6 100%)",
-    accent: "#1565C0",
+    gradient: "linear-gradient(135deg, #0D1B3E 0%, #1A3A6B 50%, #1565C0 100%)",
     image: "/weddings/christian.jpg",
   },
   {
     key: "jain",
     label: "Jain Wedding",
-    gradient: "linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 30%, #CE93D8 60%, #BA68C8 100%)",
-    accent: "#6A1B9A",
+    gradient: "linear-gradient(135deg, #1A0A2E 0%, #4A148C 50%, #6A1B9A 100%)",
     image: "/weddings/jain.jpg",
   },
 ];
 
-function WeddingSceneCarousel() {
+function HeroBackground() {
   const [active, setActive] = useState(0);
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
 
@@ -228,54 +223,48 @@ function WeddingSceneCarousel() {
   }, [next]);
 
   return (
-    <div className="relative w-full max-w-[540px] mx-auto">
-      <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/10 border border-gray-200/40" style={{ aspectRatio: "4/3" }}>
-        {SCENES.map((scene, i) => {
-          const showImage = scene.image && !imgErrors[scene.key];
-          return (
-            <div
-              key={scene.key}
-              className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
-              style={{ opacity: i === active ? 1 : 0, zIndex: i === active ? 1 : 0 }}
-            >
-              {/* Gradient fallback (always rendered behind) */}
-              <div className="absolute inset-0" style={{ background: scene.gradient }} />
-
-              {/* Image (if available) */}
-              {showImage && (
-                <img
-                  src={scene.image}
-                  alt={scene.label}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  onError={() => setImgErrors((prev) => ({ ...prev, [scene.key]: true }))}
-                />
-              )}
-
-              {/* Soft overlay for text readability */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-            </div>
-          );
-        })}
-
-        {/* Label */}
-        <div className="absolute bottom-5 left-0 right-0 text-center z-10">
-          <span
-            className="inline-block px-5 py-2 bg-white/90 backdrop-blur-sm rounded-full text-sm font-bold tracking-wide shadow-lg"
-            style={{ color: SCENES[active].accent }}
+    <div className="absolute inset-0 z-0">
+      {SCENES.map((scene, i) => {
+        const showImage = scene.image && !imgErrors[scene.key];
+        return (
+          <div
+            key={scene.key}
+            className="absolute inset-0 transition-opacity duration-[1500ms] ease-in-out"
+            style={{ opacity: i === active ? 1 : 0, zIndex: i === active ? 1 : 0 }}
           >
-            {SCENES[active].label}
-          </span>
-        </div>
+            <div className="absolute inset-0" style={{ background: scene.gradient }} />
+            {showImage && (
+              <img
+                src={scene.image}
+                alt={scene.label}
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={() => setImgErrors((prev) => ({ ...prev, [scene.key]: true }))}
+              />
+            )}
+          </div>
+        );
+      })}
+
+      {/* Dark overlay for text readability */}
+      <div className="absolute inset-0 z-[2]" style={{
+        background: "linear-gradient(135deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.25) 70%, rgba(0,0,0,0.15) 100%)"
+      }} />
+
+      {/* Bottom label */}
+      <div className="absolute bottom-8 left-0 right-0 text-center z-[3]">
+        <span className="inline-block px-6 py-2.5 bg-white/15 backdrop-blur-md rounded-full text-sm font-bold tracking-wide text-white border border-white/20 shadow-2xl">
+          {SCENES[active].label}
+        </span>
       </div>
 
       {/* Dots */}
-      <div className="flex justify-center gap-2.5 mt-6">
+      <div className="absolute bottom-20 left-0 right-0 flex justify-center gap-3 z-[3]">
         {SCENES.map((scene, i) => (
           <button
             key={scene.key}
             onClick={() => setActive(i)}
             className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
-              i === active ? "w-8 bg-maroon" : "w-2.5 bg-gray-300 hover:bg-gray-400"
+              i === active ? "w-8 bg-white" : "w-2.5 bg-white/40 hover:bg-white/60"
             }`}
           />
         ))}
@@ -289,9 +278,13 @@ function WeddingSceneCarousel() {
    ───────────────────────────────────────────── */
 export default function Home() {
   const [petalKey, setPetalKey] = useState(0);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     setPetalKey(1);
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
@@ -300,68 +293,66 @@ export default function Home() {
       {petalKey > 0 && <RosePetals key={petalKey} />}
 
       {/* NAVBAR */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-cream/90 backdrop-blur-xl border-b border-gray-200/60">
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-cream/95 backdrop-blur-xl border-b border-gray-200/60" : "bg-transparent"}`}>
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-[70px]">
           <Link href="/" className="flex items-center gap-2.5 text-xl font-extrabold">
-            <span className="text-maroon text-2xl tracking-tight">|||</span>
-            <span>ShaadiSheet</span>
+            <span className={`text-2xl tracking-tight ${scrolled ? "text-maroon" : "text-white"}`}>|||</span>
+            <span className={scrolled ? "text-gray-900" : "text-white"}>ShaadiSheet</span>
           </Link>
-          <div className="hidden md:flex gap-8 text-sm font-medium text-gray-600">
-            <a href="#features" className="hover:text-maroon transition-colors">Features</a>
-            <a href="#how-it-works" className="hover:text-maroon transition-colors">How It Works</a>
-            <a href="#religions" className="hover:text-maroon transition-colors">Weddings</a>
+          <div className="hidden md:flex gap-8 text-sm font-medium">
+            <a href="#features" className={`${scrolled ? "text-gray-600 hover:text-maroon" : "text-white/80 hover:text-white"} transition-colors`}>Features</a>
+            <a href="#how-it-works" className={`${scrolled ? "text-gray-600 hover:text-maroon" : "text-white/80 hover:text-white"} transition-colors`}>How It Works</a>
+            <a href="#religions" className={`${scrolled ? "text-gray-600 hover:text-maroon" : "text-white/80 hover:text-white"} transition-colors`}>Weddings</a>
           </div>
           <div className="flex gap-3 items-center">
-            <Link href="/auth" className="px-5 py-2.5 text-sm font-semibold text-gray-700 hover:text-maroon transition-colors">Log In</Link>
+            <Link href="/auth" className={`px-5 py-2.5 text-sm font-semibold transition-colors ${scrolled ? "text-gray-700 hover:text-maroon" : "text-white/90 hover:text-white"}`}>Log In</Link>
             <Link href="/auth" className="px-5 py-2.5 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-dark transition-colors">Start Free</Link>
           </div>
         </div>
       </nav>
 
-      {/* HERO */}
-      <section className="relative pt-[100px] pb-16 px-6 overflow-hidden">
-        {/* Marigold Garlands */}
-        <MarigoldGarland side="left" />
-        <MarigoldGarland side="right" />
+      {/* HERO — FULL BACKGROUND */}
+      <section className="relative min-h-[92vh] flex items-center overflow-hidden">
+        {/* Full-background image carousel */}
+        <HeroBackground />
 
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left: Text */}
-            <div className="text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-600 mb-6">
-                <span className="w-2 h-2 rounded-full bg-green animate-pulse" />
-                Built for Indian Weddings
-              </div>
-              <h1 className="text-4xl md:text-[3.25rem] font-extrabold leading-[1.1] mb-6 tracking-tight text-gray-900">
-                Plan Your Indian Wedding<br />
-                <span className="text-maroon">Without the Chaos</span>
-              </h1>
-              <p className="text-lg text-gray-500 max-w-[480px] mb-10 leading-relaxed mx-auto lg:mx-0">
-                Budget tracking. Vendor management. Ritual checklists. AI assistance. Built for Hindu, Muslim, Sikh, Christian, and Jain weddings.
-              </p>
-              <div className="flex gap-4 justify-center lg:justify-start flex-wrap mb-10">
-                <Link href="/auth" className="px-8 py-3.5 text-base font-bold text-white bg-maroon rounded-xl hover:bg-maroon-dark transition-colors inline-flex items-center gap-2 shadow-lg shadow-maroon/20">
-                  Start Planning Free →
-                </Link>
-                <a href="#how-it-works" className="px-8 py-3.5 text-base font-bold border-2 border-gray-300 rounded-xl hover:border-maroon hover:text-maroon transition-all">
-                  See How It Works
-                </a>
-              </div>
-              <div className="flex items-center justify-center lg:justify-start gap-3">
-                <div className="flex">
-                  {["#E8B4B8", "#B4D4E8", "#D4E8B4", "#E8D4B4", "#D4B4E8"].map((c, i) => (
-                    <div key={i} className="w-8 h-8 rounded-full flex items-center justify-center text-[0.65rem] font-bold text-white -ml-2 border-2 border-white first:ml-0" style={{ background: c }}>
-                      {["RK", "AP", "SM", "PJ", "NM"][i]}
-                    </div>
-                  ))}
-                </div>
-                <p className="text-sm text-gray-500">500+ families already planning</p>
-              </div>
+        {/* Marigold Garlands — transparent over image */}
+        <div className="relative z-[4] opacity-50">
+          <MarigoldGarland side="left" />
+          <MarigoldGarland side="right" />
+        </div>
+
+        {/* Content over background */}
+        <div className="relative z-[5] w-full pt-[100px] pb-28 px-6">
+          <div className="max-w-6xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-sm font-medium text-white/90 mb-8">
+              <span className="w-2 h-2 rounded-full bg-green animate-pulse" />
+              Built for Indian Weddings
             </div>
-
-            {/* Right: Wedding Scene */}
-            <div className="relative">
-              <WeddingSceneCarousel />
+            <h1 className="text-4xl md:text-[3.5rem] font-extrabold leading-[1.08] mb-6 tracking-tight text-white drop-shadow-lg">
+              Plan Your Indian Wedding<br />
+              <span className="text-[#FFD54F]">Without the Chaos</span>
+            </h1>
+            <p className="text-lg text-white/80 max-w-[520px] mb-10 leading-relaxed mx-auto drop-shadow">
+              Budget tracking. Vendor management. Ritual checklists. AI assistance. Built for Hindu, Muslim, Sikh, Christian, and Jain weddings.
+            </p>
+            <div className="flex gap-4 justify-center flex-wrap mb-10">
+              <Link href="/auth" className="px-8 py-3.5 text-base font-bold text-maroon bg-white rounded-xl hover:bg-gray-100 transition-colors inline-flex items-center gap-2 shadow-2xl">
+                Start Planning Free →
+              </Link>
+              <a href="#how-it-works" className="px-8 py-3.5 text-base font-bold border-2 border-white/30 rounded-xl text-white hover:bg-white/10 transition-all backdrop-blur-sm">
+                See How It Works
+              </a>
+            </div>
+            <div className="flex items-center justify-center gap-3">
+              <div className="flex">
+                {["#E8B4B8", "#B4D4E8", "#D4E8B4", "#E8D4B4", "#D4B4E8"].map((c, i) => (
+                  <div key={i} className="w-8 h-8 rounded-full flex items-center justify-center text-[0.65rem] font-bold text-white -ml-2 border-2 border-white/30 first:ml-0" style={{ background: c }}>
+                    {["RK", "AP", "SM", "PJ", "NM"][i]}
+                  </div>
+                ))}
+              </div>
+              <p className="text-sm text-white/70">500+ families already planning</p>
             </div>
           </div>
         </div>
