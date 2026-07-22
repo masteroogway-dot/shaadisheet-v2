@@ -179,6 +179,7 @@ export default function OverviewView({ wedding, onUpdate }: { wedding: any; onUp
               <h3 className="font-bold text-gray-900 mb-4">
                 <i className="fas fa-cog text-gray-400 mr-2" />
                 Wedding Settings
+                <span className="text-xs text-gray-400 font-normal ml-2">- Refresh page after saving to see updated stats</span>
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Budget */}
