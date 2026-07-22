@@ -59,8 +59,8 @@ export default function AuthPage() {
     <div className="flex min-h-screen">
       {/* Left Panel */}
       <div className="hidden lg:flex flex-1 bg-maroon text-white p-16 flex-col justify-center relative overflow-hidden">
-        <Link href="/" className="flex items-center gap-2.5 relative z-10">
-          <img src="/logo.png" alt="ShaadiSheet" className="h-10 w-auto brightness-0 invert" />
+        <Link href="/" className="flex items-center gap-2.5 relative z-10 mb-16">
+          <img src="/logo.png" alt="ShaadiSheet" className="h-10 w-auto" style={{ filter: "invert(1) brightness(2)" }} />
         </Link>
         <div className="relative z-10 mb-12">
           <h1 className="text-[2.5rem] font-extrabold leading-[1.15] mb-4">

@@ -302,7 +302,7 @@ export default function Home() {
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-cream/95 backdrop-blur-xl border-b border-gray-200/60" : "bg-transparent"}`}>
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-[70px]">
           <Link href="/" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="ShaadiSheet" className="h-10 w-auto" />
+            <img src="/logo.png" alt="ShaadiSheet" className="h-10 w-auto" style={{ filter: "invert(1) brightness(2)" }} />
           </Link>
           <div className="hidden md:flex gap-8 text-sm font-medium">
             <a href="#features" className={`${scrolled ? "text-gray-600 hover:text-maroon" : "text-white/80 hover:text-white"} transition-colors`}>Features</a>
@@ -558,7 +558,7 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 mb-6 md:mb-10">
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2.5 mb-3">
-                <img src="/logo.png" alt="ShaadiSheet" className="h-8 w-auto brightness-0 invert opacity-90" />
+                <img src="/logo.png" alt="ShaadiSheet" className="h-8 w-auto" style={{ filter: "invert(1) brightness(2)" }} />
               </div>
               <p className="text-gray-400 text-sm">Har Shaadi Ka Plan. Built with love from Nashik, India.</p>
             </div>
