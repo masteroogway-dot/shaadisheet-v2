@@ -166,10 +166,9 @@ export async function updateWedding(data: {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Not authenticated");
 
-  const wedding = await prisma.wedding.findFirst({
-    where: { id: data.weddingId, userId: session.user.id },
-  });
-  if (!wedding) throw new Error("Wedding not found");
+  const role = await getUserRole(data.weddingId);
+  if (!role) throw new Error("Wedding not found");
+  if (role === "viewer") throw new Error("Unauthorized");
 
   const { weddingId, selectedEvents, ...rest } = data;
   return prisma.wedding.update({
