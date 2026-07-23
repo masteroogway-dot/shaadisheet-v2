@@ -14,6 +14,7 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkCount, setBulkCount] = useState(1);
   const [showBulkInput, setShowBulkInput] = useState(false);
+  const [rangeInput, setRangeInput] = useState("");
 
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
@@ -30,6 +31,30 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
     } else {
       setSelected(new Set(tables.map((t: any) => t.id)));
     }
+  };
+
+  const handleSelectRange = () => {
+    if (!rangeInput.trim()) return;
+    const ids = new Set<string>();
+    const parts = rangeInput.split(",").map(s => s.trim());
+    for (const part of parts) {
+      if (part.includes("-")) {
+        const [a, b] = part.split("-").map(Number);
+        if (!isNaN(a) && !isNaN(b)) {
+          const lo = Math.min(a, b);
+          const hi = Math.max(a, b);
+          for (let i = lo; i <= hi; i++) {
+            if (i >= 1 && i <= tables.length) ids.add(tables[i - 1].id);
+          }
+        }
+      } else {
+        const n = Number(part);
+        if (!isNaN(n) && n >= 1 && n <= tables.length) ids.add(tables[n - 1].id);
+      }
+    }
+    setSelected(ids);
+    setRangeInput("");
+    if (ids.size > 0) onToast(`${ids.size} table${ids.size > 1 ? "s" : ""} selected`, "success");
   };
 
   const handleBulkDelete = async () => {
@@ -144,11 +169,28 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
           <h2 className="text-2xl font-bold">Seating Chart</h2>
           <p className="text-gray-500 text-sm">Plan where every guest sits</p>
         </div>
-        <div className="flex gap-2.5 items-center">
+        <div className="flex gap-2.5 items-center flex-wrap">
           {canEdit && selected.size > 0 && (
             <button onClick={handleBulkDelete} className="btn-delete">
               <i className="fas fa-trash mr-1.5" /> Delete Selected ({selected.size})
             </button>
+          )}
+          {canEdit && tables.length > 0 && (
+            <>
+              <button onClick={toggleSelectAll} className="btn-edit text-xs py-2 px-3">
+                <i className="fas fa-check-double mr-1.5" /> {selected.size === tables.length ? "Deselect All" : "Select All"}
+              </button>
+              <div className="flex items-center gap-1.5">
+                <input
+                  value={rangeInput}
+                  onChange={(e) => setRangeInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSelectRange()}
+                  placeholder="e.g. 5-10, 3"
+                  className="card-input py-1.5 text-xs w-36"
+                />
+                <button onClick={handleSelectRange} className="btn-edit text-xs py-2 px-2.5"><i className="fas fa-arrow-right" /></button>
+              </div>
+            </>
           )}
           {canEdit && (
             <button onClick={handleAddTable} className="btn-maroon">
@@ -196,7 +238,7 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {tables.map((table: any) => {
+        {tables.map((table: any, idx: number) => {
           let tableGuests: string[] = [];
           try { tableGuests = JSON.parse(table.guests || "[]"); } catch { tableGuests = []; }
           const isEditing = editing === table.id;
@@ -204,7 +246,8 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
 
           return (
             <div key={table.id} className={`item-card ${isEditing ? "editing" : ""} relative`}>
-              <div className="absolute top-4 left-4">
+              <div className="absolute top-4 left-4 flex items-center gap-2">
+                <span className="text-[0.65rem] font-bold text-gray-400 bg-gray-100 rounded px-1.5 py-0.5 leading-none">{idx + 1}</span>
                 <input
                   type="checkbox"
                   checked={selected.has(table.id)}
