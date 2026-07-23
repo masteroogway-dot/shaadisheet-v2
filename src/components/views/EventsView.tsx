@@ -97,6 +97,17 @@ const DURATION_OPTIONS = [
 
 export default function EventsView({ wedding, weddingId, canEdit = true }: { wedding: any; weddingId: string; canEdit?: boolean }) {
   const [events, setEvents] = useState<WeddingEvent[]>([]);
+
+  const getRitualIcon = (religion: string) => {
+    switch (religion) {
+      case "hindu": return "fas fa-om";
+      case "muslim": return "fas fa-star-and-crescent";
+      case "sikh": return "fas fa-hands-praying";
+      case "christian": return "fas fa-cross";
+      case "jain": return "fas fa-om";
+      default: return "fas fa-star";
+    }
+  };
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<WeddingEvent>>({});
   const [loading, setLoading] = useState(true);
@@ -396,7 +407,7 @@ export default function EventsView({ wedding, weddingId, canEdit = true }: { wed
                                 )}
                                 {event.isRitual && (
                                   <span className="flex items-center gap-1">
-                                    <i className="fas fa-om" />
+                                    <i className={getRitualIcon(wedding.religion)} />
                                     Ritual
                                   </span>
                                 )}
