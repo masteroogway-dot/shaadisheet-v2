@@ -95,12 +95,12 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
 
   return (
     <div>
-      <div className="flex justify-between items-start mb-7">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-7">
         <div>
           <h2 className="text-2xl font-bold">Guest List & RSVP</h2>
           <p className="text-gray-500 text-sm">Track every guest {'\u2014'} RSVP, dietary needs, gifts</p>
         </div>
-        <div className="flex gap-2.5">
+        <div className="flex gap-2.5 flex-wrap">
           {canEdit && (
             <>
               <button onClick={() => setShowImport(true)} className="btn-maroon">
@@ -115,7 +115,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
       </div>
 
       {totalGuests > 0 && (
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
             { num: totalGuests, label: "Total Invited", color: "" },
             { num: rsvpYes, label: "RSVP'd Yes", color: "text-green" },
@@ -133,7 +133,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
       {selected.size > 0 && canEdit && (
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">{selected.size} selected</span>
-          <button onClick={handleBulkDelete} className="btn-delete text-xs py-1 px-3">
+          <button onClick={handleBulkDelete} className="btn-delete text-xs py-2 px-3">
             <i className="fas fa-trash mr-1" /> Delete Selected
           </button>
           <button onClick={() => setSelected(new Set())} className="text-xs text-gray-500 hover:text-gray-700 cursor-pointer">Clear</button>
@@ -144,13 +144,13 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">Add how many guests?</span>
           <input type="number" min={1} max={500} value={bulkAddCount} onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 1)} className="card-input w-20 py-1.5 text-center" />
-          <button onClick={handleBulkAdd} className="btn-maroon text-xs py-1.5 px-3">Add</button>
-          <button onClick={() => { setShowBulkAdd(false); setBulkAddCount(5); }} className="btn-cancel text-xs py-1.5 px-3">Cancel</button>
+          <button onClick={handleBulkAdd} className="btn-maroon text-xs py-2 px-4">Add</button>
+          <button onClick={() => { setShowBulkAdd(false); setBulkAddCount(5); }} className="btn-cancel text-xs py-2 px-4">Cancel</button>
         </div>
       )}
 
       {totalGuests === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+        <div className="bg-white rounded-xl border border-gray-200 p-8 md:p-16 text-center">
           <div className="w-16 h-16 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-4">
             <i className="fas fa-users text-maroon text-xl" />
           </div>
@@ -179,9 +179,9 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
                       className="w-4 h-4 rounded accent-maroon cursor-pointer shrink-0"
                     />
                     {isEditing ? (
-                      <input value={editData.name ?? g.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="card-input py-1.5 font-bold w-60" placeholder="Guest name" />
+                      <input value={editData.name ?? g.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="card-input py-1.5 font-bold w-full sm:w-60" placeholder="Guest name" />
                     ) : (
-                      <h4 className="font-bold text-base">{g.name}</h4>
+                      <h4 className="font-bold text-base truncate min-w-0">{g.name}</h4>
                     )}
                     {!isEditing && (
                       <span className={`status-badge ${g.rsvp === "Yes" ? "paid" : g.rsvp === "Pending" ? "planning" : "pending"}`}>{g.rsvp}</span>
@@ -210,7 +210,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
                     {isEditing ? (
                       <input value={editData.relation ?? g.relation} onChange={(e) => setEditData({ ...editData, relation: e.target.value })} className="card-input" placeholder="e.g. Friend, Family" />
                     ) : (
-                      <p className="text-sm">{g.relation}</p>
+                      <p className="text-sm truncate">{g.relation}</p>
                     )}
                   </div>
                   <div>

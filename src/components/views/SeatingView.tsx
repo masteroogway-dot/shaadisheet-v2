@@ -138,7 +138,7 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
 
   return (
     <div>
-      <div className="flex justify-between items-start mb-7">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-7">
         <div>
           <h2 className="text-2xl font-bold">Seating Chart</h2>
           <p className="text-gray-500 text-sm">Plan where every guest sits</p>
@@ -178,8 +178,8 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">Add how many tables?</span>
           <input type="number" min={1} value={bulkCount} onChange={(e) => setBulkCount(parseInt(e.target.value) || 1)} className="card-input w-20 py-1.5 text-center" autoFocus onKeyDown={(e) => e.key === "Enter" && handleBulkAdd()} />
-          <button onClick={handleBulkAdd} className="btn-maroon text-xs py-1.5 px-3">Add</button>
-          <button onClick={() => { setShowBulkInput(false); setBulkCount(1); }} className="btn-cancel text-xs py-1.5 px-3">Cancel</button>
+          <button onClick={handleBulkAdd} className="btn-maroon text-xs py-2 px-3">Add</button>
+          <button onClick={() => { setShowBulkInput(false); setBulkCount(1); }} className="btn-cancel text-xs py-2 px-3">Cancel</button>
         </div>
       )}
 
@@ -188,7 +188,7 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
           <h4 className="font-bold text-sm mb-3">Unassigned Guests ({unassignedGuests.length})</h4>
           <div className="flex flex-wrap gap-1.5">
             {unassignedGuests.map((g: any) => (
-              <span key={g.id} className="px-2.5 py-1 bg-yellow-50 border border-yellow-200 rounded-full text-xs font-medium text-yellow-800">{g.name}</span>
+                    <span key={g.id} className="px-2.5 py-1 bg-yellow-50 border border-yellow-200 rounded-full text-xs font-medium text-yellow-800 truncate max-w-[150px]">{g.name}</span>
             ))}
           </div>
         </div>
@@ -219,7 +219,7 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
                 </div>
               ) : (
                 <div className="flex items-center justify-between mb-1 ml-7">
-                  <h4 className="font-bold text-base">{table.name}</h4>
+                  <h4 className="font-bold text-base truncate min-w-0">{table.name}</h4>
                   <span className="text-xs text-gray-400">{tableGuests.length}/{table.capacity}</span>
                 </div>
               )}
@@ -234,7 +234,7 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
               <div className="flex flex-wrap gap-1.5 mb-3 ml-7">
                 {tableGuests.length > 0 ? (
                   tableGuests.map((g, i) => (
-                    <span key={i} className="px-2.5 py-1 bg-gray-100 rounded-full text-xs font-medium flex items-center gap-1">
+                    <span key={i} className="px-2.5 py-1 bg-gray-100 rounded-full text-xs font-medium flex items-center gap-1 truncate max-w-[120px]">
                       {g}
                       {canEdit && <button onClick={() => handleRemoveGuestFromTable(table, i)} className="text-gray-400 hover:text-red-500 cursor-pointer ml-0.5"><i className="fas fa-times text-[0.6rem]" /></button>}
                     </span>
@@ -247,21 +247,21 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
               {addingGuest === table.id ? (
                 <div className="flex gap-1.5 ml-7">
                   <input value={newGuestName} onChange={(e) => setNewGuestName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleAddGuestToTable(table)} placeholder="Guest name" className="card-input flex-1 py-1 text-xs" autoFocus />
-                  <button onClick={() => handleAddGuestToTable(table)} className="btn-save text-xs py-1 px-2.5">Add</button>
-                  <button onClick={() => { setAddingGuest(null); setNewGuestName(""); }} className="btn-cancel text-xs py-1 px-2.5">X</button>
+                  <button onClick={() => handleAddGuestToTable(table)} className="btn-save text-xs py-2 px-3">Add</button>
+                  <button onClick={() => { setAddingGuest(null); setNewGuestName(""); }} className="btn-cancel text-xs py-2 px-3">X</button>
                 </div>
               ) : (
                 <div className="flex gap-1.5 mt-2 ml-7">
                   {isEditing ? (
                     <>
-                      {canEdit && <button onClick={() => handleSaveTable(table.id)} className="btn-save text-xs py-1 px-3">Save</button>}
-                      <button onClick={() => setEditing(null)} className="btn-cancel text-xs py-1 px-3">Cancel</button>
+                      {canEdit && <button onClick={() => handleSaveTable(table.id)} className="btn-save text-xs py-2 px-4">Save</button>}
+                      <button onClick={() => setEditing(null)} className="btn-cancel text-xs py-2 px-3">Cancel</button>
                     </>
                   ) : (
                     <>
-                      {canEdit && <button onClick={() => setAddingGuest(table.id)} className="btn-edit text-xs py-1 px-3"><i className="fas fa-plus mr-1" />Guest</button>}
-                      {canEdit && <button onClick={() => { setEditing(table.id); setEditData({}); }} className="btn-edit text-xs py-1 px-3">Edit</button>}
-                      {canEdit && <button onClick={() => handleDeleteTable(table.id)} className="btn-delete text-xs py-1 px-3">Del</button>}
+                      {canEdit && <button onClick={() => setAddingGuest(table.id)} className="btn-edit text-xs py-2 px-3"><i className="fas fa-plus mr-1" />Guest</button>}
+                      {canEdit && <button onClick={() => { setEditing(table.id); setEditData({}); }} className="btn-edit text-xs py-2 px-3">Edit</button>}
+                      {canEdit && <button onClick={() => handleDeleteTable(table.id)} className="btn-delete text-xs py-2 px-3">Del</button>}
                     </>
                   )}
                 </div>
@@ -287,7 +287,7 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
       </div>
 
       {tables.length === 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+        <div className="bg-white rounded-xl border border-gray-200 p-8 md:p-16 text-center">
           <div className="w-16 h-16 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-4">
             <i className="fas fa-chair text-maroon text-xl" />
           </div>

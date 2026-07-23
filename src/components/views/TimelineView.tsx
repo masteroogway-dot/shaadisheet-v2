@@ -164,7 +164,7 @@ export default function TimelineView({ wedding, weddingId, canEdit = true }: { w
 
   return (
     <div>
-      <div className="flex justify-between items-start mb-7">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-7">
         <div>
           <h2 className="text-2xl font-bold">Wedding Day Timeline</h2>
           <p className="text-gray-500 text-sm">Minute-by-minute schedule for your big day</p>
@@ -191,7 +191,7 @@ export default function TimelineView({ wedding, weddingId, canEdit = true }: { w
       )}
 
       {items.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+        <div className="bg-white rounded-xl border border-gray-200 p-8 md:p-16 text-center">
           <div className="w-16 h-16 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-4">
             <i className="fas fa-clock text-maroon text-xl" />
           </div>
@@ -243,7 +243,7 @@ export default function TimelineView({ wedding, weddingId, canEdit = true }: { w
                           />
                         </div>
                       </div>
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
                           <label className="text-xs font-semibold text-gray-500 mb-1 block">Start Time</label>
                           <TimePicker
@@ -285,8 +285,8 @@ export default function TimelineView({ wedding, weddingId, canEdit = true }: { w
                         </div>
                       </div>
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={cancelEdit} className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg cursor-pointer">Cancel</button>
-                        {canEdit && <button onClick={() => handleSave(item.id)} className="px-4 py-1.5 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">Save</button>}
+                        <button onClick={cancelEdit} className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg cursor-pointer">Cancel</button>
+                        {canEdit && <button onClick={() => handleSave(item.id)} className="px-4 py-2 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">Save</button>}
                       </div>
                     </div>
                   ) : (
@@ -296,8 +296,8 @@ export default function TimelineView({ wedding, weddingId, canEdit = true }: { w
                           {formatTime(item.startTime)} - {formatTime(getEndTimeStr(item.startTime, item.duration))}
                           <span className="text-gray-400 ml-2 normal-case">({formatDuration(item.duration)})</span>
                         </div>
-                        <h4 className="font-bold text-sm">{item.title}</h4>
-                        {item.description && <p className="text-gray-500 text-sm">{item.description}</p>}
+                        <h4 className="font-bold text-sm truncate min-w-0">{item.title}</h4>
+                        {item.description && <p className="text-gray-500 text-sm truncate">{item.description}</p>}
                         {isOverlapping && (
                           <span className="inline-block mt-2 text-[0.65rem] px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-semibold">
                             Overlaps with: {overlaps.get(item.id)?.join(", ")}
@@ -314,21 +314,21 @@ export default function TimelineView({ wedding, weddingId, canEdit = true }: { w
                           <>
                             <button
                               onClick={() => startEdit(item)}
-                              className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-maroon transition-colors cursor-pointer"
+                              className="w-10 h-10 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-maroon transition-colors cursor-pointer"
                               title="Edit"
                             >
                               <i className="fas fa-pen text-xs" />
                             </button>
                             {deleteConfirm === item.id ? (
-                              <div className="flex items-center gap-1">
-                                <button onClick={() => handleDelete(item.id)} className="text-xs px-2 py-1 bg-red-500 text-white rounded cursor-pointer">Yes</button>
-                                <button onClick={() => setDeleteConfirm(null)} className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded cursor-pointer">No</button>
+                              <div className="flex items-center gap-2">
+                                <button onClick={() => handleDelete(item.id)} className="text-xs px-3 py-2 bg-red-500 text-white rounded cursor-pointer">Yes</button>
+                                <button onClick={() => setDeleteConfirm(null)} className="text-xs px-3 py-2 bg-gray-200 text-gray-700 rounded cursor-pointer">No</button>
                               </div>
                             ) : (
                               <button
                                 onClick={() => setDeleteConfirm(item.id)}
-                                className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
-                                title="Delete"
+                              className="w-10 h-10 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                              title="Delete"
                               >
                                 <i className="fas fa-trash text-xs" />
                               </button>

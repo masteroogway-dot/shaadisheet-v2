@@ -223,7 +223,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
       ) : (
         <>
           <ScrollReveal>
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-5 mb-7">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-5 mb-7">
               {[
                 { label: "Total Budget", numVal: totalBudget, prefix: totalBudget > 0 ? "\u20B9" : "", suffix: "", formatFn: totalBudget > 0 ? formatBudgetShort : undefined, sub: totalSpent > 0 ? `\u20B9${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
                 { label: "Guests", numVal: totalGuests, prefix: "", suffix: "", formatFn: undefined, sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : "No RSVPs yet", icon: "fa-users", gradient: "from-green to-green/80" },
@@ -259,8 +259,8 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Budget */}
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-lg gap-3 sm:gap-4">
+                  <div className="min-w-0 flex-1">
                     <p className="text-xs text-gray-500 font-medium mb-1">Total Budget</p>
                     {editingBudget ? (
                       <div>
@@ -271,7 +271,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
                             value={editBudget}
                             onChange={(e) => setEditBudget(e.target.value)}
                             placeholder={String(wedding.budget || "")}
-                            className="w-36 px-3 py-1.5 border-2 border-gray-200 focus:border-maroon rounded-lg text-sm font-bold focus:outline-none transition-colors"
+                            className="w-full sm:w-[200px] px-3 py-1.5 border-2 border-gray-200 focus:border-maroon rounded-lg text-sm font-bold focus:outline-none transition-colors"
                             min={BUDGET_MIN}
                             max={BUDGET_MAX}
                           />
@@ -279,23 +279,23 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
                         <p className="text-[0.65rem] text-gray-400 mt-1 ml-7">Min: \u20B910 Lakh, Max: \u20B910 Crore</p>
                       </div>
                     ) : (
-                      <p className="text-lg font-extrabold text-gray-900">
+                      <p className="text-lg font-extrabold text-gray-900 overflow-hidden text-ellipsis">
                         {"\u20B9"}{totalBudget > 0 ? formatINR(totalBudget) : "Not set"}
                       </p>
                     )}
                   </div>
                   {editingBudget ? (
-                    <div className="flex gap-2">
-                      <button onClick={handleSaveBudget} disabled={saving} className="px-3 py-1.5 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
+                    <div className="flex gap-2 shrink-0">
+                      <button onClick={handleSaveBudget} disabled={saving} className="px-3 py-2 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
                         {saving ? "Saving..." : "Save"}
                       </button>
-                      <button onClick={() => setEditingBudget(false)} className="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
+                      <button onClick={() => setEditingBudget(false)} className="px-3 py-2 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
                         Cancel
                       </button>
                     </div>
                   ) : (
                     canEditBudget && (
-                      <button onClick={() => { setEditBudget(String(wedding.budget || "")); setEditingBudget(true); }} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer">
+                      <button onClick={() => { setEditBudget(String(wedding.budget || "")); setEditingBudget(true); }} className="px-3 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer shrink-0">
                         <i className="fas fa-pen mr-1" /> Edit
                       </button>
                     )
@@ -303,8 +303,8 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
                 </div>
 
                 {/* Guest Count */}
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-lg gap-3 sm:gap-4">
+                  <div className="min-w-0 flex-1">
                     <p className="text-xs text-gray-500 font-medium mb-1">Expected Guests</p>
                     {editingGuests ? (
                       <div>
@@ -313,30 +313,30 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
                           value={editGuests}
                           onChange={(e) => setEditGuests(e.target.value)}
                           placeholder={String(wedding.guestCount || "")}
-                          className="w-36 px-3 py-1.5 border-2 border-gray-200 focus:border-maroon rounded-lg text-sm font-bold focus:outline-none transition-colors"
+                          className="w-full sm:w-[200px] px-3 py-1.5 border-2 border-gray-200 focus:border-maroon rounded-lg text-sm font-bold focus:outline-none transition-colors"
                           min={GUEST_MIN}
                           max={GUEST_MAX}
                         />
                         <p className="text-[0.65rem] text-gray-400 mt-1">Min: 50, Max: 5,000</p>
                       </div>
                     ) : (
-                      <p className="text-lg font-extrabold text-gray-900">
+                      <p className="text-lg font-extrabold text-gray-900 overflow-hidden text-ellipsis">
                         {(wedding.guestCount || 0) > 0 ? (wedding.guestCount || 0).toLocaleString("en-IN") : "Not set"}
                       </p>
                     )}
                   </div>
                   {editingGuests ? (
-                    <div className="flex gap-2">
-                      <button onClick={handleSaveGuests} disabled={saving} className="px-3 py-1.5 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
+                    <div className="flex gap-2 shrink-0">
+                      <button onClick={handleSaveGuests} disabled={saving} className="px-3 py-2 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
                         {saving ? "Saving..." : "Save"}
                       </button>
-                      <button onClick={() => setEditingGuests(false)} className="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
+                      <button onClick={() => setEditingGuests(false)} className="px-3 py-2 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
                         Cancel
                       </button>
                     </div>
                   ) : (
                     canEditBudget && (
-                      <button onClick={() => { setEditGuests(String(wedding.guestCount || "")); setEditingGuests(true); }} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer">
+                      <button onClick={() => { setEditGuests(String(wedding.guestCount || "")); setEditingGuests(true); }} className="px-3 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer shrink-0">
                         <i className="fas fa-pen mr-1" /> Edit
                       </button>
                     )
@@ -344,8 +344,8 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
                 </div>
 
                 {/* Wedding Date */}
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-lg gap-3 sm:gap-4">
+                  <div className="min-w-0 flex-1">
                     <p className="text-xs text-gray-500 font-medium mb-1">Wedding Date</p>
                     {editingDate ? (
                       <div>
@@ -353,11 +353,11 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
                           type="date"
                           value={editDate}
                           onChange={(e) => setEditDate(e.target.value)}
-                          className="w-40 px-3 py-1.5 border-2 border-gray-200 focus:border-maroon rounded-lg text-sm font-bold focus:outline-none transition-colors"
+                          className="w-full sm:w-[200px] px-3 py-1.5 border-2 border-gray-200 focus:border-maroon rounded-lg text-sm font-bold focus:outline-none transition-colors"
                         />
                       </div>
                     ) : (
-                      <p className="text-lg font-extrabold text-gray-900">
+                      <p className="text-lg font-extrabold text-gray-900 overflow-hidden text-ellipsis">
                         {wedding.weddingDate
                           ? new Date(wedding.weddingDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
                           : "Not set"}
@@ -365,17 +365,17 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
                     )}
                   </div>
                   {editingDate ? (
-                    <div className="flex gap-2">
-                      <button onClick={handleSaveDate} disabled={saving} className="px-3 py-1.5 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
+                    <div className="flex gap-2 shrink-0">
+                      <button onClick={handleSaveDate} disabled={saving} className="px-3 py-2 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
                         {saving ? "Saving..." : "Save"}
                       </button>
-                      <button onClick={() => setEditingDate(false)} className="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
+                      <button onClick={() => setEditingDate(false)} className="px-3 py-2 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
                         Cancel
                       </button>
                     </div>
                   ) : (
                     canEditBudget && (
-                      <button onClick={() => { setEditDate(wedding.weddingDate ? new Date(wedding.weddingDate).toISOString().split("T")[0] : ""); setEditingDate(true); }} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer">
+                      <button onClick={() => { setEditDate(wedding.weddingDate ? new Date(wedding.weddingDate).toISOString().split("T")[0] : ""); setEditingDate(true); }} className="px-3 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer shrink-0">
                         <i className="fas fa-pen mr-1" /> Edit
                       </button>
                     )
@@ -389,13 +389,13 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
           {canManageCollabs && (
             <ScrollReveal>
               <div className="bg-white rounded-xl border border-gray-200 p-5 md:p-6 mb-6 md:mb-8">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3 sm:gap-0">
                   <h3 className="font-bold text-gray-900">
                     <i className="fas fa-users text-gray-400 mr-2" />
                     Collaborators
                   </h3>
                   <button onClick={() => setInviteOpen(true)}
-                    className="px-3 py-1.5 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark cursor-pointer">
+                    className="px-3 py-2 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark cursor-pointer shrink-0">
                     <i className="fas fa-plus mr-1" /> Invite
                   </button>
                 </div>
@@ -404,39 +404,39 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
                 ) : (
                   <div className="space-y-2">
                     {collaborators.map((c: any) => (
-                      <div key={c.user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-maroon/10 flex items-center justify-center text-maroon font-bold text-sm">
+                      <div key={c.user.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded-lg gap-3 sm:gap-0">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-9 h-9 rounded-full bg-maroon/10 flex items-center justify-center text-maroon font-bold text-sm shrink-0">
                             {c.user.name?.[0] || c.user.email?.[0] || "?"}
                           </div>
-                          <div>
-                            <p className="text-sm font-semibold text-gray-900">{c.user.name || c.user.email}</p>
-                            <p className="text-xs text-gray-400">{c.user.email}</p>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 truncate">{c.user.name || c.user.email}</p>
+                            <p className="text-xs text-gray-400 truncate">{c.user.email}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap shrink-0">
                           {editingCollab === c.user.id ? (
                             <div className="flex items-center gap-1">
                               <select value={collabRole} onChange={(e) => setCollabRole(e.target.value)}
-                                className="px-2 py-1 border border-gray-200 rounded text-xs focus:outline-none focus:border-maroon">
+                                className="px-2 py-2 border border-gray-200 rounded text-xs focus:outline-none focus:border-maroon">
                                 <option value="viewer">Viewer</option>
                                 <option value="editor">Editor</option>
                                 <option value="co-owner">Co-Owner</option>
                               </select>
                               <button onClick={() => handleChangeCollabRole(c.user.id, collabRole)}
-                                className="px-2 py-1 bg-maroon text-white text-xs rounded cursor-pointer">Save</button>
+                                className="px-3 py-2 bg-maroon text-white text-xs rounded cursor-pointer">Save</button>
                               <button onClick={() => setEditingCollab(null)}
-                                className="px-2 py-1 bg-gray-200 text-gray-600 text-xs rounded cursor-pointer">X</button>
+                                className="px-3 py-2 bg-gray-200 text-gray-600 text-xs rounded cursor-pointer">X</button>
                             </div>
                           ) : (
                             <>
-                              <span className="text-xs px-2 py-0.5 bg-maroon/10 text-maroon rounded-full font-semibold">{c.role}</span>
+                              <span className="text-xs px-2 py-1 bg-maroon/10 text-maroon rounded-full font-semibold">{c.role}</span>
                               <button onClick={() => { setEditingCollab(c.user.id); setCollabRole(c.role); }}
-                                className="text-xs text-gray-400 hover:text-maroon cursor-pointer px-1">
+                                className="text-xs text-gray-400 hover:text-maroon cursor-pointer px-2 py-2">
                                 <i className="fas fa-pen" />
                               </button>
                               <button onClick={() => handleRemoveCollab(c.user.id)}
-                                className="text-xs text-gray-400 hover:text-red-500 cursor-pointer px-1">
+                                className="text-xs text-gray-400 hover:text-red-500 cursor-pointer px-2 py-2">
                                 <i className="fas fa-times" />
                               </button>
                             </>
@@ -479,7 +479,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
                             {event.location || wedding.weddingCity || "Venue TBD"} {'\u2022'} {formatTime(event.startTime)}
                           </span>
                         </div>
-                        <span className={`status-badge ${daysUntil <= 7 ? "planning" : "pending"}`}>
+                        <span className={`status-badge text-xs shrink-0 ${daysUntil <= 7 ? "planning" : "pending"}`}>
                           {daysUntil === 0 ? "Today" : daysUntil === 1 ? "Tomorrow" : daysUntil <= 7 ? "This Week" : "Upcoming"}
                         </span>
                       </div>

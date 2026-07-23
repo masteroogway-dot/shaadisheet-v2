@@ -123,12 +123,12 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
 
   return (
     <div>
-      <div className="flex justify-between items-start mb-7">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-7">
         <div>
           <h2 className="text-2xl font-bold">Vendor Tracker</h2>
           <p className="text-gray-500 text-sm">Manage all your wedding vendors in one place</p>
         </div>
-        <div className="flex gap-2.5 items-center">
+        <div className="flex gap-2.5 items-center flex-wrap">
           {canEdit && (
             <button onClick={() => setShowImport(true)} className="btn-maroon">
               <i className="fas fa-file-import" /> Import
@@ -167,7 +167,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">{selected.size} selected</span>
           {canEdit && (
-            <button onClick={handleBulkDelete} className="btn-delete text-xs py-1 px-3">
+            <button onClick={handleBulkDelete} className="btn-delete text-xs py-2 px-3">
               <i className="fas fa-trash mr-1" /> Delete Selected
             </button>
           )}
@@ -179,13 +179,13 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">Add how many vendors?</span>
           <input type="number" min={1} max={100} value={bulkCount} onChange={(e) => setBulkCount(parseInt(e.target.value) || 1)} className="card-input w-20 py-1.5 text-center" />
-          {canEdit && <button onClick={handleBulkAdd} className="btn-maroon text-xs py-1.5 px-3">Add</button>}
-          <button onClick={() => { setShowBulkInput(false); setBulkCount(1); }} className="btn-cancel text-xs py-1.5 px-3">Cancel</button>
+          {canEdit && <button onClick={handleBulkAdd} className="btn-maroon text-xs py-2 px-4">Add</button>}
+          <button onClick={() => { setShowBulkInput(false); setBulkCount(1); }} className="btn-cancel text-xs py-2 px-4">Cancel</button>
         </div>
       )}
 
       {!vendors.length ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+        <div className="bg-white rounded-xl border border-gray-200 p-8 md:p-16 text-center">
           <div className="w-16 h-16 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-4">
             <i className="fas fa-store text-maroon text-xl" />
           </div>
@@ -246,7 +246,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
                     {isEditing ? (
                       <input value={editData.name ?? v.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="card-input" placeholder="Enter name" />
                     ) : (
-                      <p className="text-sm font-medium">{v.name || '\u2014'}</p>
+                      <p className="text-sm font-medium truncate">{v.name || '\u2014'}</p>
                     )}
                   </div>
                   <div>
@@ -254,7 +254,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
                     {isEditing ? (
                       <input value={editData.contact ?? v.contact} onChange={(e) => setEditData({ ...editData, contact: e.target.value })} className="card-input" placeholder="Phone or email" />
                     ) : (
-                      <p className="text-sm">{v.contact || '\u2014'}</p>
+                      <p className="text-sm truncate">{v.contact || '\u2014'}</p>
                     )}
                   </div>
                   <div>

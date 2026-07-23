@@ -57,7 +57,7 @@ export default function Sidebar({ activeView, onViewChange, mobileOpen, onMobile
             <button
               key={item.id}
               onClick={() => handleNav(item.id)}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[0.9rem] font-medium transition-all mb-0.5 cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-4 py-2.5 min-h-[44px] rounded-lg text-[0.9rem] font-medium transition-all mb-0.5 cursor-pointer ${
                 activeView === item.id
                   ? "bg-gradient-to-br from-maroon to-maroon-light text-white"
                   : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"

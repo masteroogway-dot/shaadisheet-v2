@@ -39,7 +39,7 @@ export default function TasksView({ wedding, weddingId, onToggle, canEdit = true
       </div>
 
       {!hasTasks && !addingTo ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+        <div className="bg-white rounded-xl border border-gray-200 p-8 md:p-16 text-center">
           <div className="w-16 h-16 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-4">
             <i className="fas fa-tasks text-maroon text-xl" />
           </div>
@@ -65,7 +65,7 @@ export default function TasksView({ wedding, weddingId, onToggle, canEdit = true
                   <div className="flex items-center gap-3">
                     <span className="text-sm text-gray-500 font-medium">{done} / {tasks.length} done</span>
                     {canEdit && (
-                      <button onClick={() => setAddingTo(period)} className="text-xs px-2 py-1 bg-maroon text-white rounded cursor-pointer hover:bg-maroon-light">
+                      <button onClick={() => setAddingTo(period)} className="text-xs px-3 py-2 bg-maroon text-white rounded cursor-pointer hover:bg-maroon-light">
                         <i className="fas fa-plus mr-1" /> Add
                       </button>
                     )}
@@ -94,9 +94,9 @@ export default function TasksView({ wedding, weddingId, onToggle, canEdit = true
                       disabled={!canEdit}
                       className="w-[18px] h-[18px] accent-maroon cursor-pointer"
                     />
-                    <span className={`flex-1 text-sm ${task.done ? "line-through text-gray-400" : ""}`}>{task.text}</span>
+                    <span className={`flex-1 text-sm truncate ${task.done ? "line-through text-gray-400" : ""}`}>{task.text}</span>
                     {canEdit && (
-                      <button onClick={() => handleDeleteTask(task.id)} className="text-xs text-gray-400 hover:text-red-500 cursor-pointer"><i className="fas fa-trash" /></button>
+                      <button onClick={() => handleDeleteTask(task.id)} className="text-xs text-gray-400 hover:text-red-500 cursor-pointer min-w-[44px] min-h-[44px] inline-flex items-center justify-center"><i className="fas fa-trash" /></button>
                     )}
                   </div>
                 ))}

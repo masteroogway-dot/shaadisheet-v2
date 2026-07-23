@@ -52,7 +52,7 @@ function renderMarkdown(text: string): React.ReactNode {
 
     // Bullet points
     if (line.trim().startsWith("- ")) {
-      elements.push(<div key={`b-${elements.length}`} className="ml-3 before:content-['•'] before:mr-1 before:text-maroon">{line.trim().slice(2).replace(/\*\*/g, "")}</div>);
+      elements.push(<div key={`b-${elements.length}`} className="ml-3 before:content-['•'] before:mr-1 before:text-maroon overflow-hidden break-words">{line.trim().slice(2).replace(/\*\*/g, "")}</div>);
       i++;
       continue;
     }
@@ -65,7 +65,7 @@ function renderMarkdown(text: string): React.ReactNode {
 
     // Regular text with bold
     const text = line.replace(/\*\*(.*?)\*\*/g, "$1");
-    elements.push(<div key={`t-${elements.length}`}>{text}</div>);
+    elements.push(<div key={`t-${elements.length}`} className="overflow-hidden break-words">{text}</div>);
     i++;
   }
 
@@ -611,8 +611,8 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
   };
 
   return (
-    <div className={`fixed top-[60px] right-0 w-[420px] h-[calc(100vh-60px)] bg-white border-l border-gray-200 shadow-[-4px_0_20px_rgba(0,0,0,0.1)] flex flex-col z-[90] transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}>
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gradient-to-br from-maroon to-maroon-light text-white shrink-0">
+    <div className={`fixed top-[60px] right-0 w-full sm:w-[420px] h-[calc(100vh-60px)] bg-white border-l border-gray-200 shadow-[-4px_0_20px_rgba(0,0,0,0.1)] flex flex-col z-[90] transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gradient-to-br from-maroon to-maroon-light text-white shrink-0 min-h-[56px]">
         <div className="flex items-center gap-2.5 font-bold">
           <i className="fas fa-wand-magic-sparkles" /> ShaadiSheet AI
           {learnedPatterns.length > 0 && (
@@ -622,12 +622,12 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
         <div className="flex items-center gap-2">
           <button
             onClick={() => setLearningMode(!learningMode)}
-            className="text-[11px] bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+            className="text-[11px] bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-lg transition-colors cursor-pointer min-w-[44px] min-h-[36px]"
             title="Teach AI a new command"
           >
             <i className="fas fa-graduation-cap mr-1" /> Learn
           </button>
-          <button onClick={onClose} className="text-white/80 hover:text-white cursor-pointer"><i className="fas fa-times text-lg" /></button>
+          <button onClick={onClose} className="min-w-[44px] min-h-[44px] w-10 h-10 flex items-center justify-center text-white/80 hover:text-white cursor-pointer"><i className="fas fa-times text-lg w-5 h-5" /></button>
         </div>
       </div>
 
@@ -692,21 +692,21 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-4">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 flex flex-col gap-4">
         {messages.map((msg, i) => (
           <div key={i} className={`flex gap-2.5 items-start ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs shrink-0 ${msg.role === "bot" ? "bg-gradient-to-br from-maroon to-gold text-white" : "bg-gray-200 text-gray-700"}`}>
               {msg.role === "bot" ? <i className="fas fa-wand-magic-sparkles" /> : (wedding.name?.charAt(0) || "U")}
             </div>
             <div className="flex flex-col gap-1">
-              <div className={`max-w-[85%] px-4 py-3 rounded-xl text-sm leading-relaxed ${msg.role === "bot" ? "bg-gray-100 rounded-tl-sm" : "bg-gradient-to-br from-maroon to-maroon-light text-white rounded-tr-sm"}`}>
+              <div className={`max-w-[85%] px-4 py-3 rounded-xl text-sm leading-relaxed overflow-hidden break-words ${msg.role === "bot" ? "bg-gray-100 rounded-tl-sm" : "bg-gradient-to-br from-maroon to-maroon-light text-white rounded-tr-sm"}`}>
                 {msg.learned && <span className="inline-block bg-gold/20 text-gold text-[10px] px-1.5 py-0.5 rounded-full mr-1.5 font-bold">Learned</span>}
                 {renderMarkdown(msg.content)}
               </div>
               {msg.role === "bot" && i > 0 && !msg.action && correctingId !== i && (
                 <button
                   onClick={() => { setCorrectingId(i); setCorrectionText(""); }}
-                  className="text-[10px] text-gray-400 hover:text-maroon transition-colors self-start cursor-pointer"
+                  className="text-[10px] text-gray-400 hover:text-maroon transition-colors self-start cursor-pointer min-h-[36px] min-w-[36px] flex items-center truncate max-w-full"
                 >
                   <i className="fas fa-pen mr-0.5" /> Correct this
                 </button>
@@ -795,7 +795,7 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && send()}
             placeholder="Type a command..."
-            className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon transition-colors"
+            className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon transition-colors min-h-[44px]"
           />
           <button onClick={send} className="w-11 h-11 rounded-lg bg-gradient-to-br from-maroon to-maroon-light text-white flex items-center justify-center hover:scale-105 transition-transform cursor-pointer">
             <i className="fas fa-paper-plane" />

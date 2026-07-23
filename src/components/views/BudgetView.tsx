@@ -95,12 +95,12 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canE
 
   return (
     <div>
-      <div className="flex justify-between items-start mb-7">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-7">
         <div>
           <h2 className="text-2xl font-bold">Budget Tracker</h2>
           <p className="text-gray-500 text-sm">Track every rupee {'\u2014'} from estimate to final payment</p>
         </div>
-        <div className="flex gap-2.5 items-center">
+        <div className="flex gap-2.5 items-center flex-wrap">
           {canEdit && (
             <button onClick={() => setShowImport(true)} className="btn-maroon">
               <i className="fas fa-file-import" /> Import
@@ -139,7 +139,7 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canE
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">{selected.size} selected</span>
           {canEdit && (
-            <button onClick={handleBulkDelete} className="btn-delete text-xs py-1 px-3">
+            <button onClick={handleBulkDelete} className="btn-delete text-xs py-2 px-3">
               <i className="fas fa-trash mr-1" /> Delete Selected
             </button>
           )}
@@ -151,13 +151,13 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canE
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">Add how many items?</span>
           <input type="number" min={1} max={50} value={bulkAddCount} onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 1)} className="card-input w-20 py-1.5 text-center" />
-          <button onClick={handleBulkAdd} className="btn-maroon text-xs py-1.5 px-3">Add</button>
-          <button onClick={() => setShowBulkAdd(false)} className="btn-cancel text-xs py-1.5 px-3">Cancel</button>
+          <button onClick={handleBulkAdd} className="btn-maroon text-xs py-2 px-4">Add</button>
+          <button onClick={() => setShowBulkAdd(false)} className="btn-cancel text-xs py-2 px-4">Cancel</button>
         </div>
       )}
 
       {!items || items.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+        <div className="bg-white rounded-xl border border-gray-200 p-8 md:p-16 text-center">
           <div className="w-16 h-16 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-4">
             <i className="fas fa-rupee-sign text-maroon text-xl" />
           </div>
@@ -190,13 +190,13 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canE
                     />
                     {isEditing ? (
                       <div className="flex gap-2">
-                        <input value={editData.category ?? item.category} onChange={(e) => setEditData({ ...editData, category: e.target.value })} className="card-input py-1.5 w-40 font-bold" placeholder="Category" />
+                        <input value={editData.category ?? item.category} onChange={(e) => setEditData({ ...editData, category: e.target.value })} className="card-input py-1.5 w-full sm:w-40 font-bold" placeholder="Category" />
                         <input value={editData.item ?? item.item} onChange={(e) => setEditData({ ...editData, item: e.target.value })} className="card-input py-1.5 flex-1" placeholder="Item name" />
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full uppercase">{item.category}</span>
-                        <h4 className="font-bold text-base">{item.item}</h4>
+                        <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full uppercase truncate">{item.category}</span>
+                        <h4 className="font-bold text-base truncate min-w-0">{item.item}</h4>
                       </div>
                     )}
                     {!isEditing && (

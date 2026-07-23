@@ -596,7 +596,17 @@ input[type="number"]::placeholder {
   /* Improve touch targets */
   button, a, [role="button"] {
     min-height: 44px;
+    min-width: 44px;
   }
+
+  /* Reduce card padding on mobile */
+  .item-card { padding: 16px; }
+  .wedding-card { padding: 16px; }
+  .btn-edit, .btn-delete { padding: 8px 16px; }
+
+  /* Allow horizontal scroll for spreadsheets */
+  .spreadsheet { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .spreadsheet th { white-space: normal; }
 
   /* Smoother scrolling */
   html {

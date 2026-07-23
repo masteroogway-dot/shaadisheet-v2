@@ -101,12 +101,12 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
 
   return (
     <div>
-      <div className="flex justify-between items-start mb-7">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-7">
         <div>
           <h2 className="text-2xl font-bold">Room Allocations</h2>
           <p className="text-gray-500 text-sm">Assign guests to hotel rooms and track check-ins</p>
         </div>
-        <div className="flex gap-2.5">
+        <div className="flex gap-2.5 flex-wrap">
           {canEdit && (
             <button onClick={() => setShowImport(true)} className="btn-maroon">
               <i className="fas fa-file-import" /> Import
@@ -126,7 +126,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
       </div>
 
       {totalRooms > 0 && (
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
             { num: totalRooms, label: "Total Rooms", color: "" },
             { num: reserved, label: "Reserved", color: "text-blue-600" },
@@ -144,7 +144,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
       {canEdit && selected.size > 0 && (
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">{selected.size} selected</span>
-          <button onClick={handleBulkDelete} className="btn-delete text-xs py-1 px-3">
+          <button onClick={handleBulkDelete} className="btn-delete text-xs py-2 px-4">
             <i className="fas fa-trash mr-1" /> Delete Selected
           </button>
           <button onClick={() => setSelected(new Set())} className="text-xs text-gray-500 hover:text-gray-700 cursor-pointer">Clear</button>
@@ -155,23 +155,23 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">Add how many rooms?</span>
           <input type="number" min={1} max={100} value={bulkAddCount} onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 1)} className="card-input w-20 py-1.5 text-center" />
-          <button onClick={handleBulkAdd} className="btn-maroon text-xs py-1.5 px-3">Add</button>
-          <button onClick={() => { setShowBulkAdd(false); setBulkAddCount(1); }} className="btn-cancel text-xs py-1.5 px-3">Cancel</button>
+          <button onClick={handleBulkAdd} className="btn-maroon text-xs py-2 px-3">Add</button>
+          <button onClick={() => { setShowBulkAdd(false); setBulkAddCount(1); }} className="btn-cancel text-xs py-2 px-3">Cancel</button>
         </div>
       )}
 
       {canEdit && showDeleteAllConfirm && (
         <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-red-50 border border-red-200 rounded-lg">
           <span className="text-sm font-medium text-red-700">Delete all {totalRooms} rooms? This cannot be undone.</span>
-          <button onClick={handleDeleteAll} className="btn-delete text-xs py-1.5 px-3">
+          <button onClick={handleDeleteAll} className="btn-delete text-xs py-2 px-4">
             <i className="fas fa-trash mr-1" /> Yes, Delete All
           </button>
-          <button onClick={() => setShowDeleteAllConfirm(false)} className="btn-cancel text-xs py-1.5 px-3">Cancel</button>
+          <button onClick={() => setShowDeleteAllConfirm(false)} className="btn-cancel text-xs py-2 px-3">Cancel</button>
         </div>
       )}
 
       {totalRooms === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+        <div className="bg-white rounded-xl border border-gray-200 p-8 md:p-16 text-center">
           <div className="w-16 h-16 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-4">
             <i className="fas fa-bed text-maroon text-xl" />
           </div>
@@ -200,9 +200,9 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
                       className="w-4 h-4 rounded accent-maroon cursor-pointer shrink-0"
                     />
                     {isEditing ? (
-                      <input value={editData.guestName ?? a.guestName} onChange={(e) => setEditData({ ...editData, guestName: e.target.value })} className="card-input py-1.5 font-bold w-60" placeholder="Guest name" />
+                      <input value={editData.guestName ?? a.guestName} onChange={(e) => setEditData({ ...editData, guestName: e.target.value })} className="card-input py-1.5 font-bold w-full sm:w-60" placeholder="Guest name" />
                     ) : (
-                      <h4 className="font-bold text-base">{a.guestName || '\u2014'}</h4>
+                      <h4 className="font-bold text-base truncate min-w-0">{a.guestName || '\u2014'}</h4>
                     )}
                     {!isEditing && (
                       <span className={`status-badge ${a.status === "Checked In" ? "paid" : a.status === "Cancelled" ? "pending" : "planning"}`}>{a.status}</span>
@@ -233,7 +233,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
                     {isEditing ? (
                       <input value={editData.hotel ?? a.hotel} onChange={(e) => setEditData({ ...editData, hotel: e.target.value })} className="card-input" placeholder="Hotel name" />
                     ) : (
-                      <p className="text-sm">{a.hotel || '\u2014'}</p>
+                      <p className="text-sm truncate">{a.hotel || '\u2014'}</p>
                     )}
                   </div>
                   <div>
@@ -241,7 +241,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
                     {isEditing ? (
                       <input value={editData.roomNumber ?? a.roomNumber} onChange={(e) => setEditData({ ...editData, roomNumber: e.target.value })} className="card-input" placeholder="Room number" />
                     ) : (
-                      <p className="text-sm font-medium">{a.roomNumber || '\u2014'}</p>
+                      <p className="text-sm font-medium truncate">{a.roomNumber || '\u2014'}</p>
                     )}
                   </div>
                   <div>
