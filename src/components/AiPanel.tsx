@@ -14,6 +14,64 @@ import {
 } from "@/lib/actions";
 import { shouldUseAI } from "@/lib/ai-helpers";
 
+function renderMarkdown(text: string): React.ReactNode {
+  const lines = text.split("\n");
+  const elements: React.ReactNode[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Table detection: line starts with | and next line is separator |---|
+    if (line.trim().startsWith("|") && i + 1 < lines.length && lines[i + 1].trim().match(/^\|[\s\-|]+\|$/)) {
+      const rows: string[][] = [];
+      while (i < lines.length && lines[i].trim().startsWith("|")) {
+        if (!lines[i].trim().match(/^\|[\s\-|]+\|$/)) {
+          rows.push(lines[i].split("|").slice(1, -1).map(c => c.trim()));
+        }
+        i++;
+      }
+      if (rows.length > 0) {
+        elements.push(
+          <div key={`table-${elements.length}`} className="overflow-x-auto my-2">
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr>{rows[0].map((h, j) => <th key={j} className="border border-gray-300 px-2 py-1 bg-gray-200 text-left font-semibold">{h.replace(/\*\*/g, "")}</th>)}</tr>
+              </thead>
+              <tbody>
+                {rows.slice(1).map((row, ri) => (
+                  <tr key={ri}>{row.map((cell, ci) => <td key={ci} className="border border-gray-300 px-2 py-1">{cell.replace(/\*\*/g, "")}</td>)}</tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+      continue;
+    }
+
+    // Bullet points
+    if (line.trim().startsWith("- ")) {
+      elements.push(<div key={`b-${elements.length}`} className="ml-3 before:content-['•'] before:mr-1 before:text-maroon">{line.trim().slice(2).replace(/\*\*/g, "")}</div>);
+      i++;
+      continue;
+    }
+
+    // Empty line
+    if (line.trim() === "") {
+      i++;
+      continue;
+    }
+
+    // Regular text with bold
+    const text = line.replace(/\*\*(.*?)\*\*/g, "$1");
+    elements.push(<div key={`t-${elements.length}`}>{text}</div>);
+    i++;
+  }
+
+  return <>{elements}</>;
+}
+
 function formatINR(n: number): string {
   if (n === 0) return "0";
   if (n >= 10000000) return (n / 10000000).toFixed(1).replace(/\.0$/, "") + " Cr";
@@ -641,9 +699,9 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
               {msg.role === "bot" ? <i className="fas fa-wand-magic-sparkles" /> : (wedding.name?.charAt(0) || "U")}
             </div>
             <div className="flex flex-col gap-1">
-              <div className={`max-w-[85%] px-4 py-3 rounded-xl text-sm leading-relaxed whitespace-pre-line ${msg.role === "bot" ? "bg-gray-100 rounded-tl-sm" : "bg-gradient-to-br from-maroon to-maroon-light text-white rounded-tr-sm"}`}>
+              <div className={`max-w-[85%] px-4 py-3 rounded-xl text-sm leading-relaxed ${msg.role === "bot" ? "bg-gray-100 rounded-tl-sm" : "bg-gradient-to-br from-maroon to-maroon-light text-white rounded-tr-sm"}`}>
                 {msg.learned && <span className="inline-block bg-gold/20 text-gold text-[10px] px-1.5 py-0.5 rounded-full mr-1.5 font-bold">Learned</span>}
-                {msg.content}
+                {renderMarkdown(msg.content)}
               </div>
               {msg.role === "bot" && i > 0 && !msg.action && correctingId !== i && (
                 <button
