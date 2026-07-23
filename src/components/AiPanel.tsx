@@ -245,13 +245,21 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
     // Extract full name: remove action words and target, rest is the name
     const nameFromCommand = q
       .replace(/^(remove|delete|clear|drop)\s+/i, "")
-      .replace(/\s*(guest|guests|vendor|vendors|budget|items?|room|rooms|allocations?)\s*/gi, " ")
+      .replace(/\s*(guests?|vendors?|budget|items?|rooms?|allocations?|tasks?)\b\s*/gi, " ")
       .replace(/\s*from\s+/gi, " ")
       .replace(/\s+/g, " ")
       .trim();
     
-    const stopWords = ['all', 'every', 'each', 'the', 'any', 'no', 'veg', 'non-veg', 'jain', 'vegan', 'pending', 'confirmed', 'declined', 'bride', 'groom', 'side', 'family', 'named', 'surname', 'dietary', 'rsvp'];
-    const nameWords = nameFromCommand.split(/\s+/).filter(w => !stopWords.includes(w.toLowerCase()) && w.length > 1);
+    const stopWords = ['all', 'every', 'each', 'the', 'any', 'no', 'veg', 'non-veg', 'vegan', 'pending', 'confirmed', 'declined', 'bride', 'groom', 'side', 'family', 'named', 'surname', 'rsvp', 'yes', 'signed', 'completed'];
+    
+    // Only treat jain/veg as stop words if they appear with dietary context
+    const hasDietaryContext = /(?:dietary|food|meal|eat)/i.test(q);
+    const dietaryStopWords = hasDietaryContext ? ['jain', 'veg', 'non-veg', 'vegan'] : [];
+    
+    const nameWords = nameFromCommand.split(/\s+/).filter(w => {
+      const lower = w.toLowerCase();
+      return !stopWords.includes(lower) && !dietaryStopWords.includes(lower) && w.length > 1;
+    });
     
     if (nameWords.length > 0) {
       filter.name_contains = nameWords.join(" ");
@@ -307,7 +315,7 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
     // Extract full name: remove action words and target, rest is the name
     const nameFromCommand = q
       .replace(/^(mark|set|change|update|make|turn|switch|assign)\s+/i, "")
-      .replace(/\s*(guest|guests|vendor|vendors|budget|items?|room|rooms|tasks?|to|as)\s*/gi, " ")
+      .replace(/\s*(guests?|vendors?|budget|items?|rooms?|tasks?|to|as)\b\s*/gi, " ")
       .replace(/\s+/g, " ")
       .trim();
     
