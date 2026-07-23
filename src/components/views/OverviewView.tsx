@@ -428,17 +428,37 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                         </div>
                         <div className="flex items-center gap-2 flex-wrap shrink-0">
                           {editingCollab === c.user.id ? (
-                            <div className="flex items-center gap-1">
-                              <select value={collabRole} onChange={(e) => setCollabRole(e.target.value)}
-                                className="px-2 py-2 border border-gray-200 rounded text-xs focus:outline-none focus:border-maroon">
-                                <option value="viewer">Viewer</option>
-                                <option value="editor">Editor</option>
-                                <option value="co-owner">Co-Owner</option>
-                              </select>
-                              <button onClick={() => handleChangeCollabRole(c.user.id, collabRole)}
-                                className="px-3 py-2 bg-maroon text-white text-xs rounded cursor-pointer">Save</button>
-                              <button onClick={() => setEditingCollab(null)}
-                                className="px-3 py-2 bg-gray-200 text-gray-600 text-xs rounded cursor-pointer">X</button>
+                            <div className="flex items-center gap-2">
+                              <div className="flex flex-col gap-1">
+                                {[
+                                  { value: "viewer", label: "Viewer", desc: "Can view all data but cannot edit", icon: "fa-eye" },
+                                  { value: "editor", label: "Editor", desc: "Can edit guests, vendors, budget, and tasks", icon: "fa-pen" },
+                                  { value: "co-owner", label: "Co-Owner", desc: "Full access including managing collaborators", icon: "fa-crown" },
+                                ].map((r) => (
+                                  <button
+                                    key={r.value}
+                                    onClick={() => setCollabRole(r.value)}
+                                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-left cursor-pointer transition-all ${
+                                      collabRole === r.value
+                                        ? "bg-maroon text-white shadow-sm"
+                                        : "bg-white border border-gray-200 text-gray-700 hover:border-maroon/40 hover:bg-maroon/5"
+                                    }`}
+                                  >
+                                    <i className={`fas ${r.icon} text-[0.65rem] ${collabRole === r.value ? "text-white/80" : "text-gray-400"} w-3 text-center`} />
+                                    <div className="min-w-0">
+                                      <div className={`text-xs font-semibold ${collabRole === r.value ? "text-white" : ""}`}>{r.label}</div>
+                                      <div className={`text-[0.6rem] leading-tight ${collabRole === r.value ? "text-white/70" : "text-gray-400"}`}>{r.desc}</div>
+                                    </div>
+                                    {collabRole === r.value && <i className="fas fa-check text-[0.6rem] text-white/80 ml-auto shrink-0" />}
+                                  </button>
+                                ))}
+                              </div>
+                              <div className="flex flex-col gap-1 ml-1">
+                                <button onClick={() => handleChangeCollabRole(c.user.id, collabRole)}
+                                  className="px-3 py-2 bg-maroon text-white text-xs rounded-lg cursor-pointer font-semibold hover:bg-maroon-dark">Save</button>
+                                <button onClick={() => { setEditingCollab(null); setCollabRole(c.role); }}
+                                  className="px-3 py-2 bg-gray-100 text-gray-500 text-xs rounded-lg cursor-pointer hover:bg-gray-200">Cancel</button>
+                              </div>
                             </div>
                           ) : (
                             <>
