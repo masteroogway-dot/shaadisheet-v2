@@ -32,6 +32,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkCount, setBulkCount] = useState<number>(1);
   const [showBulkInput, setShowBulkInput] = useState(false);
+  const [rangeInput, setRangeInput] = useState("");
 
   const vendors: any[] = wedding.vendors ?? [];
 
@@ -92,6 +93,30 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
     }
   };
 
+  const handleSelectRange = () => {
+    if (!rangeInput.trim()) return;
+    const ids = new Set<string>();
+    const parts = rangeInput.split(",").map(s => s.trim());
+    for (const part of parts) {
+      if (part.includes("-")) {
+        const [a, b] = part.split("-").map(Number);
+        if (!isNaN(a) && !isNaN(b)) {
+          const lo = Math.min(a, b);
+          const hi = Math.max(a, b);
+          for (let i = lo; i <= hi; i++) {
+            if (i >= 1 && i <= vendors.length) ids.add(vendors[i - 1].id);
+          }
+        }
+      } else {
+        const n = Number(part);
+        if (!isNaN(n) && n >= 1 && n <= vendors.length) ids.add(vendors[n - 1].id);
+      }
+    }
+    setSelected(ids);
+    setRangeInput("");
+    if (ids.size > 0) onToast(`${ids.size} vendor${ids.size > 1 ? "s" : ""} selected`, "success");
+  };
+
   const handleBulkDelete = async () => {
     if (selected.size === 0) return;
     try {
@@ -129,6 +154,23 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
           <p className="text-gray-500 text-sm">Manage all your wedding vendors in one place</p>
         </div>
         <div className="flex gap-2.5 items-center flex-wrap">
+          {canEdit && vendors.length > 0 && (
+            <>
+              <button onClick={toggleSelectAll} className="btn-edit text-xs py-2 px-3">
+                <i className="fas fa-check-double mr-1.5" /> {selected.size === vendors.length ? "Deselect All" : "Select All"}
+              </button>
+              <div className="flex items-center gap-1.5">
+                <input
+                  value={rangeInput}
+                  onChange={(e) => setRangeInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSelectRange()}
+                  placeholder="e.g. 5-10, 3"
+                  className="card-input py-1.5 text-xs w-36"
+                />
+                <button onClick={handleSelectRange} className="btn-edit text-xs py-2 px-2.5"><i className="fas fa-arrow-right" /></button>
+              </div>
+            </>
+          )}
           {canEdit && (
             <button onClick={() => setShowImport(true)} className="btn-maroon">
               <i className="fas fa-file-import" /> Import
@@ -199,7 +241,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
         </div>
       ) : (
         <div className="space-y-3">
-          {vendors.map((v: any) => {
+          {vendors.map((v: any, idx: number) => {
             const isEditing = editing === v.id;
             const isSelected = selected.has(v.id);
             const quote = isEditing ? (editData.quote ?? v.quote) : v.quote;
@@ -210,6 +252,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
               <div key={v.id} className={`item-card ${isEditing ? "editing" : ""}`}>
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-[0.65rem] font-bold text-gray-400 bg-gray-100 rounded px-1.5 py-0.5 leading-none shrink-0">{idx + 1}</span>
                     <input
                       type="checkbox"
                       checked={isSelected}
