@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { getUserRole } from "@/lib/permissions";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -14,10 +15,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Invalid role" }, { status: 400 });
   }
 
-  const wedding = await prisma.wedding.findFirst({
-    where: { id: weddingId, userId: session.user.id },
-  });
-  if (!wedding) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const userRole = await getUserRole(weddingId);
+  if (userRole !== "owner" && userRole !== "co-owner") {
+    return NextResponse.json({ error: "Only the owner or co-owner can create invites" }, { status: 403 });
+  }
 
   const token = crypto.randomBytes(32).toString("base64url");
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -44,10 +45,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   const { id: weddingId } = await params;
 
-  const wedding = await prisma.wedding.findFirst({
-    where: { id: weddingId, userId: session.user.id },
-  });
-  if (!wedding) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const userRole = await getUserRole(weddingId);
+  if (!userRole) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const invites = await prisma.weddingInvite.findMany({
     where: { weddingId },

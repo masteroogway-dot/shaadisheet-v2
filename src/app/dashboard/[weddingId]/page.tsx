@@ -114,7 +114,7 @@ export default function WeddingDashboardPage() {
   const renderView = () => {
     const canEdit = userRole === "owner" || userRole === "co-owner" || userRole === "editor";
     switch (activeView) {
-      case "overview": return <OverviewView wedding={wedding} onUpdate={refreshWedding} userRole={userRole} />;
+      case "overview": return <OverviewView wedding={wedding} onUpdate={refreshWedding} userRole={userRole} onToast={addToast} />;
       case "budget": return <BudgetView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "vendors": return <VendorsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "guests": return <GuestsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
@@ -123,7 +123,7 @@ export default function WeddingDashboardPage() {
       case "seating": return <SeatingView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "rooms": return <RoomAllocationView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "timeline": return <TimelineView wedding={wedding} weddingId={weddingId} canEdit={canEdit} />;
-      default: return <OverviewView wedding={wedding} onUpdate={refreshWedding} userRole={userRole} />;
+      default: return <OverviewView wedding={wedding} onUpdate={refreshWedding} userRole={userRole} onToast={addToast} />;
     }
   };
 

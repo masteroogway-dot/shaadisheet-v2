@@ -31,7 +31,7 @@ function formatBudgetShort(n: number): string {
   return n.toLocaleString("en-IN");
 }
 
-export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: { wedding: any; onUpdate?: () => void; userRole?: string }) {
+export default function OverviewView({ wedding, onUpdate, userRole = "owner", onToast }: { wedding: any; onUpdate?: () => void; userRole?: string; onToast?: (msg: string, type?: "success" | "error") => void }) {
   const [editBudget, setEditBudget] = useState("");
   const [editGuests, setEditGuests] = useState("");
   const [editDate, setEditDate] = useState("");
@@ -123,20 +123,32 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
 
   const handleChangeCollabRole = async (userId: string, newRole: string) => {
     try {
-      await fetch(`/api/weddings/${wedding.id}/collaborators/${userId}`, {
+      const res = await fetch(`/api/weddings/${wedding.id}/collaborators/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: newRole }),
       });
+      if (!res.ok) {
+        const data = await res.json();
+        onToast?.(data.error || "Failed to update role", "error");
+        return;
+      }
       setCollaborators((prev) => prev.map((c) => c.user.id === userId ? { ...c, role: newRole } : c));
       setEditingCollab(null);
+      onToast?.("Role updated", "success");
     } catch {}
   };
 
   const handleRemoveCollab = async (userId: string) => {
     try {
-      await fetch(`/api/weddings/${wedding.id}/collaborators/${userId}`, { method: "DELETE" });
+      const res = await fetch(`/api/weddings/${wedding.id}/collaborators/${userId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        onToast?.(data.error || "Failed to remove collaborator", "error");
+        return;
+      }
       setCollaborators((prev) => prev.filter((c) => c.user.id !== userId));
+      onToast?.("Collaborator removed", "success");
     } catch {}
   };
 
