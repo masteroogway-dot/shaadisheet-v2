@@ -118,6 +118,7 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
   const [learningResponse, setLearningResponse] = useState("");
   const [correctingId, setCorrectingId] = useState<number | null>(null);
   const [correctionText, setCorrectionText] = useState("");
+  const [dailyRemaining, setDailyRemaining] = useState<number | null>(null);
   const messagesEnd = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -611,6 +612,15 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
           });
           const data = await res.json();
           if (!res.ok || data.error) {
+            // Check if it's a rate limit error
+            if (res.status === 429) {
+              setMessages((prev) => {
+                const without = prev.slice(0, -1);
+                return [...without, { role: "bot", content: data.error || "Daily limit reached. Please try again tomorrow." }];
+              });
+              if (data.dailyRemaining !== undefined) setDailyRemaining(data.dailyRemaining);
+              return;
+            }
             // Gemini failed - fall back to rule-based parser
             const fallback = await parseCommand(userMsg);
             setMessages((prev) => {
@@ -621,6 +631,9 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
             return;
           }
           const response = data.response || "No response from Gemini.";
+
+          // Track usage
+          if (data.usage?.dailyRemaining !== undefined) setDailyRemaining(data.usage.dailyRemaining);
 
           // Remove "Thinking..." and add real response
           setMessages((prev) => {
@@ -843,16 +856,53 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
         <div ref={messagesEnd} />
       </div>
 
+      {/* Usage warning banner */}
+      {dailyRemaining !== null && dailyRemaining <= 5 && dailyRemaining > 0 && (
+        <div className="px-4 py-2 bg-amber-50 border-t border-amber-200 shrink-0">
+          <p className="text-xs text-amber-700">
+            <i className="fas fa-exclamation-triangle mr-1.5" />
+            You've used {50 - dailyRemaining} of 50 daily AI messages. {dailyRemaining} remaining today.
+          </p>
+        </div>
+      )}
+
+      {/* Limit reached card */}
+      {dailyRemaining !== null && dailyRemaining <= 0 && (
+        <div className="px-4 py-4 border-t border-gray-200 shrink-0">
+          <div className="bg-gradient-to-br from-maroon/5 to-gold/5 border border-maroon/20 rounded-xl p-5 text-center">
+            <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-maroon/10 flex items-center justify-center">
+              <i className="fas fa-wand-magic-sparkles text-maroon text-lg" />
+            </div>
+            <h3 className="text-sm font-bold text-gray-900 mb-1">Daily AI Limit Reached</h3>
+            <p className="text-xs text-gray-500 mb-4">
+              You've used all 50 AI messages for today. Limits reset at midnight.
+            </p>
+            <a
+              href="/subscriptions"
+              className="inline-block px-5 py-2.5 bg-gradient-to-br from-maroon to-maroon-light text-white text-sm font-semibold rounded-lg hover:shadow-md transition-all"
+            >
+              <i className="fas fa-arrow-up mr-1.5" />
+              Upgrade Now
+            </a>
+          </div>
+        </div>
+      )}
+
       <div className="p-4 border-t border-gray-200 shrink-0">
         <div className="flex gap-2">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && send()}
-            placeholder="Type a command..."
-            className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon transition-colors min-h-[44px]"
+            placeholder={dailyRemaining !== null && dailyRemaining <= 0 ? "Daily limit reached" : "Type a command..."}
+            disabled={dailyRemaining !== null && dailyRemaining <= 0}
+            className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon transition-colors min-h-[44px] disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
           />
-          <button onClick={send} className="w-11 h-11 rounded-lg bg-gradient-to-br from-maroon to-maroon-light text-white flex items-center justify-center hover:scale-105 transition-transform cursor-pointer">
+          <button
+            onClick={send}
+            disabled={dailyRemaining !== null && dailyRemaining <= 0}
+            className="w-11 h-11 rounded-lg bg-gradient-to-br from-maroon to-maroon-light text-white flex items-center justify-center hover:scale-105 transition-transform cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
             <i className="fas fa-paper-plane" />
           </button>
         </div>
