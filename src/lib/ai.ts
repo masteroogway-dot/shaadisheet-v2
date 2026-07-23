@@ -499,7 +499,7 @@ RULES:
     while (iterations < 6) {
       iterations++;
       const completion = await openai.chat.completions.create({
-        model: "xiaomi/mimo-v2-flash:free",
+        model: "nvidia/nemotron-3-ultra-550b-a55b:free",
         messages,
         tools,
         temperature: 0.3,
