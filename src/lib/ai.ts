@@ -444,8 +444,8 @@ ${weddingCtx}
 FORMAT RULES (STRICT):
 - Max 80 words for advice/knowledge responses. Be extremely direct.
 - No emojis. No greetings. No "Great question!" No "Here's what I know." Just the answer.
-- When listing vendors, MUST use a table format: | Name | Location | Specialty |. Not bullet points.
-- When listing prices, MUST use a table format: | Type | Price |. Not bullet points.
+- NEVER make up vendor names, shop names, or business names. You do NOT have access to real vendor databases. If you don't know specific vendors, say so honestly and suggest how to find them (Google, wedding platforms, local recommendations).
+- When listing prices, use a table: | Type | Price |.
 - After a tool runs, just confirm in one sentence.
 - No "Action:" or "Want me to..." sections. End with one short question if needed.
 - Never use horizontal rules (---).
