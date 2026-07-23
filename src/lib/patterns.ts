@@ -138,8 +138,9 @@ function levenshtein(a: string, b: string): number {
 
 function normalizeSynonyms(input: string, map: Record<string, string>): string | undefined {
   const lower = input.toLowerCase().trim();
-  for (const [key, value] of Object.entries(map)) {
-    if (lower === key || lower.includes(key)) return value;
+  const sortedKeys = Object.keys(map).sort((a, b) => b.length - a.length);
+  for (const key of sortedKeys) {
+    if (lower === key || new RegExp(`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(lower)) return map[key];
   }
   return fuzzyMatch(lower, Object.keys(map)) ? map[fuzzyMatch(lower, Object.keys(map))!] : undefined;
 }
@@ -152,7 +153,10 @@ function extractName(q: string, actionWords: string[], extraStrip: string[]): st
   for (const word of extraStrip) {
     cleaned = cleaned.replace(new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi'), '');
   }
-  cleaned = cleaned.replace(/\b(from|the|a|an|all|every|each|some|any|no|my|his|her|their|its|our|and|or|with|for|in|on|at|to|of|is|are|was|were|be|been|being|have|has|had|do|does|did|will|would|could|should|may|might|can|shall|must|also|just|only|then|than|so|but|not|very|too|really|actually|basically|literally|please|kindly|want|need|like|get|give|show|list|find|search|tell|what|how|why|when|where|who|which|that|this|these|those|as|by|before|after|until)\b/gi, '');
+  // Strip entity nouns and common wedding terms
+  cleaned = cleaned.replace(/\b(guests?|invitees?|attendees?|people|person|family|relative|friends?|couples?|vendors?|suppliers?|contractors?|budget|expense|cost|spending|tasks?|todos?|to-dos?|action items?|rooms?|hotels?|accommodation|events?|functions?|ceremonies?|rituals?)\b/gi, '');
+  // Strip filler words
+  cleaned = cleaned.replace(/\b(from|the|a|an|all|every|each|some|any|no|my|his|her|their|its|our|and|or|with|for|in|on|at|to|of|is|are|was|were|be|been|being|have|has|had|do|does|did|will|would|could|should|may|might|can|shall|must|also|just|only|then|than|so|but|not|very|too|really|actually|basically|literally|please|kindly|want|need|like|get|give|show|list|find|search|tell|what|how|why|when|where|who|which|that|this|these|those|as|by|before|after|until|non)\b/gi, '');
   cleaned = cleaned.replace(/[^a-z0-9\s]/gi, ' ');
   cleaned = cleaned.replace(/\s+/g, ' ').trim();
   if (cleaned.length < 2) return undefined;
@@ -274,12 +278,18 @@ function generateDeletePatterns(): PatternDef[] {
     };
     const filterField = filterFieldMap[entityKey] || 'name_contains';
     
+    const filterTermsRegex = /\b(veg|vegetarian|non-veg|jain|vegan|meat|bride|groom|pending|confirmed|declined|rejected|attending|checked in|arrived|no show)\b/i;
+    const filterOnlyRegex = /^(veg|vegetarian|non-veg|jain|vegan|meat|bride|groom|bride side|groom side|pending|confirmed|declined|rejected|attending|checked in|arrived|no show)$/i;
     patterns.push({
-      match: q => hasAny(q, deleteVerbs) && hasAny(q, entityNouns),
+      match: q => hasAny(q, deleteVerbs),
       parse: q => {
         const name = extractName(q, deleteVerbs, ['from', 'the']);
-        if (name) return { tool: toolName, args: { filter: { [filterField]: name } }, description: `Delete ${entityKey.slice(0, -1)} "${name}"`, response: `I'll delete ${entityKey.slice(0, -1)} "${name}". Please confirm below.` };
-        return null;
+        if (!name) return null;
+        // If extracted name is ONLY a filter term (e.g. "veg", "jain"), skip - let specific filter patterns handle it
+        // But if "from guests" is present, always allow (name-based delete)
+        // If extracted name has both filter terms AND other words (e.g. "Sameer Jain"), allow as name delete
+        if (filterOnlyRegex.test(name) && !/\bfrom\s+(the\s+)?guests?\b/.test(q)) return null;
+        return { tool: toolName, args: { filter: { [filterField]: name } }, description: `Delete ${entityKey.slice(0, -1)} "${name}"`, response: `I'll delete ${entityKey.slice(0, -1)} "${name}". Please confirm below.` };
       },
     });
     
@@ -319,9 +329,14 @@ function generateDeletePatterns(): PatternDef[] {
     });
     
     if (entityKey === 'guests') {
+      // Dietary delete - requires explicit dietary context (not just name containing "jain")
       patterns.push({
-        match: q => hasAny(q, deleteVerbs) && hasAny(q, entityNouns) && /\b(veg|vegetarian|non-veg|non veg|jain|vegan|meat|plant)\b/.test(q),
-        parse: q => { const d = normalizeSynonyms(q.match(/\b(veg|vegetarian|non-veg|non veg|jain|vegan|meat|plant)\b/i)?.[0] || '', DIETARY_SYNONYMS); return d ? { tool: toolName, args: { filter: { dietary: d } }, description: `Delete all ${d} dietary guests`, response: `I'll delete all ${d} dietary guests. Please confirm below.` } : null; },
+        match: q => hasAny(q, deleteVerbs) && hasAny(q, entityNouns) && /\b(veg|vegetarian|non-veg|non veg|jain|vegan|meat)\b/.test(q) && /\b(dietary|food|meal|eat|veg|vegetarian|non-veg|jain|vegan|meat)\b/i.test(q) && !/\b(name|named|called|family|surname)\b/.test(q),
+        parse: q => {
+          const dMatch = q.match(/\b(non-veg|non veg|nonvegetarian)\b/i)?.[0] || q.match(/\b(veg|vegetarian|jain|vegan|meat)\b/i)?.[0] || '';
+          const d = normalizeSynonyms(dMatch, DIETARY_SYNONYMS);
+          return d ? { tool: toolName, args: { filter: { dietary: d } }, description: `Delete all ${d} dietary guests`, response: `I'll delete all ${d} dietary guests. Please confirm below.` } : null;
+        },
       });
       patterns.push({
         match: q => hasAny(q, deleteVerbs) && hasAny(q, entityNouns) && /\b(bride|groom|bride side|groom side|bride's|groom's)\b/.test(q),
@@ -390,12 +405,11 @@ function generateUpdatePatterns(): PatternDef[] {
           return null;
         },
       });
-      // Dietary update - match by dietary value even without guest noun
+      // Dietary update - match by dietary value only when dietary context is present
       patterns.push({
-        match: q => hasAny(q, updateVerbs) && /\b(veg|vegetarian|non-veg|jain|vegan|dietary|food)\b/.test(q) && (hasAny(q, entityNouns) || extractName(q, [...updateVerbs, ...entityNouns, 'dietary', 'food', 'to', 'as'], ['veg', 'vegetarian', 'non-veg', 'jain', 'vegan']) !== undefined),
+        match: q => hasAny(q, updateVerbs) && /\b(veg|vegetarian|non-veg|jain|vegan|dietary|food)\b/.test(q) && /\b(dietary|food|meal|eat|vegetarian|veg|non-veg|jain|vegan|meat)\b/i.test(q) && !/\b(name|named|called|family|surname)\b/.test(q) && (hasAny(q, entityNouns) || hasPersonName(q)),
         parse: q => {
-          const name = extractName(q, [...updateVerbs, ...entityNouns, 'dietary', 'food', 'to', 'as'], ['veg', 'vegetarian', 'non-veg', 'jain', 'vegan']);
-          // Check non-veg before veg to avoid false match
+          const name = extractName(q, [...updateVerbs, ...entityNouns, 'dietary', 'food', 'to', 'as'], ['veg', 'vegetarian', 'non-veg', 'jain', 'vegan', 'non', 'dietary', 'food']);
           const dietaryMatch = q.match(/\b(non-veg|non veg|nonvegetarian)\b/i)?.[0] || q.match(/\b(veg|vegetarian|jain|vegan)\b/i)?.[0] || '';
           const dietary = normalizeSynonyms(dietaryMatch, DIETARY_SYNONYMS);
           if (dietary) {
@@ -593,7 +607,7 @@ function generateCreatePatterns(): PatternDef[] {
       patterns.push({
         match: q => hasAny(q, createVerbs) && /\b(bride|groom|bride side|groom side)\b/.test(q) && !hasBudgetContext(q),
         parse: q => {
-          const name = extractName(q, createVerbs, [...entityNouns, ...Object.keys(SIDE_SYNONYMS), 'bride side', 'groom side', 'as']);
+          const name = extractName(q, createVerbs, [...entityNouns, ...Object.keys(SIDE_SYNONYMS), 'bride side', 'groom side', 'as', 'side', 'on']);
           const side = normalizeSynonyms(q.match(/\b(bride|groom|bride side|groom side|bride's|groom's)\b/i)?.[0] || '', SIDE_SYNONYMS) || 'Bride';
           const dietary = normalizeSynonyms(q.match(/\b(veg|vegetarian|non-veg|jain|vegan)\b/i)?.[0] || '', DIETARY_SYNONYMS) || 'Veg';
           const relation = extractRelation(q) || '';

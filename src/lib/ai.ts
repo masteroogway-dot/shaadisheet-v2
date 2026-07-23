@@ -503,9 +503,15 @@ function parseIntent(question: string, summary: any): ParsedIntent | null {
   // DELETE GUESTS by name: "remove/delete Sameer Jain", "remove Sameer Jain from guests"
   const deleteGuestName = q.match(/(?:remove|delete|drop)\s+["']?([a-z][a-z\s]+?)["']?\s*(?:from\s+guests)?$/i);
   if (deleteGuestName) {
-    const name = deleteGuestName[1].trim();
+    let name = deleteGuestName[1].trim();
+    // Strip entity nouns from the end
+    name = name.replace(/\s+(guests?|invitees?|attendees?|people|person)$/i, '').trim();
     // Skip if it looks like a filter, not a name
-    if (!['all', 'every', 'each', 'veg', 'non-veg', 'jain', 'vegan', 'pending', 'yes', 'no', 'declined', 'bride', 'groom'].includes(name)) {
+    const dietaryTerms = ['veg', 'non-veg', 'non veg', 'jain', 'vegan', 'meat', 'vegetarian'];
+    const rsvpTerms = ['pending', 'yes', 'no', 'declined', 'confirmed', 'attending', 'checked in', 'arrived'];
+    const sideTerms = ['bride', 'groom'];
+    const skipTerms = ['all', 'every', 'each', ...dietaryTerms, ...rsvpTerms, ...sideTerms];
+    if (!skipTerms.includes(name) && name.length > 0) {
       return {
         tool: "delete_guests",
         args: { filter: { name_contains: name } },
