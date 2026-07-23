@@ -3,7 +3,7 @@ import { askAI } from "@/lib/ai";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { getUserRole } from "@/lib/permissions";
-import { rateLimit } from "@/lib/rate-limit";
+import { checkMinuteLimit, checkAndRecordUsage, checkConversationLength } from "@/lib/ai-limits";
 
 async function getSummary(weddingId: string) {
   const w = await prisma.wedding.findUnique({
@@ -25,9 +25,9 @@ async function getSummary(weddingId: string) {
   for (const t of w.tasks) { if (t.done) tasksDone++; }
   for (const b of w.budgetItems) { budgetAllocated += b.estimated || 0; budgetSpent += b.actual || 0; }
 
-    return {
-      weddingId: w.id,
-      name: w.name,
+  return {
+    weddingId: w.id,
+    name: w.name,
     budget: w.budget || 0,
     budgetAllocated,
     budgetSpent,
@@ -54,19 +54,36 @@ export async function POST(req: NextRequest) {
     const session = await auth();
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const rl = rateLimit(`ai:${session.user.email}`, 50, 60_000);
-    if (!rl.allowed) return NextResponse.json({ error: "Too many requests. Try again in a moment." }, { status: 429 });
+    const userId = session.user.email || session.user.id || "unknown";
+
+    // 1. Per-minute rate limit (in-memory, fast)
+    const rl = checkMinuteLimit(`ai:${userId}`);
+    if (!rl.allowed) return NextResponse.json({ error: `Too many requests. Wait ${rl.retryAfter}s.`, retryAfter: rl.retryAfter }, { status: 429 });
 
     const { weddingId, question, conversationHistory } = await req.json();
     if (!weddingId || !question) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
+    // 2. Conversation length limit
+    const convCheck = checkConversationLength(conversationHistory || []);
+    if (!convCheck.allowed) return NextResponse.json({ error: convCheck.message }, { status: 400 });
+
     const role = await getUserRole(weddingId);
     if (!role) return NextResponse.json({ error: "Wedding not found" }, { status: 404 });
 
+    // 3. Daily + monthly limits (DB-backed, persistent)
+    const usage = await checkAndRecordUsage(userId);
+    if (!usage.allowed) return NextResponse.json({ error: usage.reason }, { status: 429 });
+
     const summary = await getSummary(weddingId);
 
-    const response = await askAI(question, summary, conversationHistory || [], session.user.email || undefined);
-    return NextResponse.json({ response });
+    const response = await askAI(question, summary, conversationHistory || [], userId);
+    return NextResponse.json({
+      response,
+      usage: {
+        dailyRemaining: usage.dailyRemaining,
+        monthlyRemaining: usage.monthlyRemaining,
+      },
+    });
   } catch (error: any) {
     console.error("AI API route error:", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

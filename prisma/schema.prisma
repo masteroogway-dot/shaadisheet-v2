@@ -238,3 +238,12 @@ model AiMessage {
   pattern     String?  // if learned command, the pattern regex
   createdAt   DateTime @default(now())
 }
+
+model AiUsage {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@index([userId, date])
+}
