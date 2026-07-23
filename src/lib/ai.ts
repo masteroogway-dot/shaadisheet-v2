@@ -188,7 +188,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "delete_guests",
-      description: "Delete guests based on filters. Use name_contains to match partial or full guest names (e.g. 'Sameer Jain' matches the guest named Sameer Jain). Combine multiple filters to narrow results.",
+      description: "Delete guests based on filters. Use name_contains to match partial or full guest names (e.g. 'Sameer Jain' matches the guest named Sameer Jain). NEVER combine name_contains with dietary — they are separate operations.",
       parameters: {
         type: "object",
         properties: {
@@ -198,6 +198,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
               side: { type: "string", enum: ["Bride", "Groom"], description: "Filter by bride or groom side" },
               name_contains: { type: "string", description: "Full or partial guest name to match, e.g. 'Sameer Jain'" },
               rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"], description: "Filter by RSVP status" },
+              dietary: { type: "string", enum: ["Veg", "Non-Veg", "Jain", "Vegan"], description: "Filter by dietary preference. Only use when user explicitly mentions dietary (e.g. 'delete veg guests'). NEVER use when user gives a person's name." },
             },
           },
         },
@@ -454,6 +455,7 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
       if (a.filter.side) where.side = a.filter.side;
       if (a.filter.name_contains) where.guestName = { contains: a.filter.name_contains, mode: "insensitive" };
       if (a.filter.rsvp) where.rsvp = a.filter.rsvp;
+      if (a.filter.dietary) where.dietary = a.filter.dietary;
       const result = await prisma.guest.deleteMany({ where });
       return `Deleted ${result.count} guest(s).`;
     }
@@ -740,17 +742,20 @@ RULES:
 - If ambiguous, ask for clarification.
 
 NAME-BASED COMMANDS (critical):
-- "Remove Sameer Jain" → delete_guests with filter { name_contains: "Sameer Jain" }
-- "Delete Neha Oswal" → delete_guests with filter { name_contains: "Neha Oswal" }
-- "Remove all Jain dietary guests" → delete_guests with filter { dietary: "Jain" }
-- "Delete groom side" → delete_guests with filter { side: "Groom" }
+- "Remove Sameer Jain" → delete_guests with filter { name_contains: "Sameer Jain" } ONLY. Do NOT add dietary.
+- "Delete Neha Oswal" → delete_guests with filter { name_contains: "Neha Oswal" } ONLY. Do NOT add dietary.
+- "Remove all Jain dietary guests" → delete_guests with filter { dietary: "Jain" } ONLY. Do NOT add name_contains.
+- "Delete groom side" → delete_guests with filter { side: "Groom" } ONLY.
 - Names with spaces (e.g. "Sameer Jain") are a SINGLE name. Do NOT split them into separate fields.
-- "named X" means name_contains: X. "dietary X" means dietary: X. "side X" means side: X.
-- The word "guests" in "Remove X from guests" is the data type, NOT a filter value.
+- "Jain" in a person's name is part of their NAME, NOT a dietary filter.
+- If the user gives a person's name like "Sameer Jain", use ONLY name_contains. NEVER add dietary.
+- If the user mentions a dietary category like "delete veg guests" or "delete Jain guests", use ONLY dietary. NEVER add name_contains.
+- NEVER combine name_contains and dietary in the same filter.
 
 EXAMPLES:
 User: "Remove Sameer Jain from guests"
 Tool: delete_guests({ filter: { name_contains: "Sameer Jain" } })
+(WRONG: delete_guests({ filter: { name_contains: "Sameer Jain", dietary: "Jain" } }) — "Jain" is part of the name, NOT dietary!)
 
 User: "Delete all pending vendors"
 Tool: delete_vendors({ filter: { contract: "Pending" } })
@@ -759,7 +764,10 @@ User: "Remove veg dietary guests"
 Tool: delete_guests({ filter: { dietary: "Veg" } })
 
 User: "Delete Neha Oswal"
-Tool: delete_guests({ filter: { name_contains: "Neha Oswal" } })`;
+Tool: delete_guests({ filter: { name_contains: "Neha Oswal" } })
+
+User: "Delete all Jain guests"
+Tool: delete_guests({ filter: { dietary: "Jain" } })`;
 
     const messages: OpenAI.ChatCompletionMessageParam[] = [
       { role: "system", content: systemPrompt },
