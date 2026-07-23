@@ -34,8 +34,10 @@ function formatBudgetShort(n: number): string {
 export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: { wedding: any; onUpdate?: () => void; userRole?: string }) {
   const [editBudget, setEditBudget] = useState("");
   const [editGuests, setEditGuests] = useState("");
+  const [editDate, setEditDate] = useState("");
   const [editingBudget, setEditingBudget] = useState(false);
   const [editingGuests, setEditingGuests] = useState(false);
+  const [editingDate, setEditingDate] = useState(false);
   const [saving, setSaving] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [collaborators, setCollaborators] = useState<any[]>(wedding.collaborators || []);
@@ -95,6 +97,25 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
     } catch (e) {
       console.error(e);
       addToast("Failed to update guest count", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveDate = async () => {
+    if (!editDate) {
+      addToast("Please select a date", "error");
+      return;
+    }
+    setSaving(true);
+    try {
+      await updateWedding({ weddingId: wedding.id, weddingDate: new Date(editDate) });
+      setEditingDate(false);
+      addToast("Wedding date updated successfully", "success");
+      if (onUpdate) onUpdate();
+    } catch (e) {
+      console.error(e);
+      addToast("Failed to update wedding date", "error");
     } finally {
       setSaving(false);
     }
@@ -236,7 +257,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
                 Wedding Settings
                 <span className="text-xs text-gray-400 font-normal ml-2">- Refresh page after saving to see updated stats</span>
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Budget */}
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div>
@@ -316,6 +337,45 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner" }: 
                   ) : (
                     canEditBudget && (
                       <button onClick={() => { setEditGuests(String(wedding.guestCount || "")); setEditingGuests(true); }} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer">
+                        <i className="fas fa-pen mr-1" /> Edit
+                      </button>
+                    )
+                  )}
+                </div>
+
+                {/* Wedding Date */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium mb-1">Wedding Date</p>
+                    {editingDate ? (
+                      <div>
+                        <input
+                          type="date"
+                          value={editDate}
+                          onChange={(e) => setEditDate(e.target.value)}
+                          className="w-40 px-3 py-1.5 border-2 border-gray-200 focus:border-maroon rounded-lg text-sm font-bold focus:outline-none transition-colors"
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-lg font-extrabold text-gray-900">
+                        {wedding.weddingDate
+                          ? new Date(wedding.weddingDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+                          : "Not set"}
+                      </p>
+                    )}
+                  </div>
+                  {editingDate ? (
+                    <div className="flex gap-2">
+                      <button onClick={handleSaveDate} disabled={saving} className="px-3 py-1.5 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
+                        {saving ? "Saving..." : "Save"}
+                      </button>
+                      <button onClick={() => setEditingDate(false)} className="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    canEditBudget && (
+                      <button onClick={() => { setEditDate(wedding.weddingDate ? new Date(wedding.weddingDate).toISOString().split("T")[0] : ""); setEditingDate(true); }} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer">
                         <i className="fas fa-pen mr-1" /> Edit
                       </button>
                     )

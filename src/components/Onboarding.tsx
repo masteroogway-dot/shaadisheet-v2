@@ -350,7 +350,7 @@ export default function Onboarding({ onComplete }: Props) {
           {step === 7 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-xl md:text-3xl font-bold mb-2">Almost done! When and where?</h2>
-              <p className="text-gray-500 mb-6 md:mb-8 text-sm md:text-base">We&apos;ll set up reminders based on your wedding date.</p>
+              <p className="text-gray-500 mb-6 md:mb-8 text-sm md:text-base">We&apos;ll set up reminders based on your wedding date. You can always change this later.</p>
               <div className="max-w-[400px] space-y-4 md:space-y-5">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Wedding Date</label>
