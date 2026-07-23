@@ -20,6 +20,17 @@ export async function getUserRole(weddingId: string): Promise<WeddingRole> {
   return collab ? (collab.role as WeddingRole) : null;
 }
 
+export async function requireWeddingAccess(weddingId: string, allowViewer = false): Promise<{ userId: string; role: WeddingRole }> {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const role = await getUserRole(weddingId);
+  if (!role) throw new Error("Wedding not found");
+  if (!allowViewer && role === "viewer") throw new Error("Unauthorized");
+
+  return { userId: session.user.id, role };
+}
+
 export function canEdit(role: WeddingRole): boolean {
   return role === "owner" || role === "co-owner" || role === "editor";
 }

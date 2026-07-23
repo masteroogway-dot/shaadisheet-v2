@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { askAI } from "@/lib/ai";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { getUserRole } from "@/lib/permissions";
+import { rateLimit } from "@/lib/rate-limit";
 
 async function getSummary(weddingId: string) {
   const w = await prisma.wedding.findUnique({
@@ -52,16 +54,21 @@ export async function POST(req: NextRequest) {
     const session = await auth();
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    const rl = rateLimit(`ai:${session.user.email}`, 50, 60_000);
+    if (!rl.allowed) return NextResponse.json({ error: "Too many requests. Try again in a moment." }, { status: 429 });
+
     const { weddingId, question, conversationHistory } = await req.json();
     if (!weddingId || !question) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
+    const role = await getUserRole(weddingId);
+    if (!role) return NextResponse.json({ error: "Wedding not found" }, { status: 404 });
+
     const summary = await getSummary(weddingId);
-    if (!summary) return NextResponse.json({ error: "Wedding not found" }, { status: 404 });
 
     const response = await askAI(question, summary, conversationHistory || [], session.user.email || undefined);
     return NextResponse.json({ response });
   } catch (error: any) {
     console.error("AI API route error:", error);
-    return NextResponse.json({ error: error.message || "Internal error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

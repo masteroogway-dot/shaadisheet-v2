@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+  const rl = rateLimit(`invite:${session.user.id}`, 10, 60_000);
+  if (!rl.allowed) return NextResponse.json({ error: "Too many attempts. Try again in a moment." }, { status: 429 });
 
   const { token } = await params;
 

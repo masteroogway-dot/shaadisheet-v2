@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import bcrypt from "bcryptjs";
-import { getUserRole } from "@/lib/permissions";
+import { getUserRole, requireWeddingAccess } from "@/lib/permissions";
 
 // ═══════════════════════════════════════════════════════════════
 // AUTH: SIGNUP
@@ -659,8 +659,7 @@ export async function batchCreateGuests(weddingId: string, items: any[]) {
 // ═══════════════════════════════════════════════════════════════
 
 export async function getWeddingEvents(weddingId: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Not authenticated");
+  await requireWeddingAccess(weddingId, true);
 
   return prisma.weddingEvent.findMany({
     where: { weddingId },
@@ -669,8 +668,7 @@ export async function getWeddingEvents(weddingId: string) {
 }
 
 export async function createWeddingEvent(weddingId: string, data: any) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Not authenticated");
+  await requireWeddingAccess(weddingId);
 
   const maxOrder = await prisma.weddingEvent.aggregate({
     where: { weddingId },
@@ -694,8 +692,7 @@ export async function createWeddingEvent(weddingId: string, data: any) {
 }
 
 export async function updateWeddingEvent(weddingId: string, eventId: string, data: any) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Not authenticated");
+  await requireWeddingAccess(weddingId);
 
   const { weddingId: _, ...updateData } = data;
 
@@ -711,15 +708,13 @@ export async function updateWeddingEvent(weddingId: string, eventId: string, dat
 }
 
 export async function deleteWeddingEvent(weddingId: string, eventId: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Not authenticated");
+  await requireWeddingAccess(weddingId);
 
   return prisma.weddingEvent.delete({ where: { id: eventId } });
 }
 
 export async function seedWeddingEvents(weddingId: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Not authenticated");
+  await requireWeddingAccess(weddingId);
 
   const wedding = await prisma.wedding.findFirst({
     where: { id: weddingId },
@@ -867,8 +862,7 @@ export async function seedWeddingEvents(weddingId: string) {
 // ═══════════════════════════════════════════════════════════════
 
 export async function getWeddingTimelineItems(weddingId: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Not authenticated");
+  await requireWeddingAccess(weddingId, true);
 
   return prisma.weddingTimelineItem.findMany({
     where: { weddingId },
@@ -877,8 +871,7 @@ export async function getWeddingTimelineItems(weddingId: string) {
 }
 
 export async function createWeddingTimelineItem(weddingId: string, data: any) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Not authenticated");
+  await requireWeddingAccess(weddingId);
 
   const maxOrder = await prisma.weddingTimelineItem.aggregate({
     where: { weddingId },
@@ -900,8 +893,7 @@ export async function createWeddingTimelineItem(weddingId: string, data: any) {
 }
 
 export async function updateWeddingTimelineItem(weddingId: string, itemId: string, data: any) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Not authenticated");
+  await requireWeddingAccess(weddingId);
 
   const { weddingId: _, ...updateData } = data;
 
@@ -917,18 +909,16 @@ export async function updateWeddingTimelineItem(weddingId: string, itemId: strin
 }
 
 export async function deleteWeddingTimelineItem(weddingId: string, itemId: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Not authenticated");
+  await requireWeddingAccess(weddingId);
 
   return prisma.weddingTimelineItem.delete({ where: { id: itemId } });
 }
 
 export async function seedWeddingTimeline(weddingId: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Not authenticated");
+  await requireWeddingAccess(weddingId);
 
   const wedding = await prisma.wedding.findFirst({
-    where: { id: weddingId, userId: session.user.id },
+    where: { id: weddingId },
   });
   if (!wedding) throw new Error("Wedding not found");
 
@@ -1047,8 +1037,7 @@ export async function seedWeddingTimeline(weddingId: string) {
 // ═══════════════════════════════════════════════════════════════
 
 export async function createRoomAllocation(weddingId: string, data: any) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Not authenticated");
+  await requireWeddingAccess(weddingId);
 
   const maxOrder = await prisma.roomAllocation.aggregate({
     where: { weddingId },
@@ -1072,8 +1061,7 @@ export async function createRoomAllocation(weddingId: string, data: any) {
 }
 
 export async function updateRoomAllocation(weddingId: string, allocationId: string, data: any) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Not authenticated");
+  await requireWeddingAccess(weddingId);
 
   const { weddingId: _, ...updateData } = data;
   return prisma.roomAllocation.update({
@@ -1083,8 +1071,7 @@ export async function updateRoomAllocation(weddingId: string, allocationId: stri
 }
 
 export async function deleteRoomAllocation(weddingId: string, allocationId: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Not authenticated");
+  await requireWeddingAccess(weddingId);
 
   return prisma.roomAllocation.delete({ where: { id: allocationId } });
 }
