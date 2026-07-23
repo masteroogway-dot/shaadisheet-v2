@@ -494,6 +494,40 @@ export async function deleteSeatingTable(weddingId: string, id: string) {
   return prisma.seatingTable.delete({ where: { id } });
 }
 
+export async function assignGuestsToTable(weddingId: string, tableName: string, guestName: string) {
+  const wedding = await getCurrentWedding(weddingId);
+  const tables = wedding.seatingTables || [];
+  const guests = wedding.guests || [];
+
+  // Find table by name (case-insensitive, partial match)
+  const table = tables.find((t: any) => t.name.toLowerCase().includes(tableName.toLowerCase()));
+  if (!table) throw new Error(`Table "${tableName}" not found. Create it first from the Seating section.`);
+
+  // Find matching guests
+  const matches = guests.filter((g: any) => g.name?.toLowerCase().includes(guestName.toLowerCase()));
+  if (matches.length === 0) throw new Error(`No guests found matching "${guestName}".`);
+
+  // Get current guests on this table
+  let currentGuests: string[] = [];
+  try { currentGuests = JSON.parse(table.guests || "[]"); } catch { currentGuests = []; }
+
+  // Add new guest IDs (avoid duplicates)
+  let added = 0;
+  for (const g of matches) {
+    if (!currentGuests.includes(g.id)) {
+      currentGuests.push(g.id);
+      added++;
+    }
+  }
+
+  await prisma.seatingTable.update({
+    where: { id: table.id },
+    data: { guests: JSON.stringify(currentGuests) },
+  });
+
+  return { assigned: added, tableName: table.name };
+}
+
 // ═══════════════════════════════════════════════════════════════
 // AI MESSAGES
 // ═══════════════════════════════════════════════════════════════
@@ -1330,6 +1364,10 @@ export async function previewBulkAction(weddingId: string, type: string, filter:
   if (type === "guests" || type === "delete_guests") {
     matches = (wedding.guests || []).filter((g: any) => matchGuest(g, filter));
     return { count: matches.length, sample: matches.slice(0, 10).map((g: any) => ({ id: g.id, name: g.name, rsvp: g.rsvp, side: g.side, relation: g.relation, dietary: g.dietary })) };
+  }
+  if (type === "assign_seating") {
+    matches = (wedding.guests || []).filter((g: any) => matchGuest(g, filter));
+    return { count: matches.length, sample: matches.slice(0, 10).map((g: any) => ({ id: g.id, name: g.name })) };
   }
   if (type === "vendors" || type === "delete_vendors") {
     matches = (wedding.vendors || []).filter((v: any) => matchVendor(v, filter));

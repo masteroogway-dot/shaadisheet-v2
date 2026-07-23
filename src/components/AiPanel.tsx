@@ -186,6 +186,11 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
     if (isUpdateCmd) return parseUpdateCommand(q, summary);
     if (isAddCmd) return parseAddCommand(q, summary);
 
+    // Seating assignment: "assign Sameer Jain to Table 1", "move Chandak guests to Table 2"
+    if ((q.includes("assign") || q.includes("move") || q.includes("seat")) && q.includes("table")) {
+      return parseSeatingCommand(q, summary);
+    }
+
     if (/^(yes|all\s*yes|mark\s*all|set\s*all|do\s*it|confirm|y)$/i.test(q) || (q.includes("them") && q.includes("yes"))) {
       return parseUpdateCommand("set all guests rsvp to yes", summary);
     }
@@ -468,6 +473,43 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
     return { response: `What would you like to add? I can help with:\n- Guests\n- Vendors\n- Budget items\n- Seating tables\n- Room allocations` };
   };
 
+  const parseSeatingCommand = (q: string, summary: any): { response: string; action?: PendingAction } => {
+    // Extract table name/number: "table 1", "table family", "Table A"
+    const tableMatch = q.match(/table\s+([\w\d]+(?:\s+[\w\d]+)*)/i);
+    if (!tableMatch) return { response: "Which table? Say something like:\n- \"Assign Sameer Jain to Table 1\"\n- \"Move Chandak guests to Table 2\"" };
+    const tableName = tableMatch[1].trim();
+
+    // Extract guest name: "assign X to table", "move X to table"
+    let guestName = q
+      .replace(/^(assign|move|seat|put|place)\s+/i, "")
+      .replace(/\s*(to|at|on|in)\s+table\s+[\w\d]+(?:\s+[\w\d]+)*/gi, "")
+      .replace(/\s*(guests?|people|family)\b/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    // Stop words for guest extraction
+    const stopWords = ['all', 'every', 'each', 'the', 'any', 'no', 'for', 'of', 'with', 'from', 'on', 'who', 'are', 'have', 'those', 'these', 'them', 'some'];
+    const nameWords = guestName.split(/\s+/).filter(w => !stopWords.includes(w.toLowerCase()) && w.length > 1);
+    guestName = nameWords.join(" ");
+
+    if (!guestName) {
+      return { response: "Which guest(s) to assign? Say something like:\n- \"Assign Sameer Jain to Table 1\"\n- \"Move Chandak guests to Table 2\"" };
+    }
+
+    const response = `I'll assign guests named "${guestName}" to ${tableName}. Please confirm below.`;
+    const description = `Assign "${guestName}" to ${tableName}`;
+    return {
+      response,
+      action: {
+        type: "assign_seating",
+        filter: { name_contains: guestName, tableName },
+        updates: {},
+        description,
+        preview: { count: 0, sample: [] },
+      },
+    };
+  };
+
   const describeFilter = (filter: any, target: string): string => {
     const parts: string[] = [];
     if (filter.side) parts.push(`${filter.side}'s side`);
@@ -520,9 +562,18 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
     if (!pendingAction) return;
     setExecuting(true);
     try {
-      const result = await executeBulkUpdate(weddingId, pendingAction.type, pendingAction.filter, pendingAction.updates);
-      const targetDesc = pendingAction.description.split(" for ")[1] || pendingAction.description;
-      const confirmMsg = `Done! Updated **${result.updated}** ${targetDesc}.`;
+      let confirmMsg: string;
+
+      if (pendingAction.type === "assign_seating") {
+        // Handle seating assignment
+        const { assignGuestsToTable } = await import("@/lib/actions");
+        const result = await assignGuestsToTable(weddingId, pendingAction.filter.tableName, pendingAction.filter.name_contains);
+        confirmMsg = `Done! Assigned **${result.assigned}** guest(s) to ${pendingAction.filter.tableName}.`;
+      } else {
+        const result = await executeBulkUpdate(weddingId, pendingAction.type, pendingAction.filter, pendingAction.updates);
+        const targetDesc = pendingAction.description.split(" for ")[1] || pendingAction.description;
+        confirmMsg = `Done! Updated **${result.updated}** ${targetDesc}.`;
+      }
       setMessages((prev) => [...prev, { role: "bot", content: confirmMsg }]);
 
       // Store successful interaction
