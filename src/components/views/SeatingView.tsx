@@ -10,6 +10,7 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
   const [editData, setEditData] = useState<any>({});
   const [addingGuest, setAddingGuest] = useState<string | null>(null);
   const [newGuestName, setNewGuestName] = useState("");
+  const [guestSearch, setGuestSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkCount, setBulkCount] = useState(1);
   const [showBulkInput, setShowBulkInput] = useState(false);
@@ -245,10 +246,48 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
               </div>
 
               {addingGuest === table.id ? (
-                <div className="flex gap-1.5 ml-7">
-                  <input value={newGuestName} onChange={(e) => setNewGuestName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleAddGuestToTable(table)} placeholder="Guest name" className="card-input flex-1 py-1 text-xs" autoFocus />
-                  <button onClick={() => handleAddGuestToTable(table)} className="btn-save text-xs py-2 px-3">Add</button>
-                  <button onClick={() => { setAddingGuest(null); setNewGuestName(""); }} className="btn-cancel text-xs py-2 px-3">X</button>
+                <div className="flex flex-col gap-1.5 ml-7">
+                  <div className="relative">
+                    <input
+                      value={guestSearch}
+                      onChange={(e) => { setGuestSearch(e.target.value); setNewGuestName(""); }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") { setAddingGuest(null); setGuestSearch(""); setNewGuestName(""); }
+                      }}
+                      placeholder="Search guest name..."
+                      className="card-input py-1.5 text-xs"
+                      autoFocus
+                    />
+                    {guestSearch && guestSearch !== newGuestName && (
+                      <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                        {guests
+                          .filter((g: any) => g.name.toLowerCase().includes(guestSearch.toLowerCase()))
+                          .filter((g: any) => {
+                            let currentGuests: string[] = [];
+                            try { currentGuests = JSON.parse(table.guests || "[]"); } catch { currentGuests = []; }
+                            return !currentGuests.includes(g.name);
+                          })
+                          .slice(0, 8)
+                          .map((g: any) => (
+                            <button
+                              key={g.id}
+                              className="w-full text-left px-3 py-1.5 text-xs hover:bg-maroon/5 cursor-pointer flex items-center gap-2"
+                              onClick={() => { setNewGuestName(g.name); setGuestSearch(g.name); }}
+                            >
+                              <span className="truncate">{g.name}</span>
+                              <span className="text-[0.6rem] text-gray-400 shrink-0">{g.rsvpStatus || "pending"}</span>
+                            </button>
+                          ))}
+                        {guests.filter((g: any) => g.name.toLowerCase().includes(guestSearch.toLowerCase())).length === 0 && (
+                          <div className="px-3 py-1.5 text-xs text-gray-400">No matches</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-1.5">
+                    <button onClick={() => { handleAddGuestToTable(table); setGuestSearch(""); }} disabled={!newGuestName.trim()} className="btn-save text-xs py-2 px-3 disabled:opacity-40">Add</button>
+                    <button onClick={() => { setAddingGuest(null); setGuestSearch(""); setNewGuestName(""); }} className="btn-cancel text-xs py-2 px-3">X</button>
+                  </div>
                 </div>
               ) : (
                 <div className="flex gap-1.5 mt-2 ml-7">
