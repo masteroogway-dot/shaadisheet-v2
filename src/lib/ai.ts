@@ -586,7 +586,7 @@ Tool: delete_guests({ filter: { name_contains: "Neha Oswal" } })`;
     while (iterations < 6) {
       iterations++;
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "meta/llama-3.1-70b-instruct",
         messages,
         tools,
         temperature: 0.3,
