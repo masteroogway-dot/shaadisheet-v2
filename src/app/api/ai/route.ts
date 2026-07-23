@@ -59,6 +59,7 @@ export async function POST(req: NextRequest) {
     if (!summary) return NextResponse.json({ error: "Wedding not found" }, { status: 404 });
 
     const response = await askAI(question, summary, conversationHistory || [], session.user.email || undefined);
+    console.log("AI response:", response?.substring(0, 200));
     return NextResponse.json({ response });
   } catch (error: any) {
     console.error("AI API route error:", error);

@@ -371,9 +371,11 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
       return `Updated ${result.count} guest(s).`;
     }
     case "create_vendor": {
+      console.log("Creating vendor:", { weddingId, name: a.name, category: a.category, quote: a.quote });
       await prisma.vendor.create({
         data: { weddingId, name: a.name, category: a.category, contact: a.contact, quote: a.quote, notes: a.notes, contract: "Pending" },
       });
+      console.log("Vendor created successfully");
       return `Created vendor: ${a.name} (${a.category})${a.quote ? ` - ₹${formatINR(a.quote)}` : ""}.`;
     }
     case "create_budget_item": {
@@ -525,7 +527,9 @@ RULES:
         } catch {
           fnArgs = {};
         }
+        console.log("Tool call:", fnName, JSON.stringify(fnArgs).substring(0, 200));
         const result = await executeTool(fnName, fnArgs, summary.weddingId || "");
+        console.log("Tool result:", result);
         messages.push({ role: "tool", tool_call_id: tc.id, content: result });
       }
     }
