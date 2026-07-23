@@ -285,10 +285,13 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
     const sharmaMatch = q.match(/sharma|patel|gupta|singh|kumar|verma|jain| agarwal|mittal|reddy|nair|pillai|desai|rao/i);
     if (sharmaMatch && !filter.name_contains) filter.name_contains = sharmaMatch[0];
 
-    if (q.includes("veg") && !q.includes("non")) filter.dietary = "Veg";
-    if (q.includes("non-veg") || q.includes("nonveg")) filter.dietary = "Non-Veg";
-    if (q.includes("vegan")) filter.dietary = "Vegan";
-    if (q.includes("jain")) filter.dietary = "Jain";
+    // Only add dietary filter if no name is being matched (i.e. "delete Jain guests" not "delete Sameer Jain")
+    if (!filter.name_contains) {
+      if (q.includes("veg") && !q.includes("non")) filter.dietary = "Veg";
+      if (q.includes("non-veg") || q.includes("nonveg")) filter.dietary = "Non-Veg";
+      if (q.includes("vegan")) filter.dietary = "Vegan";
+      if (q.includes("jain")) filter.dietary = "Jain";
+    }
 
     // Clean undefined values
     filter = Object.fromEntries(Object.entries(filter).filter(([_, v]) => v !== undefined));
@@ -346,9 +349,9 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
     const sharmaMatch = q.match(/sharma|patel|gupta|singh|kumar|verma|jain| agarwal|mittal|reddy|nair|pillai|desai|rao/i);
     if (sharmaMatch && !filter.name_contains) filter.name_contains = sharmaMatch[0];
 
-    if (q.includes("veg") && !q.includes("non")) filter.dietary = "Veg";
-    if (q.includes("non-veg") || q.includes("nonveg")) filter.dietary = "Non-Veg";
-    if (q.includes("jain")) filter.dietary = "Jain";
+    if (q.includes("veg") && !q.includes("non") && !q.includes("dietary") && !q.includes("food")) filter.dietary = "Veg";
+    if ((q.includes("non-veg") || q.includes("nonveg")) && !q.includes("dietary") && !q.includes("food")) filter.dietary = "Non-Veg";
+    if (q.includes("jain") && !q.includes("dietary") && !q.includes("food")) filter.dietary = "Jain";
 
     // Parse category
     const catMatch = q.match(/(?:in|category)\s+(\w[\w\s&]*?)(?:\s+to|\s+as|\s*$)/i);
