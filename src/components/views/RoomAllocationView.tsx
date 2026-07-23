@@ -20,6 +20,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
   const [showBulkAdd, setShowBulkAdd] = useState(false);
   const [bulkAddCount, setBulkAddCount] = useState(1);
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
+  const [rangeInput, setRangeInput] = useState("");
 
   const allocations = wedding.roomAllocations || [];
   const totalRooms = allocations.length;
@@ -42,6 +43,30 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
     } else {
       setSelected(new Set(allocations.map((a: any) => a.id)));
     }
+  };
+
+  const handleSelectRange = () => {
+    if (!rangeInput.trim()) return;
+    const ids = new Set<string>();
+    const parts = rangeInput.split(",").map(s => s.trim());
+    for (const part of parts) {
+      if (part.includes("-")) {
+        const [a, b] = part.split("-").map(Number);
+        if (!isNaN(a) && !isNaN(b)) {
+          const lo = Math.min(a, b);
+          const hi = Math.max(a, b);
+          for (let i = lo; i <= hi; i++) {
+            if (i >= 1 && i <= allocations.length) ids.add(allocations[i - 1].id);
+          }
+        }
+      } else {
+        const n = Number(part);
+        if (!isNaN(n) && n >= 1 && n <= allocations.length) ids.add(allocations[n - 1].id);
+      }
+    }
+    setSelected(ids);
+    setRangeInput("");
+    if (ids.size > 0) onToast(`${ids.size} room${ids.size > 1 ? "s" : ""} selected`, "success");
   };
 
   const handleSave = async (id: string) => {
@@ -106,11 +131,28 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
           <h2 className="text-2xl font-bold">Room Allocations</h2>
           <p className="text-gray-500 text-sm">Assign guests to hotel rooms and track check-ins</p>
         </div>
-        <div className="flex gap-2.5 flex-wrap">
+        <div className="flex gap-2.5 flex-wrap items-center">
           {canEdit && (
             <button onClick={() => setShowImport(true)} className="btn-maroon">
               <i className="fas fa-file-import" /> Import
             </button>
+          )}
+          {canEdit && allocations.length > 0 && (
+            <>
+              <button onClick={toggleSelectAll} className="btn-edit text-xs py-2 px-3">
+                <i className="fas fa-check-double mr-1.5" /> {selected.size === allocations.length ? "Deselect All" : "Select All"}
+              </button>
+              <div className="flex items-center gap-1.5">
+                <input
+                  value={rangeInput}
+                  onChange={(e) => setRangeInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSelectRange()}
+                  placeholder="e.g. 5-10, 3"
+                  className="card-input py-1.5 text-xs w-36"
+                />
+                <button onClick={handleSelectRange} className="btn-edit text-xs py-2 px-2.5"><i className="fas fa-arrow-right" /></button>
+              </div>
+            </>
           )}
           {canEdit && (
             <button onClick={handleAdd} className="btn-maroon">
@@ -185,7 +227,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
         </div>
       ) : (
         <div className="space-y-3">
-          {allocations.map((a: any) => {
+          {allocations.map((a: any, idx: number) => {
             const isEditing = editing === a.id;
             const isSelected = selected.has(a.id);
 
@@ -193,6 +235,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
               <div key={a.id} className={`item-card ${isEditing ? "editing" : ""}`}>
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-[0.65rem] font-bold text-gray-400 bg-gray-100 rounded px-1.5 py-0.5 leading-none shrink-0">{idx + 1}</span>
                     <input
                       type="checkbox"
                       checked={isSelected}

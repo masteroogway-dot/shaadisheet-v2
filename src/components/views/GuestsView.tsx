@@ -11,6 +11,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkAddCount, setBulkAddCount] = useState<number>(5);
   const [showBulkAdd, setShowBulkAdd] = useState(false);
+  const [rangeInput, setRangeInput] = useState("");
 
   const guests = wedding.guests || [];
   const totalGuests = guests.length;
@@ -33,6 +34,30 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
     } else {
       setSelected(new Set(guests.map((g: any) => g.id)));
     }
+  };
+
+  const handleSelectRange = () => {
+    if (!rangeInput.trim()) return;
+    const ids = new Set<string>();
+    const parts = rangeInput.split(",").map(s => s.trim());
+    for (const part of parts) {
+      if (part.includes("-")) {
+        const [a, b] = part.split("-").map(Number);
+        if (!isNaN(a) && !isNaN(b)) {
+          const lo = Math.min(a, b);
+          const hi = Math.max(a, b);
+          for (let i = lo; i <= hi; i++) {
+            if (i >= 1 && i <= guests.length) ids.add(guests[i - 1].id);
+          }
+        }
+      } else {
+        const n = Number(part);
+        if (!isNaN(n) && n >= 1 && n <= guests.length) ids.add(guests[n - 1].id);
+      }
+    }
+    setSelected(ids);
+    setRangeInput("");
+    if (ids.size > 0) onToast(`${ids.size} guest${ids.size > 1 ? "s" : ""} selected`, "success");
   };
 
   const handleSave = async (id: string) => {
@@ -100,7 +125,24 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
           <h2 className="text-2xl font-bold">Guest List & RSVP</h2>
           <p className="text-gray-500 text-sm">Track every guest {'\u2014'} RSVP, dietary needs, gifts</p>
         </div>
-        <div className="flex gap-2.5 flex-wrap">
+        <div className="flex gap-2.5 flex-wrap items-center">
+          {canEdit && guests.length > 0 && (
+            <>
+              <button onClick={toggleSelectAll} className="btn-edit text-xs py-2 px-3">
+                <i className="fas fa-check-double mr-1.5" /> {selected.size === guests.length ? "Deselect All" : "Select All"}
+              </button>
+              <div className="flex items-center gap-1.5">
+                <input
+                  value={rangeInput}
+                  onChange={(e) => setRangeInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSelectRange()}
+                  placeholder="e.g. 5-10, 3"
+                  className="card-input py-1.5 text-xs w-36"
+                />
+                <button onClick={handleSelectRange} className="btn-edit text-xs py-2 px-2.5"><i className="fas fa-arrow-right" /></button>
+              </div>
+            </>
+          )}
           {canEdit && (
             <>
               <button onClick={() => setShowImport(true)} className="btn-maroon">
@@ -164,7 +206,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
         </div>
       ) : (
         <div className="space-y-3">
-          {guests.map((g: any) => {
+          {guests.map((g: any, idx: number) => {
             const isEditing = editing === g.id;
             const isSelected = selected.has(g.id);
 
@@ -172,6 +214,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
               <div key={g.id} className={`item-card ${isEditing ? "editing" : ""}`}>
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-[0.65rem] font-bold text-gray-400 bg-gray-100 rounded px-1.5 py-0.5 leading-none shrink-0">{idx + 1}</span>
                     <input
                       type="checkbox"
                       checked={isSelected}
