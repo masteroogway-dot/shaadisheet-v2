@@ -27,7 +27,7 @@ const TARGET_SYNONYMS: Record<string, string[]> = {
 
 const Rsvp_SYNONYMS: Record<string, string> = {
   yes: 'Yes', confirmed: 'Yes', attending: 'Yes', coming: 'Yes', going: 'Yes', 'will attend': 'Yes', accepted: 'Yes', 'said yes': 'Yes',
-  no: 'Declined', declined: 'Declined', rejected: 'Declined', not coming: 'Declined', 'won\'t attend': 'Declined', rejected: 'Declined',
+  no: 'Declined', declined: 'Declined', rejected: 'Declined', 'not coming': 'Declined', "won't attend": 'Declined', 'won t attend': 'Declined',
   pending: 'Pending', waiting: 'Pending', 'not sure': 'Pending', maybe: 'Pending', 'to be confirmed': 'Pending', tbc: 'Pending',
   'checked in': 'Yes', attended: 'Yes', arrived: 'Yes', present: 'Yes',
 };
@@ -68,17 +68,16 @@ const CATEGORY_SYNONYMS: Record<string, string> = {
   photography: 'Photography', photographer: 'Photography', photos: 'Photography', pictures: 'Photography', shoot: 'Photography', cameraman: 'Photography',
   videography: 'Videography', videographer: 'Videography', video: 'Videography', filming: 'Videography', drone: 'Videography',
   catering: 'Catering', food: 'Catering', meals: 'Catering', cuisine: 'Catering', caterer: 'Catering', cook: 'Catering', chef: 'Catering', buffet: 'Catering', khana: 'Catering',
-  decoration: 'Decoration', decor: 'Decoration', flowers: 'Decoration', floral: 'Decoration', mandap: 'Decoration', stage: 'Decoration', flower: 'Decoration', phool: 'Decoration',
+  decoration: 'Decoration', decor: 'Decoration', flowers: 'Decoration', floral: 'Decoration', stage: 'Decoration', flower: 'Decoration', phool: 'Decoration', 'flower decoration': 'Decoration',
   makeup: 'Makeup', 'make up': 'Makeup', cosmetics: 'Makeup', beauty: 'Makeup', artist: 'Makeup', salon: 'Makeup',
-  mehendi: 'Mehendi', henna: 'Mehendi', 'mehndi': 'Mehendi', mehendi artist: 'Mehendi',
+  mehendi: 'Mehendi', henna: 'Mehendi', 'mehndi': 'Mehendi', 'mehendi artist': 'Mehendi',
   dj: 'DJ', music: 'DJ', 'sound system': 'DJ', 'sound': 'DJ', speaker: 'DJ', lighting: 'DJ',
   band: 'Band', 'baraat': 'Band', 'brass band': 'Band', orchestra: 'Band', 'wedding band': 'Band',
-  venue: 'Venue', 'wedding venue': 'Venue', location: 'Venue', 'banquet': 'Venue', 'farmhouse': 'Venue', 'hotel': 'Venue', 'hall': 'Venue', 'mandap': 'Venue', 'resort': 'Venue',
-  transport: 'Transport', travel: 'Transport', car: 'Transport', 'wedding car': 'Transport', logistics: 'Transport', bus: 'Transport', 'tempo': 'Transport',
+  venue: 'Venue', 'wedding venue': 'Venue', location: 'Venue', 'banquet': 'Venue', 'farmhouse': 'Venue', 'hotel': 'Venue', 'hall': 'Venue', mandap: 'Venue', 'marriage hall': 'Venue', resort: 'Venue',
+  transport: 'Transport', travel: 'Transport', car: 'Transport', 'wedding car': 'Transport', logistics: 'Transport', bus: 'Transport', tempo: 'Transport',
   invitation: 'Invitation', invites: 'Invitation', 'wedding card': 'Invitation', cards: 'Invitation', 'wedding invite': 'Invitation', eInvite: 'Invitation',
   jewelry: 'Jewellery', jewellery: 'Jewellery', gold: 'Jewellery', ornaments: 'Jewellery', 'wedding jewellery': 'Jewellery', diamonds: 'Jewellery',
   outfit: 'Outfit', dress: 'Outfit', lehenga: 'Outfit', sherwani: 'Outfit', 'wedding dress': 'Outfit', 'wedding outfit': 'Outfit', saree: 'Outfit', suit: 'Outfit',
-  photography: 'Photography', video: 'Videography', food: 'Catering', decor: 'Decoration', beauty: 'Makeup', music: 'DJ', location: 'Venue', car: 'Transport', card: 'Invitation', gold: 'Jewellery', dress: 'Outfit',
 };
 
 const RELATION_SYNONYMS: Record<string, string> = {
@@ -1081,7 +1080,7 @@ export function parseWithPatterns(q: string): ParsedCommand | null {
   }
   
   // Try QUERY patterns
-  for (const pattern of [...QUERY_PATTERNS, ...MORE_QUERY_PATTERNS]) {
+  for (const pattern of MORE_QUERY_PATTERNS) {
     if (pattern.match(normalized)) {
       const result = pattern.parse(normalized);
       if (result) return result;
