@@ -2,9 +2,8 @@ import OpenAI from "openai";
 import { prisma } from "@/lib/prisma";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY || "",
-  baseURL: "https://openrouter.ai/api/v1",
-  defaultHeaders: { "HTTP-Referer": "https://shaadisheet-v2.vercel.app", "X-Title": "ShaadiSheet AI" },
+  apiKey: process.env.BLUESMINDS_API_KEY || "",
+  baseURL: "https://api.bluesminds.com/v1",
 });
 
 // ─── Helpers ──────────────────────────────────────────────────────
@@ -433,11 +432,9 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
       return `Updated ${result.count} guest(s).`;
     }
     case "create_vendor": {
-      console.log("Creating vendor:", { weddingId, name: a.name, category: a.category, quote: a.quote });
       await prisma.vendor.create({
         data: { weddingId, name: a.name, category: a.category, contact: a.contact, quote: a.quote, notes: a.notes, contract: "Pending" },
       });
-      console.log("Vendor created successfully");
       return `Created vendor: ${a.name} (${a.category})${a.quote ? ` - ₹${formatINR(a.quote)}` : ""}.`;
     }
     case "create_budget_item": {
@@ -567,7 +564,7 @@ RULES:
     while (iterations < 6) {
       iterations++;
       const completion = await openai.chat.completions.create({
-        model: "nvidia/nemotron-3-super-120b-a12b:free",
+        model: "nvidia/nemotron-3-super-120b-a12b",
         messages,
         tools,
         temperature: 0.3,
@@ -592,9 +589,7 @@ RULES:
         } catch {
           fnArgs = {};
         }
-        console.log("Tool call:", fnName, JSON.stringify(fnArgs).substring(0, 200));
         const result = await executeTool(fnName, fnArgs, summary.weddingId || "");
-        console.log("Tool result:", result);
         messages.push({ role: "tool", tool_call_id: tc.id, content: result });
       }
     }
