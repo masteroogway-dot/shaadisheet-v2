@@ -1,23 +1,11 @@
-import Groq from "groq-sdk";
+import OpenAI from "openai";
 import { prisma } from "@/lib/prisma";
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "" });
-
-// ─── Rate limiting (per user, per day) ─────────────────────────────
-const rateLimits = new Map<string, { count: number; resetAt: number }>();
-const DAILY_LIMIT = 50;
-
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now();
-  const entry = rateLimits.get(userId);
-  if (!entry || now > entry.resetAt) {
-    rateLimits.set(userId, { count: 1, resetAt: now + 24 * 60 * 60 * 1000 });
-    return true;
-  }
-  if (entry.count >= DAILY_LIMIT) return false;
-  entry.count++;
-  return true;
-}
+const openai = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY || "",
+  baseURL: "https://openrouter.ai/api/v1",
+  defaultHeaders: { "HTTP-Referer": "https://shaadisheet-v2.vercel.app", "X-Title": "ShaadiSheet AI" },
+});
 
 // ─── Helpers ──────────────────────────────────────────────────────
 function formatINR(n: number) {
@@ -67,9 +55,9 @@ function buildWeddingContext(summary: any): string {
 
 // ─── Tool definitions ─────────────────────────────────────────────
 
-const tools = [
+const tools: OpenAI.ChatCompletionTool[] = [
   {
-    type: "function" as const,
+    type: "function",
     function: {
       name: "allocate_rooms",
       description: "Create room allocations and assign guests to rooms.",
@@ -87,7 +75,7 @@ const tools = [
     },
   },
   {
-    type: "function" as const,
+    type: "function",
     function: {
       name: "create_guests",
       description: "Create multiple guest records at once.",
@@ -116,7 +104,7 @@ const tools = [
     },
   },
   {
-    type: "function" as const,
+    type: "function",
     function: {
       name: "update_guests",
       description: "Update existing guests in bulk based on filters.",
@@ -146,7 +134,7 @@ const tools = [
     },
   },
   {
-    type: "function" as const,
+    type: "function",
     function: {
       name: "create_vendor",
       description: "Create a new vendor entry.",
@@ -164,7 +152,7 @@ const tools = [
     },
   },
   {
-    type: "function" as const,
+    type: "function",
     function: {
       name: "create_budget_item",
       description: "Create a new budget item.",
@@ -181,7 +169,7 @@ const tools = [
     },
   },
   {
-    type: "function" as const,
+    type: "function",
     function: {
       name: "create_task",
       description: "Create a new task or to-do item.",
@@ -198,7 +186,7 @@ const tools = [
     },
   },
   {
-    type: "function" as const,
+    type: "function",
     function: {
       name: "delete_guests",
       description: "Delete guests based on filters.",
@@ -219,7 +207,7 @@ const tools = [
     },
   },
   {
-    type: "function" as const,
+    type: "function",
     function: {
       name: "delete_rooms",
       description: "Delete room allocations.",
@@ -240,7 +228,7 @@ const tools = [
     },
   },
   {
-    type: "function" as const,
+    type: "function",
     function: {
       name: "delete_vendors",
       description: "Delete vendors based on filters.",
@@ -261,7 +249,7 @@ const tools = [
     },
   },
   {
-    type: "function" as const,
+    type: "function",
     function: {
       name: "delete_budget_items",
       description: "Delete budget items based on filters.",
@@ -444,15 +432,10 @@ export async function askAI(
   conversationHistory: { role: string; content: string }[] = [],
   userId?: string
 ): Promise<string> {
-  // Rate limit check
-  if (userId && !checkRateLimit(userId)) {
-    return "You've reached the daily limit of 50 messages. Please try again tomorrow.";
-  }
-
   try {
     const weddingCtx = buildWeddingContext(summary);
 
-    const systemPrompt = `You are ShaadiSheet AI, the smartest Indian wedding planning assistant. You manage the couple's wedding database and provide expert advice.
+    const systemPrompt = `You are ShaadiSheet AI, the smartest Indian wedding planning assistant. You manage the couple's wedding database and provide expert advice. You are deeply knowledgeable about all Indian wedding traditions, rituals, vendors, budgeting, and planning.
 
 ${weddingCtx}
 
@@ -485,6 +468,15 @@ VENDOR PRICE RANGES (Indian market, 2026):
 - Band/Baraat: ₹50K - ₹5 Lakh
 - Venue: ₹2 Lakh - ₹25 Lakh
 
+PLANNING TIPS:
+- Book venue 6-12 months in advance
+- Book photographer/videographer 4-6 months in advance
+- Send save-the-dates 3-4 months before
+- Send invitations 4-6 weeks before
+- Confirm all vendors 2 weeks before
+- Final fittings 1 week before
+- Create a day-of timeline 2 weeks before
+
 RULES:
 - Use tools to CREATE, UPDATE, or DELETE data. Actually do it, don't just describe.
 - Be concise. After a tool runs, give a brief confirmation.
@@ -494,27 +486,28 @@ RULES:
 - When users ask about rituals, provide accurate info for their religion.
 - When users ask about vendors in their city, give guidance on what to look for and typical prices.
 - Always respond in the same language the user writes in.
-- If ambiguous, ask for clarification.`;
+- If ambiguous, ask for clarification.
+- You are smart, helpful, and proactive. Anticipate what the couple might need next.`;
 
-    const messages: Array<{ role: "system" | "user" | "assistant"; content?: string; tool_calls?: any[]; tool_call_id?: string; name?: string }> = [
+    const messages: OpenAI.ChatCompletionMessageParam[] = [
       { role: "system", content: systemPrompt },
     ];
 
-    for (const m of conversationHistory.slice(-6)) {
+    for (const m of conversationHistory.slice(-8)) {
       messages.push({ role: m.role === "bot" ? "assistant" : "user", content: m.content });
     }
 
     messages.push({ role: "user", content: question });
 
     let iterations = 0;
-    while (iterations < 5) {
+    while (iterations < 6) {
       iterations++;
-      const completion = await groq.chat.completions.create({
-        messages: messages as any,
-        model: "llama-3.3-70b-versatile",
+      const completion = await openai.chat.completions.create({
+        model: "xiaomi/mimo-v2.5",
+        messages,
         tools,
         temperature: 0.3,
-        max_tokens: 1024,
+        max_tokens: 4096,
       });
 
       const choice = completion.choices[0];
@@ -527,6 +520,7 @@ RULES:
       messages.push({ role: "assistant", content: msg.content || "", tool_calls: msg.tool_calls });
 
       for (const tc of msg.tool_calls) {
+        if (tc.type !== "function") continue;
         const fnName = tc.function.name;
         let fnArgs;
         try {
@@ -535,15 +529,14 @@ RULES:
           fnArgs = {};
         }
         const result = await executeTool(fnName, fnArgs, summary.weddingId || "");
-        messages.push({ role: "tool" as any, tool_call_id: tc.id, name: fnName, content: result });
+        messages.push({ role: "tool", tool_call_id: tc.id, content: result });
       }
     }
 
     return "Completed all operations.";
   } catch (error: any) {
     console.error("AI error:", error?.message || error);
-    if (error.message?.includes("API key")) return "AI API key is invalid.";
-    if (error.message?.includes("tool call validation")) return "I had trouble with that request. Could you rephrase it?";
+    if (error.message?.includes("API key")) return "AI service is temporarily unavailable. Please try again.";
     if (error.message?.includes("rate_limit")) return "Too many requests. Please wait a moment.";
     if (error.message?.includes("context_length")) return "Conversation too long. Please start a new chat.";
     return "Something went wrong. Please try again.";
