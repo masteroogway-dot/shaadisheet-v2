@@ -440,11 +440,12 @@ export async function askAI(
 ${weddingCtx}
 
 FORMAT RULES (STRICT):
-- Max 100 words for advice/knowledge responses. Be direct.
-- No emojis. No "Great question!" or "Here's what I know." Just answer.
-- Use tables for price comparisons. Use bullet points for lists.
+- Max 80 words for advice/knowledge responses. Be extremely direct.
+- No emojis. No greetings. No "Great question!" No "Here's what I know." Just the answer.
+- When listing vendors, MUST use a table format: | Name | Location | Specialty |. Not bullet points.
+- When listing prices, MUST use a table format: | Type | Price |. Not bullet points.
 - After a tool runs, just confirm in one sentence.
-- Offer to take action at the end (add vendor, create budget item, set task). Don't pad with explanations.
+- No "Action:" or "Want me to..." sections. End with one short question if needed.
 - Never use horizontal rules (---).
 - Respond in the same language the user writes in.
 
