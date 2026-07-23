@@ -106,25 +106,25 @@ const tools: OpenAI.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "update_guests",
-      description: "Update existing guests in bulk based on filters.",
+      description: "Update existing guests in bulk based on filters. Use name_contains to match guest names.",
       parameters: {
         type: "object",
         properties: {
           filter: {
             type: "object",
             properties: {
-              side: { type: "string", enum: ["Bride", "Groom"] },
-              name_contains: { type: "string" },
-              rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"] },
-              dietary: { type: "string", enum: ["Veg", "Non-Veg", "Jain", "Vegan"] },
+              side: { type: "string", enum: ["Bride", "Groom"], description: "Filter by bride or groom side" },
+              name_contains: { type: "string", description: "Full or partial guest name to match" },
+              rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"], description: "Filter by RSVP status" },
+              dietary: { type: "string", enum: ["Veg", "Non-Veg", "Jain", "Vegan"], description: "Filter by dietary preference" },
             },
           },
           updates: {
             type: "object",
             properties: {
-              rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"] },
-              dietary: { type: "string", enum: ["Veg", "Non-Veg", "Jain", "Vegan"] },
-              side: { type: "string", enum: ["Bride", "Groom"] },
+              rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"], description: "New RSVP status" },
+              dietary: { type: "string", enum: ["Veg", "Non-Veg", "Jain", "Vegan"], description: "New dietary preference" },
+              side: { type: "string", enum: ["Bride", "Groom"], description: "New side" },
             },
           },
         },
@@ -188,16 +188,16 @@ const tools: OpenAI.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "delete_guests",
-      description: "Delete guests based on filters.",
+      description: "Delete guests based on filters. Use name_contains to match partial or full guest names (e.g. 'Sameer Jain' matches the guest named Sameer Jain). Combine multiple filters to narrow results.",
       parameters: {
         type: "object",
         properties: {
           filter: {
             type: "object",
             properties: {
-              side: { type: "string", enum: ["Bride", "Groom"] },
-              name_contains: { type: "string" },
-              rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"] },
+              side: { type: "string", enum: ["Bride", "Groom"], description: "Filter by bride or groom side" },
+              name_contains: { type: "string", description: "Full or partial guest name to match, e.g. 'Sameer Jain'" },
+              rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"], description: "Filter by RSVP status" },
             },
           },
         },
@@ -230,16 +230,16 @@ const tools: OpenAI.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "delete_vendors",
-      description: "Delete vendors based on filters.",
+      description: "Delete vendors based on filters. Use name_contains to match vendor names.",
       parameters: {
         type: "object",
         properties: {
           filter: {
             type: "object",
             properties: {
-              category: { type: "string" },
-              name_contains: { type: "string" },
-              contract: { type: "string", enum: ["Pending", "Signed", "Completed"] },
+              category: { type: "string", description: "Filter by vendor category" },
+              name_contains: { type: "string", description: "Full or partial vendor name to match" },
+              contract: { type: "string", enum: ["Pending", "Signed", "Completed"], description: "Filter by contract status" },
             },
           },
         },
@@ -251,15 +251,15 @@ const tools: OpenAI.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "delete_budget_items",
-      description: "Delete budget items based on filters.",
+      description: "Delete budget items based on filters. Use item_contains to match item names.",
       parameters: {
         type: "object",
         properties: {
           filter: {
             type: "object",
             properties: {
-              category: { type: "string" },
-              item_contains: { type: "string" },
+              category: { type: "string", description: "Filter by budget category" },
+              item_contains: { type: "string", description: "Full or partial item name to match" },
             },
           },
         },
@@ -548,7 +548,16 @@ RULES:
 - When users ask about budget allocation, give specific ₹ amounts based on their total budget.
 - When users ask about rituals, give accurate info for their religion.
 - When users ask about vendors in their city, give specific guidance and typical prices.
-- If ambiguous, ask for clarification.`;
+- If ambiguous, ask for clarification.
+
+NAME-BASED COMMANDS (critical):
+- "Remove Sameer Jain" → delete_guests with filter { name_contains: "Sameer Jain" }
+- "Delete Neha Oswal" → delete_guests with filter { name_contains: "Neha Oswal" }
+- "Remove all Jain dietary guests" → delete_guests with filter { dietary: "Jain" }
+- "Delete groom side" → delete_guests with filter { side: "Groom" }
+- Names with spaces (e.g. "Sameer Jain") are a SINGLE name. Do NOT split them into separate fields.
+- "named X" means name_contains: X. "dietary X" means dietary: X. "side X" means side: X.
+- The word "guests" in "Remove X from guests" is the data type, NOT a filter value.`;
 
     const messages: OpenAI.ChatCompletionMessageParam[] = [
       { role: "system", content: systemPrompt },
