@@ -3,11 +3,42 @@ import { prisma } from "@/lib/prisma";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "" });
 
+// ─── Rate limiting (per user, per day) ─────────────────────────────
+const rateLimits = new Map<string, { count: number; resetAt: number }>();
+const DAILY_LIMIT = 50;
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const entry = rateLimits.get(userId);
+  if (!entry || now > entry.resetAt) {
+    rateLimits.set(userId, { count: 1, resetAt: now + 24 * 60 * 60 * 1000 });
+    return true;
+  }
+  if (entry.count >= DAILY_LIMIT) return false;
+  entry.count++;
+  return true;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────
 function formatINR(n: number) {
   if (n >= 10000000) return (n / 10000000).toFixed(1) + " Cr";
   if (n >= 100000) return (n / 100000).toFixed(1) + " L";
   if (n >= 1000) return (n / 1000).toFixed(1) + " K";
   return n.toString();
+}
+
+function toNumber(val: any, fallback = 0): number {
+  if (typeof val === "number") return val;
+  if (typeof val === "string") {
+    const parsed = parseFloat(val.replace(/[^\d.]/g, ""));
+    return isNaN(parsed) ? fallback : parsed;
+  }
+  return fallback;
+}
+
+function toString(val: any, fallback = ""): string {
+  if (val === null || val === undefined) return fallback;
+  return String(val).trim();
 }
 
 function buildWeddingContext(summary: any): string {
@@ -23,10 +54,10 @@ function buildWeddingContext(summary: any): string {
 - Date: ${weddingDate}${daysUntil !== null ? ` (${daysUntil} days away)` : ""}
 - City: ${summary.weddingCity || "Not set"}
 - Religion: ${summary.religion || "Not set"}
-- Budget: ${formatINR(summary.budget)}
-- Budget Allocated: ${formatINR(summary.budgetAllocated)}
-- Budget Spent: ${formatINR(summary.budgetSpent)}
-- Budget Remaining: ${formatINR(summary.budgetRemaining)}
+- Budget: ₹${formatINR(summary.budget)}
+- Budget Allocated: ₹${formatINR(summary.budgetAllocated)}
+- Budget Spent: ₹${formatINR(summary.budgetSpent)}
+- Budget Remaining: ₹${formatINR(summary.budgetRemaining)}
 - Guests: ${summary.guestCount} total (RSVP Yes: ${summary.rsvpYes}, Pending: ${summary.rsvpPending}, Declined: ${summary.rsvpDeclined})
 - Vendors: ${summary.vendorCount} total (Booked: ${summary.vendorsBooked})
 - Tasks: ${summary.taskCount} total (Done: ${summary.tasksDone}, Remaining: ${summary.taskCount - summary.tasksDone})
@@ -34,18 +65,18 @@ function buildWeddingContext(summary: any): string {
 - Events: ${(summary.events || []).map((e: any) => e.name).join(", ") || "None configured"}`;
 }
 
-// ─── Tool definitions for Groq function calling ──────────────────────
+// ─── Tool definitions ─────────────────────────────────────────────
 
 const tools = [
   {
     type: "function" as const,
     function: {
       name: "allocate_rooms",
-      description: "Create room allocations and assign guests to rooms. Use this when the user wants to assign guests to hotel rooms. Fetches all guests from the database and assigns them 2 per room by default.",
+      description: "Create room allocations and assign guests to rooms.",
       parameters: {
         type: "object",
         properties: {
-          count: { type: "number", description: "Number of rooms to allocate. If not provided, calculates based on guest count (2 per room)." },
+          count: { type: "number", description: "Number of rooms to allocate." },
           hotel: { type: "string", description: "Hotel name" },
           roomType: { type: "string", enum: ["Standard", "Deluxe", "Suite", "Premium"], description: "Room type" },
           checkIn: { type: "string", description: "Check-in date in YYYY-MM-DD format" },
@@ -59,7 +90,7 @@ const tools = [
     type: "function" as const,
     function: {
       name: "create_guests",
-      description: "Create multiple guest records at once. Use this when the user wants to add guests.",
+      description: "Create multiple guest records at once.",
       parameters: {
         type: "object",
         properties: {
@@ -70,7 +101,7 @@ const tools = [
               properties: {
                 guestName: { type: "string", description: "Full name of the guest" },
                 side: { type: "string", enum: ["Bride", "Groom"], description: "Bride or Groom side" },
-                relation: { type: "string", description: "Relation like Father, Mother, Friend, Colleague" },
+                relation: { type: "string", description: "Relation like Father, Mother, Friend" },
                 dietary: { type: "string", enum: ["Veg", "Non-Veg", "Jain", "Vegan"], description: "Dietary preference" },
                 rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"], description: "RSVP status" },
                 phone: { type: "string", description: "Phone number" },
@@ -88,25 +119,25 @@ const tools = [
     type: "function" as const,
     function: {
       name: "update_guests",
-      description: "Update existing guests in bulk based on filters. Use this for RSVP changes, dietary updates, side changes.",
+      description: "Update existing guests in bulk based on filters.",
       parameters: {
         type: "object",
         properties: {
           filter: {
             type: "object",
             properties: {
-              side: { type: "string", enum: ["Bride", "Groom"], description: "Filter by side" },
-              name_contains: { type: "string", description: "Filter by name containing this text" },
-              rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"], description: "Filter by current RSVP" },
-              dietary: { type: "string", enum: ["Veg", "Non-Veg", "Jain", "Vegan"], description: "Filter by dietary" },
+              side: { type: "string", enum: ["Bride", "Groom"] },
+              name_contains: { type: "string" },
+              rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"] },
+              dietary: { type: "string", enum: ["Veg", "Non-Veg", "Jain", "Vegan"] },
             },
           },
           updates: {
             type: "object",
             properties: {
-              rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"], description: "New RSVP status" },
-              dietary: { type: "string", enum: ["Veg", "Non-Veg", "Jain", "Vegan"], description: "New dietary preference" },
-              side: { type: "string", enum: ["Bride", "Groom"], description: "New side" },
+              rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"] },
+              dietary: { type: "string", enum: ["Veg", "Non-Veg", "Jain", "Vegan"] },
+              side: { type: "string", enum: ["Bride", "Groom"] },
             },
           },
         },
@@ -118,12 +149,12 @@ const tools = [
     type: "function" as const,
     function: {
       name: "create_vendor",
-      description: "Create a new vendor entry. Use this when the user wants to add a vendor.",
+      description: "Create a new vendor entry.",
       parameters: {
         type: "object",
         properties: {
           name: { type: "string", description: "Vendor name" },
-          category: { type: "string", description: "Category like Catering, Photography, Decoration, Music, etc." },
+          category: { type: "string", description: "Category like Catering, Photography, Decoration" },
           contact: { type: "string", description: "Contact phone number" },
           quote: { type: "number", description: "Quoted price in INR" },
           notes: { type: "string", description: "Additional notes" },
@@ -136,12 +167,12 @@ const tools = [
     type: "function" as const,
     function: {
       name: "create_budget_item",
-      description: "Create a new budget item. Use this when the user wants to add a budget entry.",
+      description: "Create a new budget item.",
       parameters: {
         type: "object",
         properties: {
           item: { type: "string", description: "Item name" },
-          category: { type: "string", description: "Category like Venue, Catering, Decoration, etc." },
+          category: { type: "string", description: "Category like Venue, Catering, Decoration" },
           estimated: { type: "number", description: "Estimated cost in INR" },
           notes: { type: "string", description: "Additional notes" },
         },
@@ -153,14 +184,14 @@ const tools = [
     type: "function" as const,
     function: {
       name: "create_task",
-      description: "Create a new task. Use this when the user wants to add a task or to-do item.",
+      description: "Create a new task or to-do item.",
       parameters: {
         type: "object",
         properties: {
           task: { type: "string", description: "Task description" },
-          category: { type: "string", description: "Category like Venue, Catering, Decoration, etc." },
-          deadline: { type: "string", description: "Deadline date in YYYY-MM-DD format" },
-          priority: { type: "string", enum: ["Low", "Medium", "High", "Urgent"], description: "Priority level" },
+          category: { type: "string", description: "Category" },
+          deadline: { type: "string", description: "Deadline in YYYY-MM-DD format" },
+          priority: { type: "string", enum: ["Low", "Medium", "High", "Urgent"] },
         },
         required: ["task"],
       },
@@ -170,16 +201,16 @@ const tools = [
     type: "function" as const,
     function: {
       name: "delete_guests",
-      description: "Delete guests based on filters. Use this when the user wants to remove guests.",
+      description: "Delete guests based on filters.",
       parameters: {
         type: "object",
         properties: {
           filter: {
             type: "object",
             properties: {
-              side: { type: "string", enum: ["Bride", "Groom"], description: "Filter by side" },
-              name_contains: { type: "string", description: "Filter by name containing" },
-              rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"], description: "Filter by RSVP" },
+              side: { type: "string", enum: ["Bride", "Groom"] },
+              name_contains: { type: "string" },
+              rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"] },
             },
           },
         },
@@ -191,16 +222,16 @@ const tools = [
     type: "function" as const,
     function: {
       name: "delete_rooms",
-      description: "Delete room allocations. Use this when the user wants to remove room assignments.",
+      description: "Delete room allocations.",
       parameters: {
         type: "object",
         properties: {
           filter: {
             type: "object",
             properties: {
-              hotel: { type: "string", description: "Filter by hotel name" },
-              status: { type: "string", enum: ["Reserved", "Checked In", "Checked Out", "Cancelled", "No Show"], description: "Filter by status" },
-              guestName_contains: { type: "string", description: "Filter by guest name containing" },
+              hotel: { type: "string" },
+              status: { type: "string", enum: ["Reserved", "Checked In", "Checked Out", "Cancelled", "No Show"] },
+              guestName_contains: { type: "string" },
             },
           },
         },
@@ -212,16 +243,16 @@ const tools = [
     type: "function" as const,
     function: {
       name: "delete_vendors",
-      description: "Delete vendors based on filters. Use this when the user wants to remove vendors.",
+      description: "Delete vendors based on filters.",
       parameters: {
         type: "object",
         properties: {
           filter: {
             type: "object",
             properties: {
-              category: { type: "string", description: "Filter by category" },
-              name_contains: { type: "string", description: "Filter by vendor name containing" },
-              contract: { type: "string", enum: ["Pending", "Signed", "Completed"], description: "Filter by contract status" },
+              category: { type: "string" },
+              name_contains: { type: "string" },
+              contract: { type: "string", enum: ["Pending", "Signed", "Completed"] },
             },
           },
         },
@@ -233,15 +264,15 @@ const tools = [
     type: "function" as const,
     function: {
       name: "delete_budget_items",
-      description: "Delete budget items based on filters. Use this when the user wants to remove budget entries.",
+      description: "Delete budget items based on filters.",
       parameters: {
         type: "object",
         properties: {
           filter: {
             type: "object",
             properties: {
-              category: { type: "string", description: "Filter by category" },
-              item_contains: { type: "string", description: "Filter by item name containing" },
+              category: { type: "string" },
+              item_contains: { type: "string" },
             },
           },
         },
@@ -251,183 +282,230 @@ const tools = [
   },
 ];
 
-// ─── Tool execution ──────────────────────────────────────────────────
+// ─── Pre-execution parameter validation ────────────────────────────
+
+function validateAndCoerceArgs(name: string, args: any): any {
+  switch (name) {
+    case "allocate_rooms":
+      return {
+        ...args,
+        count: args.count ? toNumber(args.count) : undefined,
+        hotel: toString(args.hotel),
+        roomType: toString(args.roomType, "Standard"),
+        checkIn: toString(args.checkIn),
+        checkOut: toString(args.checkOut),
+      };
+    case "create_guests":
+      return {
+        guests: (args.guests || []).map((g: any) => ({
+          guestName: toString(g.guestName),
+          side: toString(g.side, "Bride"),
+          relation: toString(g.relation),
+          dietary: toString(g.dietary, "Veg"),
+          rsvp: toString(g.rsvp, "Pending"),
+          phone: toString(g.phone),
+        })),
+      };
+    case "update_guests":
+      return { filter: args.filter || {}, updates: args.updates };
+    case "create_vendor":
+      return {
+        name: toString(args.name),
+        category: toString(args.category),
+        contact: toString(args.contact),
+        quote: toNumber(args.quote),
+        notes: toString(args.notes),
+      };
+    case "create_budget_item":
+      return {
+        item: toString(args.item),
+        category: toString(args.category),
+        estimated: toNumber(args.estimated),
+        notes: toString(args.notes),
+      };
+    case "create_task":
+      return {
+        task: toString(args.task),
+        category: toString(args.category),
+        deadline: toString(args.deadline),
+        priority: toString(args.priority, "Medium"),
+      };
+    case "delete_guests":
+    case "delete_vendors":
+    case "delete_budget_items":
+    case "delete_rooms":
+      return { filter: args.filter || {} };
+    default:
+      return args;
+  }
+}
+
+// ─── Tool execution ────────────────────────────────────────────────
 
 async function executeTool(name: string, args: any, weddingId: string): Promise<string> {
+  const a = validateAndCoerceArgs(name, args);
+
   switch (name) {
     case "allocate_rooms": {
-      const { count, hotel = "", roomType = "Standard", checkIn = "", checkOut = "" } = args;
-      // Fetch all guests for this wedding
+      const { count, hotel = "", roomType = "Standard", checkIn = "", checkOut = "" } = a;
       const guests = await prisma.guest.findMany({ where: { weddingId }, select: { name: true } });
       const totalGuests = guests.length;
       const roomsNeeded = count || Math.ceil(totalGuests / 2);
-
       const rooms = [];
       let guestIdx = 0;
       for (let i = 0; i < roomsNeeded; i++) {
-        const guest1 = guestIdx < totalGuests ? guests[guestIdx++].name : "";
-        const guest2 = guestIdx < totalGuests ? guests[guestIdx++].name : "";
-        const guestNames = [guest1, guest2].filter(Boolean).join(", ");
+        const g1 = guestIdx < totalGuests ? guests[guestIdx++].name : "";
+        const g2 = guestIdx < totalGuests ? guests[guestIdx++].name : "";
         rooms.push({
-          weddingId,
-          hotel: hotel || "TBD",
-          roomNumber: `Room ${i + 1}`,
-          roomType,
-          guestName: guestNames,
-          checkIn: checkIn || "",
-          checkOut: checkOut || "",
-          status: "Reserved",
+          weddingId, hotel: hotel || "TBD", roomNumber: `Room ${i + 1}`, roomType,
+          guestName: [g1, g2].filter(Boolean).join(", "), checkIn: checkIn || "", checkOut: checkOut || "", status: "Reserved",
         });
       }
       await prisma.roomAllocation.createMany({ data: rooms });
-      return `Created ${roomsNeeded} rooms at ${hotel || "TBD"} (${roomType}). Assigned ${Math.min(totalGuests, roomsNeeded * 2)} guests to rooms. Check-in: ${checkIn || "TBD"}, Check-out: ${checkOut || "TBD"}.`;
+      return `Created ${roomsNeeded} rooms at ${hotel || "TBD"} (${roomType}). Assigned ${Math.min(totalGuests, roomsNeeded * 2)} guests.`;
     }
-
     case "create_guests": {
-      const { guests } = args;
-      const data = guests.map((g: any) => ({
-        weddingId,
-        guestName: g.guestName,
-        side: g.side || "Bride",
-        relation: g.relation || "",
-        dietary: g.dietary || "Veg",
-        rsvp: g.rsvp || "Pending",
-        phone: g.phone || "",
+      const data = a.guests.map((g: any) => ({
+        weddingId, guestName: g.guestName, side: g.side, relation: g.relation,
+        dietary: g.dietary, rsvp: g.rsvp, phone: g.phone,
       }));
       await prisma.guest.createMany({ data });
-      return `Created ${guests.length} guest(s): ${guests.map((g: any) => g.guestName).join(", ")}.`;
+      return `Created ${a.guests.length} guest(s): ${a.guests.map((g: any) => g.guestName).join(", ")}.`;
     }
-
     case "update_guests": {
-      const { filter = {}, updates } = args;
+      const { filter = {}, updates } = a;
       const where: any = { weddingId };
       if (filter.side) where.side = filter.side;
       if (filter.name_contains) where.guestName = { contains: filter.name_contains, mode: "insensitive" };
       if (filter.rsvp) where.rsvp = filter.rsvp;
       if (filter.dietary) where.dietary = filter.dietary;
-
       const result = await prisma.guest.updateMany({ where, data: updates });
-      const filterDesc = Object.entries(filter).map(([k, v]) => `${k}=${v}`).join(", ") || "all";
-      const updateDesc = Object.entries(updates).map(([k, v]) => `${k}=${v}`).join(", ");
-      return `Updated ${result.count} guest(s) (${filterDesc}) → ${updateDesc}.`;
+      return `Updated ${result.count} guest(s).`;
     }
-
     case "create_vendor": {
-      const { name, category, contact = "", quote: rawQuote, notes = "" } = args;
-      const quote = typeof rawQuote === "string" ? parseFloat(rawQuote) || 0 : (rawQuote || 0);
       await prisma.vendor.create({
-        data: { weddingId, name, category, contact, quote, notes, contract: "Pending" },
+        data: { weddingId, name: a.name, category: a.category, contact: a.contact, quote: a.quote, notes: a.notes, contract: "Pending" },
       });
-      return `Created vendor: ${name} (${category}).`;
+      return `Created vendor: ${a.name} (${a.category})${a.quote ? ` - ₹${formatINR(a.quote)}` : ""}.`;
     }
-
     case "create_budget_item": {
-      const { item, category, estimated: rawEstimated, notes = "" } = args;
-      const estimated = typeof rawEstimated === "string" ? parseFloat(rawEstimated) || 0 : (rawEstimated || 0);
       await prisma.budgetItem.create({
-        data: { weddingId, item, category, estimated, notes },
+        data: { weddingId, item: a.item, category: a.category, estimated: a.estimated, notes: a.notes },
       });
-      return `Created budget item: ${item} (${category}) - ₹${formatINR(estimated)}.`;
+      return `Created budget item: ${a.item} (${a.category}) - ₹${formatINR(a.estimated)}.`;
     }
-
     case "create_task": {
-      const { task, category = "", deadline = "", priority = "Medium" } = args;
       await prisma.task.create({
-        data: { weddingId, text: task, period: category },
+        data: { weddingId, text: a.task, period: a.category },
       });
-      return `Created task: ${task}.`;
+      return `Created task: ${a.task}.`;
     }
-
     case "delete_guests": {
-      const { filter } = args;
       const where: any = { weddingId };
-      if (filter.side) where.side = filter.side;
-      if (filter.name_contains) where.guestName = { contains: filter.name_contains, mode: "insensitive" };
-      if (filter.rsvp) where.rsvp = filter.rsvp;
+      if (a.filter.side) where.side = a.filter.side;
+      if (a.filter.name_contains) where.guestName = { contains: a.filter.name_contains, mode: "insensitive" };
+      if (a.filter.rsvp) where.rsvp = a.filter.rsvp;
       const result = await prisma.guest.deleteMany({ where });
       return `Deleted ${result.count} guest(s).`;
     }
-
     case "delete_rooms": {
-      const { filter = {} } = args;
       const where: any = { weddingId };
-      if (filter.hotel) where.hotel = { contains: filter.hotel, mode: "insensitive" };
-      if (filter.status) where.status = filter.status;
-      if (filter.guestName_contains) where.guestName = { contains: filter.guestName_contains, mode: "insensitive" };
+      if (a.filter.hotel) where.hotel = { contains: a.filter.hotel, mode: "insensitive" };
+      if (a.filter.status) where.status = a.filter.status;
+      if (a.filter.guestName_contains) where.guestName = { contains: a.filter.guestName_contains, mode: "insensitive" };
       const result = await prisma.roomAllocation.deleteMany({ where });
       return `Deleted ${result.count} room allocation(s).`;
     }
-
     case "delete_vendors": {
-      const { filter = {} } = args;
       const where: any = { weddingId };
-      if (filter.category) where.category = { contains: filter.category, mode: "insensitive" };
-      if (filter.name_contains) where.name = { contains: filter.name_contains, mode: "insensitive" };
-      if (filter.contract) where.contract = filter.contract;
+      if (a.filter.category) where.category = { contains: a.filter.category, mode: "insensitive" };
+      if (a.filter.name_contains) where.name = { contains: a.filter.name_contains, mode: "insensitive" };
+      if (a.filter.contract) where.contract = a.filter.contract;
       const result = await prisma.vendor.deleteMany({ where });
       return `Deleted ${result.count} vendor(s).`;
     }
-
     case "delete_budget_items": {
-      const { filter = {} } = args;
       const where: any = { weddingId };
-      if (filter.category) where.category = { contains: filter.category, mode: "insensitive" };
-      if (filter.item_contains) where.item = { contains: filter.item_contains, mode: "insensitive" };
+      if (a.filter.category) where.category = { contains: a.filter.category, mode: "insensitive" };
+      if (a.filter.item_contains) where.item = { contains: a.filter.item_contains, mode: "insensitive" };
       const result = await prisma.budgetItem.deleteMany({ where });
       return `Deleted ${result.count} budget item(s).`;
     }
-
     default:
       return `Unknown tool: ${name}`;
   }
 }
 
-// ─── Main AI function with tool calling ──────────────────────────────
+// ─── Main AI function ──────────────────────────────────────────────
 
 export async function askAI(
   question: string,
   summary: any,
-  conversationHistory: { role: string; content: string }[] = []
+  conversationHistory: { role: string; content: string }[] = [],
+  userId?: string
 ): Promise<string> {
+  // Rate limit check
+  if (userId && !checkRateLimit(userId)) {
+    return "You've reached the daily limit of 50 messages. Please try again tomorrow.";
+  }
+
   try {
     const weddingCtx = buildWeddingContext(summary);
 
-    const systemPrompt = `You are ShaadiSheet AI, a specialized wedding planning assistant for Indian weddings. You have access to tools to manage the wedding database.
+    const systemPrompt = `You are ShaadiSheet AI, the smartest Indian wedding planning assistant. You manage the couple's wedding database and provide expert advice.
 
-CAPABILITIES:
-- You can CREATE, READ, UPDATE, and DELETE wedding data using tools.
-- You can answer questions about the user's wedding using the context provided.
-- You can provide Indian wedding planning advice, budget allocation tips, ritual information, and vendor recommendations.
-- You understand Hindu, Muslim, Sikh, Christian, and Jain wedding traditions and rituals.
+${weddingCtx}
+
+INDIAN WEDDING KNOWLEDGE:
+- Hindu weddings: Roka, Engagement, Mehendi, Sangeet, Haldi, Wedding (Baraat, Jaimala, Kanyadaan, Mangal Pheras, Sindoor, Vidaai), Reception
+- Muslim weddings: Mangni, Mehendi, Nikah, Walima, Ruksati
+- Sikh weddings: Kurmai, Mehendi, Sangeet, Anand Karaj (Lavaan), Langar, Reception
+- Christian weddings: Engagement, Roce Ceremony, Church Wedding (Vows, Rings, Register), Reception
+- Jain weddings: Roka, Engagement, Mehendi, Sangeet, Wedding (Phere), Reception
+
+BUDGET ALLOCATION (typical percentages of total budget):
+- Venue & Catering: 40-50%
+- Photography & Videography: 8-12%
+- Bridal Outfit & Jewellery: 10-15%
+- Decor & Flowers: 8-12%
+- Makeup & Mehendi: 3-5%
+- Music & Entertainment: 5-8%
+- Invitations: 2-3%
+- Transport: 2-3%
+- Misc & Buffer: 10-15%
+
+VENDOR PRICE RANGES (Indian market, 2026):
+- Photography: ₹80K - ₹5 Lakh
+- Videography: ₹60K - ₹4 Lakh
+- Catering: ₹800 - ₹3,000 per plate
+- Decoration: ₹1 Lakh - ₹10 Lakh
+- Makeup Artist: ₹20K - ₹2 Lakh
+- Mehendi Artist: ₹10K - ₹80K
+- DJ/Music: ₹30K - ₹3 Lakh
+- Band/Baraat: ₹50K - ₹5 Lakh
+- Venue: ₹2 Lakh - ₹25 Lakh
 
 RULES:
-- Use tools to CREATE, UPDATE, or DELETE data. Don't just describe what should happen - actually do it.
-- Be concise and direct. After executing a tool, give a brief confirmation.
-- Use ₹ for currency. Format large numbers as Cr/L/K (e.g., ₹1.5 Lakh, ₹25 Lakh, ₹3 Cr).
-- When users ask to add guests, vendors, budget items, or tasks - use the appropriate tool immediately.
-- When users ask to update RSVP, dietary, or other fields - use update_guests.
+- Use tools to CREATE, UPDATE, or DELETE data. Actually do it, don't just describe.
+- Be concise. After a tool runs, give a brief confirmation.
+- Use ₹ for currency. Format large numbers as Cr/L/K.
+- When users ask to add guests/vendors/budget/tasks, use the tool immediately.
 - When users ask about budget allocation, give specific ₹ amounts based on their total budget.
-- When users ask about rituals or ceremonies, provide accurate information for their religion.
-- When users ask for vendor recommendations in their city, provide helpful general guidance about what to look for and typical price ranges.
+- When users ask about rituals, provide accurate info for their religion.
+- When users ask about vendors in their city, give guidance on what to look for and typical prices.
 - Always respond in the same language the user writes in.
-- If a request is ambiguous, ask for clarification rather than guessing.
-
-${weddingCtx}`;
+- If ambiguous, ask for clarification.`;
 
     const messages: Array<{ role: "system" | "user" | "assistant"; content?: string; tool_calls?: any[]; tool_call_id?: string; name?: string }> = [
       { role: "system", content: systemPrompt },
     ];
 
     for (const m of conversationHistory.slice(-6)) {
-      messages.push({
-        role: m.role === "bot" ? "assistant" : "user",
-        content: m.content,
-      });
+      messages.push({ role: m.role === "bot" ? "assistant" : "user", content: m.content });
     }
 
     messages.push({ role: "user", content: question });
 
-    // Call Groq with tools - loop until we get a text response
     let iterations = 0;
     while (iterations < 5) {
       iterations++;
@@ -442,17 +520,20 @@ ${weddingCtx}`;
       const choice = completion.choices[0];
       const msg = choice.message;
 
-      // If no tool calls, return the text response
       if (!msg.tool_calls || msg.tool_calls.length === 0) {
         return msg.content || "Done.";
       }
 
-      // Execute each tool call
       messages.push({ role: "assistant", content: msg.content || "", tool_calls: msg.tool_calls });
 
       for (const tc of msg.tool_calls) {
         const fnName = tc.function.name;
-        const fnArgs = JSON.parse(tc.function.arguments);
+        let fnArgs;
+        try {
+          fnArgs = JSON.parse(tc.function.arguments);
+        } catch {
+          fnArgs = {};
+        }
         const result = await executeTool(fnName, fnArgs, summary.weddingId || "");
         messages.push({ role: "tool" as any, tool_call_id: tc.id, name: fnName, content: result });
       }
@@ -462,9 +543,9 @@ ${weddingCtx}`;
   } catch (error: any) {
     console.error("AI error:", error?.message || error);
     if (error.message?.includes("API key")) return "AI API key is invalid.";
-    if (error.message?.includes("tool call validation")) return "I had trouble processing that request. Could you rephrase it?";
-    if (error.message?.includes("rate_limit")) return "Too many requests. Please wait a moment and try again.";
-    if (error.message?.includes("context_length")) return "The conversation is too long. Please start a new chat.";
+    if (error.message?.includes("tool call validation")) return "I had trouble with that request. Could you rephrase it?";
+    if (error.message?.includes("rate_limit")) return "Too many requests. Please wait a moment.";
+    if (error.message?.includes("context_length")) return "Conversation too long. Please start a new chat.";
     return "Something went wrong. Please try again.";
   }
 }
