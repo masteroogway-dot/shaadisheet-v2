@@ -748,7 +748,7 @@ export async function deleteWeddingEvent(weddingId: string, eventId: string) {
 }
 
 export async function seedWeddingEvents(weddingId: string) {
-  await requireWeddingAccess(weddingId);
+  await requireWeddingAccess(weddingId, true);
 
   const wedding = await prisma.wedding.findFirst({
     where: { id: weddingId },
