@@ -557,7 +557,20 @@ NAME-BASED COMMANDS (critical):
 - "Delete groom side" → delete_guests with filter { side: "Groom" }
 - Names with spaces (e.g. "Sameer Jain") are a SINGLE name. Do NOT split them into separate fields.
 - "named X" means name_contains: X. "dietary X" means dietary: X. "side X" means side: X.
-- The word "guests" in "Remove X from guests" is the data type, NOT a filter value.`;
+- The word "guests" in "Remove X from guests" is the data type, NOT a filter value.
+
+EXAMPLES:
+User: "Remove Sameer Jain from guests"
+Tool: delete_guests({ filter: { name_contains: "Sameer Jain" } })
+
+User: "Delete all pending vendors"
+Tool: delete_vendors({ filter: { contract: "Pending" } })
+
+User: "Remove veg dietary guests"
+Tool: delete_guests({ filter: { dietary: "Veg" } })
+
+User: "Delete Neha Oswal"
+Tool: delete_guests({ filter: { name_contains: "Neha Oswal" } })`;
 
     const messages: OpenAI.ChatCompletionMessageParam[] = [
       { role: "system", content: systemPrompt },
@@ -573,7 +586,7 @@ NAME-BASED COMMANDS (critical):
     while (iterations < 6) {
       iterations++;
       const completion = await openai.chat.completions.create({
-        model: "nvidia/nemotron-3-super-120b-a12b",
+        model: "gpt-4o-mini",
         messages,
         tools,
         temperature: 0.3,
