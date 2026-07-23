@@ -488,6 +488,180 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
   }
 }
 
+// ─── Intent parser (regex fallback for free-tier models) ───────────
+
+interface ParsedIntent {
+  tool: string;
+  args: any;
+  description: string;
+}
+
+function parseIntent(question: string, summary: any): ParsedIntent | null {
+  const q = question.toLowerCase().trim();
+  const weddingId = summary?.weddingId;
+
+  // DELETE GUESTS by name: "remove/delete Sameer Jain", "remove Sameer Jain from guests"
+  const deleteGuestName = q.match(/(?:remove|delete|drop)\s+["']?([a-z][a-z\s]+?)["']?\s*(?:from\s+guests)?$/i);
+  if (deleteGuestName) {
+    const name = deleteGuestName[1].trim();
+    // Skip if it looks like a filter, not a name
+    if (!['all', 'every', 'each', 'veg', 'non-veg', 'jain', 'vegan', 'pending', 'yes', 'no', 'declined', 'bride', 'groom'].includes(name)) {
+      return {
+        tool: "delete_guests",
+        args: { filter: { name_contains: name } },
+        description: `Delete guest "${name}"`,
+      };
+    }
+  }
+
+  // DELETE GUESTS by dietary: "remove/delete all veg/jain/non-veg/vegan guests"
+  const deleteGuestDietary = q.match(/(?:remove|delete|drop)\s+(?:all\s+)?(?:guests?\s+(?:who\s+)?(?:are\s+)?|with\s+)?(veg|non-veg|jain|vegan)\s*(?:dietary|guests?)?/i);
+  if (deleteGuestDietary) {
+    const dietary = deleteGuestDietary[1].charAt(0).toUpperCase() + deleteGuestDietary[1].slice(1).toLowerCase();
+    return {
+      tool: "delete_guests",
+      args: { filter: { dietary } },
+      description: `Delete all ${dietary} dietary guests`,
+    };
+  }
+
+  // DELETE GUESTS by side: "remove/delete all bride/groom side guests"
+  const deleteGuestSide = q.match(/(?:remove|delete|drop)\s+(?:all\s+)?(?:guests?\s+(?:who\s+)?(?:are\s+)?(?:on\s+)?|from\s+)?(bride|groom)\s*(?:side|guests?)?/i);
+  if (deleteGuestSide) {
+    const side = deleteGuestSide[1].charAt(0).toUpperCase() + deleteGuestSide[1].slice(1).toLowerCase();
+    return {
+      tool: "delete_guests",
+      args: { filter: { side } },
+      description: `Delete all ${side} side guests`,
+    };
+  }
+
+  // DELETE GUESTS by RSVP: "remove/delete all pending/confirmed guests"
+  const deleteGuestRsvp = q.match(/(?:remove|delete|drop)\s+(?:all\s+)?(?:guests?\s+(?:who\s+)?(?:have\s+)?|with\s+)?(pending|confirmed|attending|checked[\s-]?in|declined|cancelled|no[\s-]?show)\s*(?:rsvp|guests?)?/i);
+  if (deleteGuestRsvp) {
+    let rsvp = deleteGuestRsvp[1].toLowerCase();
+    if (rsvp === 'confirmed' || rsvp === 'attending') rsvp = 'yes';
+    if (rsvp === 'checked-in') rsvp = 'yes';
+    rsvp = rsvp.charAt(0).toUpperCase() + rsvp.slice(1);
+    return {
+      tool: "delete_guests",
+      args: { filter: { rsvp } },
+      description: `Delete all ${rsvp} RSVP guests`,
+    };
+  }
+
+  // UPDATE GUESTS RSVP: "mark Sameer Jain as attended/confirmed/pending"
+  const updateGuestRsvp = q.match(/(?:mark|set|change|update)\s+["']?([a-z][a-z\s]+?)["']?\s+(?:as|to)\s+(attended|confirmed|pending|declined|cancelled|no[\s-]?show|yes|no)/i);
+  if (updateGuestRsvp) {
+    const name = updateGuestRsvp[1].trim();
+    let rsvp = updateGuestRsvp[2].toLowerCase();
+    if (rsvp === 'attended' || rsvp === 'confirmed') rsvp = 'yes';
+    rsvp = rsvp.charAt(0).toUpperCase() + rsvp.slice(1);
+    return {
+      tool: "update_guests",
+      args: { filter: { name_contains: name }, updates: { rsvp } },
+      description: `Update "${name}" RSVP to ${rsvp}`,
+    };
+  }
+
+  // DELETE VENDORS by name: "remove/delete Tenda Events vendor"
+  const deleteVendorName = q.match(/(?:remove|delete|drop)\s+["']?([a-z][a-z\s]+?)["']?\s*(?:vendor|from\s+vendors)?$/i);
+  if (deleteVendorName && (q.includes('vendor') || q.includes('from vendors'))) {
+    const name = deleteVendorName[1].trim();
+    if (!['all', 'every', 'each', 'pending', 'signed', 'completed'].includes(name)) {
+      return {
+        tool: "delete_vendors",
+        args: { filter: { name_contains: name } },
+        description: `Delete vendor "${name}"`,
+      };
+    }
+  }
+
+  // DELETE VENDORS by contract status: "remove all pending vendors"
+  const deleteVendorContract = q.match(/(?:remove|delete|drop)\s+(?:all\s+)?(?:vendors?\s+(?:who\s+)?(?:have\s+)?|with\s+)?(pending|signed|completed)\s*(?:contract|vendors?)?/i);
+  if (deleteVendorContract) {
+    const contract = deleteVendorContract[1].charAt(0).toUpperCase() + deleteVendorContract[1].slice(1).toLowerCase();
+    return {
+      tool: "delete_vendors",
+      args: { filter: { contract } },
+      description: `Delete all ${contract} contract vendors`,
+    };
+  }
+
+  // DELETE BUDGET ITEMS: "remove catering budget", "delete venue expenses"
+  const deleteBudget = q.match(/(?:remove|delete|drop)\s+["']?([a-z][a-z\s]+?)["']?\s*(?:budget|expense|item|from\s+budget)?$/i);
+  if (deleteBudget && (q.includes('budget') || q.includes('expense') || q.includes('item') || q.includes('from budget'))) {
+    const item = deleteBudget[1].trim();
+    if (!['all', 'every', 'each'].includes(item)) {
+      return {
+        tool: "delete_budget_items",
+        args: { filter: { item_contains: item } },
+        description: `Delete budget item "${item}"`,
+      };
+    }
+  }
+
+  // CREATE GUEST: "add Sameer Jain as groom side cousin veg"
+  const createGuest = q.match(/(?:add|create|new)\s+["']?([a-z][a-z\s]+?)["']?\s+(?:as|on|to)\s+(bride|groom)\s*(?:side)?/i);
+  if (createGuest) {
+    const name = createGuest[1].trim();
+    const side = createGuest[2].charAt(0).toUpperCase() + createGuest[2].slice(1).toLowerCase();
+    const dietaryMatch = q.match(/(veg|non-veg|jain|vegan)/i);
+    const dietary = dietaryMatch ? dietaryMatch[1].charAt(0).toUpperCase() + dietaryMatch[1].slice(1).toLowerCase() : 'Veg';
+    const relationMatch = q.match(/(?:as|who(?:'s| is))\s+(?:a\s+)?(\w+)/i);
+    const relation = relationMatch ? relationMatch[1] : '';
+    return {
+      tool: "create_guests",
+      args: { guests: [{ guestName: name, side, dietary, relation, rsvp: 'Pending' }] },
+      description: `Add ${name} as ${side} side guest`,
+    };
+  }
+
+  // CREATE VENDOR: "add photography vendor Creative Lens contact 9876543210 quote 200000"
+  const createVendor = q.match(/(?:add|create|new)\s+(?:a\s+)?(?:vendor\s+)?["']?([a-z][a-z\s]+?)["']?\s+(?:vendor|photographer|caterer|decorator)/i);
+  if (createVendor) {
+    const name = createVendor[1].trim();
+    const categoryMatch = q.match(/(photography|catering|decoration|makeup|dj|music|band|venue|videography|mehendi)/i);
+    const category = categoryMatch ? categoryMatch[1].charAt(0).toUpperCase() + categoryMatch[1].slice(1).toLowerCase() : 'Other';
+    const contactMatch = q.match(/(?:contact|phone|number)\s+(\d{10})/i);
+    const contact = contactMatch ? contactMatch[1] : '';
+    const quoteMatch = q.match(/(?:quote|price|cost|budget)\s+(?:rs\.?\s*)?(\d[\d,]*)/i);
+    const quote = quoteMatch ? parseInt(quoteMatch[1].replace(/,/g, '')) : undefined;
+    return {
+      tool: "create_vendor",
+      args: { name, category, contact: contact || undefined, quote },
+      description: `Add vendor "${name}" (${category})`,
+    };
+  }
+
+  // CREATE BUDGET ITEM: "add catering budget 500000"
+  const createBudget = q.match(/(?:add|create|new)\s+(?:a\s+)?(?:budget\s+)?(?:item\s+)?["']?([a-z][a-z\s]+?)["']?\s+(?:budget|expense|item|cost)/i);
+  if (createBudget) {
+    const item = createBudget[1].trim();
+    const categoryMatch = q.match(/(?:category|under|for)\s+(\w+)/i);
+    const category = categoryMatch ? categoryMatch[1].charAt(0).toUpperCase() + categoryMatch[1].slice(1).toLowerCase() : 'Misc';
+    const amountMatch = q.match(/(?:rs\.?\s*)?(\d[\d,]*)\b/i);
+    const estimated = amountMatch ? parseInt(amountMatch[1].replace(/,/g, '')) : 0;
+    return {
+      tool: "create_budget_item",
+      args: { item, category, estimated },
+      description: `Add budget item "${item}" (₹${estimated.toLocaleString('en-IN')})`,
+    };
+  }
+
+  // CREATE TASK: "add task book photographer deadline 2026-09-15"
+  const createTask = q.match(/(?:add|create|new)\s+(?:a\s+)?(?:task|todo|to-do)\s+["']?(.+?)["']?\s*(?:deadline|by|before)\s+(\d{4}-\d{2}-\d{2})/i);
+  if (createTask) {
+    return {
+      tool: "create_task",
+      args: { task: createTask[1].trim(), deadline: createTask[2], priority: 'Medium' },
+      description: `Add task "${createTask[1].trim()}"`,
+    };
+  }
+
+  return null;
+}
+
 // ─── Main AI function ──────────────────────────────────────────────
 
 export async function askAI(
@@ -497,6 +671,13 @@ export async function askAI(
   userId?: string
 ): Promise<string> {
   try {
+    // Try regex parser first (works perfectly, no model needed)
+    const parsed = parseIntent(question, summary);
+    if (parsed) {
+      const result = await executeTool(parsed.tool, parsed.args, summary?.weddingId || "");
+      return `${parsed.description}. ${result}`;
+    }
+
     const weddingCtx = buildWeddingContext(summary);
 
     const systemPrompt = `You are ShaadiSheet AI, a wedding planning assistant. You manage the couple's database and give expert advice.
