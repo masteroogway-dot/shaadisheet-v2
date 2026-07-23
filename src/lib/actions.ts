@@ -721,7 +721,69 @@ export async function seedWeddingEvents(weddingId: string) {
   });
   if (!wedding) throw new Error("Wedding not found");
 
-  if (!wedding.weddingDate) return;
+  if (!wedding.weddingDate) {
+    const existing = await prisma.weddingEvent.findMany({ where: { weddingId } });
+    if (existing.length > 0) return;
+
+    const EVENTS: Record<string, Array<{ name: string; description: string; startTime: string; duration: number; isRitual: boolean; isSimultaneous?: boolean }>> = {
+      hindu: [
+        { name: "Roka", description: "Official engagement ceremony between families", startTime: "11:00", duration: 120, isRitual: true },
+        { name: "Engagement", description: "Ring exchange ceremony", startTime: "19:00", duration: 120, isRitual: true },
+        { name: "Mehendi", description: "Henna application for bride and guests", startTime: "16:00", duration: 180, isRitual: false },
+        { name: "Sangeet", description: "Music and dance night", startTime: "19:00", duration: 240, isRitual: false },
+        { name: "Haldi", description: "Turmeric paste ceremony for bride and groom", startTime: "09:00", duration: 120, isRitual: true },
+        { name: "Wedding", description: "Baraat, Jaimala, Pheras - main wedding ceremony", startTime: "10:00", duration: 240, isRitual: true, isSimultaneous: true },
+        { name: "Reception", description: "Grand evening celebration and dinner", startTime: "19:00", duration: 240, isRitual: false },
+      ],
+      muslim: [
+        { name: "Mangni", description: "Engagement ceremony", startTime: "19:00", duration: 120, isRitual: true },
+        { name: "Mehendi", description: "Henna night for bride", startTime: "16:00", duration: 180, isRitual: false },
+        { name: "Nikah", description: "Islamic wedding ceremony", startTime: "10:00", duration: 180, isRitual: true },
+        { name: "Walima", description: "Post-wedding reception hosted by groom's family", startTime: "19:00", duration: 240, isRitual: true, isSimultaneous: true },
+      ],
+      sikh: [
+        { name: "Kurmai", description: "Engagement ceremony", startTime: "11:00", duration: 120, isRitual: true },
+        { name: "Mehendi", description: "Henna application", startTime: "16:00", duration: 180, isRitual: false },
+        { name: "Sangeet", description: "Dance and music night", startTime: "19:00", duration: 240, isRitual: false },
+        { name: "Anand Karaj", description: "Wedding ceremony at Gurdwara", startTime: "10:00", duration: 180, isRitual: true },
+        { name: "Langar", description: "Community meal at Gurdwara", startTime: "13:00", duration: 120, isRitual: true, isSimultaneous: true },
+        { name: "Reception", description: "Evening celebration party", startTime: "19:00", duration: 240, isRitual: false },
+      ],
+      christian: [
+        { name: "Engagement", description: "Formal engagement ceremony", startTime: "19:00", duration: 120, isRitual: true },
+        { name: "Roce Ceremony", description: "Pre-wedding turmeric ceremony", startTime: "17:00", duration: 120, isRitual: true },
+        { name: "Church Wedding", description: "Wedding ceremony at church", startTime: "10:00", duration: 120, isRitual: true },
+        { name: "Reception", description: "Celebration and reception", startTime: "19:00", duration: 240, isRitual: false },
+      ],
+      jain: [
+        { name: "Roka", description: "Official engagement between families", startTime: "11:00", duration: 120, isRitual: true },
+        { name: "Engagement", description: "Ring exchange ceremony", startTime: "19:00", duration: 120, isRitual: true },
+        { name: "Mehendi", description: "Henna application", startTime: "16:00", duration: 180, isRitual: false },
+        { name: "Sangeet", description: "Dance and music night", startTime: "19:00", duration: 240, isRitual: false },
+        { name: "Wedding", description: "Jain wedding rituals and ceremonies", startTime: "10:00", duration: 180, isRitual: true },
+        { name: "Reception", description: "Grand celebration and dinner", startTime: "19:00", duration: 240, isRitual: false },
+      ],
+    };
+
+    let selectedNames: string[];
+    try { selectedNames = JSON.parse(wedding.selectedEvents || "[]"); } catch { selectedNames = []; }
+    selectedNames = selectedNames.map((n) => n === "Wedding Day" || n === "Wedding Ceremony" ? "Wedding" : n);
+
+    const template = EVENTS[wedding.religion] || EVENTS.hindu;
+    const filtered = selectedNames.length > 0 ? template.filter((t) => selectedNames.includes(t.name)) : template;
+
+    let order = 0;
+    for (const t of filtered) {
+      await prisma.weddingEvent.create({
+        data: {
+          weddingId, order: order++, name: t.name, description: t.description,
+          date: "", startTime: t.startTime, duration: t.duration,
+          location: wedding.weddingCity || "", isRitual: t.isRitual, isSimultaneous: t.isSimultaneous || false,
+        },
+      });
+    }
+    return;
+  }
 
   const existing = await prisma.weddingEvent.findMany({
     where: { weddingId },
