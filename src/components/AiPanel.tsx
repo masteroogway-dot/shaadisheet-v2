@@ -266,7 +266,7 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
       .replace(/\s+/g, " ")
       .trim();
     
-    const stopWords = ['all', 'every', 'each', 'the', 'any', 'no', 'veg', 'non-veg', 'vegan', 'pending', 'confirmed', 'declined', 'bride', 'groom', 'side', 'family', 'named', 'surname', 'rsvp', 'yes', 'signed', 'completed'];
+    const stopWords = ['all', 'every', 'each', 'the', 'any', 'no', 'veg', 'non-veg', 'vegan', 'pending', 'confirmed', 'declined', 'bride', 'groom', 'side', 'family', 'named', 'surname', 'rsvp', 'yes', 'signed', 'completed', 'for', 'of', 'with', 'from', 'on', 'who', 'are', 'have'];
     
     // Only treat jain/veg as stop words if they appear with dietary context
     const hasDietaryContext = /(?:dietary|food|meal|eat)/i.test(q);
@@ -281,10 +281,11 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
       filter.name_contains = nameWords.join(" ");
     }
 
-    const familyMatch = q.match(/(?:family|family of|from|named?|surname)\s+([\w\s]+)/i);
+    // Family/surname detection: "delete Chandak guests", "remove Sharma family"
+    const familyMatch = q.match(/(?:family|family of|named?|surname)\s+([\w\s]+?)(?:\s+guests?|\s*$)/i);
     if (familyMatch && !filter.name_contains) filter.name_contains = familyMatch[1].trim();
-    const sharmaMatch = q.match(/sharma|patel|gupta|singh|kumar|verma|jain| agarwal|mittal|reddy|nair|pillai|desai|rao/i);
-    if (sharmaMatch && !filter.name_contains) filter.name_contains = sharmaMatch[0];
+    const forAllMatch = q.match(/(?:delete|remove|drop)\s+(?:all\s+)?(\w+)\s+(?:guests?|family)/i);
+    if (forAllMatch && !filter.name_contains) filter.name_contains = forAllMatch[1].trim();
 
     // Only add dietary filter if no name is being matched (i.e. "delete Jain guests" not "delete Sameer Jain")
     if (!filter.name_contains) {
@@ -338,17 +339,19 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
       .replace(/\s+/g, " ")
       .trim();
     
-    const stopWords = ['all', 'every', 'each', 'the', 'any', 'no', 'veg', 'non-veg', 'jain', 'vegan', 'pending', 'confirmed', 'declined', 'bride', 'groom', 'side', 'family', 'named', 'surname', 'dietary', 'rsvp', 'yes', 'signed', 'completed'];
+    const stopWords = ['all', 'every', 'each', 'the', 'any', 'no', 'veg', 'non-veg', 'jain', 'vegan', 'pending', 'confirmed', 'declined', 'bride', 'groom', 'side', 'family', 'named', 'surname', 'dietary', 'rsvp', 'yes', 'signed', 'completed', 'for', 'of', 'with', 'from', 'on', 'who', 'are', 'have'];
     const nameWords = nameFromCommand.split(/\s+/).filter(w => !stopWords.includes(w.toLowerCase()) && w.length > 1);
     
     if (nameWords.length > 0) {
       filter.name_contains = nameWords.join(" ");
     }
 
-    const familyMatch = q.match(/(?:family|family of|from|named?|surname)\s+([\w\s]+)/i);
+    // Family/surname detection: "for all Chandak guests", "Sharma family", "Patel guests"
+    const familyMatch = q.match(/(?:family|family of|named?|surname)\s+([\w\s]+?)(?:\s+guests?|\s*$)/i);
     if (familyMatch && !filter.name_contains) filter.name_contains = familyMatch[1].trim();
-    const sharmaMatch = q.match(/sharma|patel|gupta|singh|kumar|verma|jain| agarwal|mittal|reddy|nair|pillai|desai|rao/i);
-    if (sharmaMatch && !filter.name_contains) filter.name_contains = sharmaMatch[0];
+    // Also detect "for all X guests" pattern where X is a surname
+    const forAllMatch = q.match(/for\s+(?:all\s+)?(\w+)\s+(?:guests?|family)/i);
+    if (forAllMatch && !filter.name_contains) filter.name_contains = forAllMatch[1].trim();
 
     if (q.includes("veg") && !q.includes("non") && !q.includes("dietary") && !q.includes("food")) filter.dietary = "Veg";
     if ((q.includes("non-veg") || q.includes("nonveg")) && !q.includes("dietary") && !q.includes("food")) filter.dietary = "Non-Veg";
