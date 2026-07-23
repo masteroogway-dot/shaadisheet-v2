@@ -1327,19 +1327,19 @@ export async function previewBulkAction(weddingId: string, type: string, filter:
   const wedding = await getCurrentWedding(weddingId);
   let matches: any[] = [];
 
-  if (type === "guests") {
+  if (type === "guests" || type === "delete_guests") {
     matches = (wedding.guests || []).filter((g: any) => matchGuest(g, filter));
     return { count: matches.length, sample: matches.slice(0, 10).map((g: any) => ({ id: g.id, name: g.name, rsvp: g.rsvp, side: g.side, relation: g.relation, dietary: g.dietary })) };
   }
-  if (type === "vendors") {
+  if (type === "vendors" || type === "delete_vendors") {
     matches = (wedding.vendors || []).filter((v: any) => matchVendor(v, filter));
     return { count: matches.length, sample: matches.slice(0, 10).map((v: any) => ({ id: v.id, name: v.name, category: v.category, contract: v.contract })) };
   }
-  if (type === "budget") {
+  if (type === "budget" || type === "delete_budget") {
     matches = (wedding.budgetItems || []).filter((i: any) => matchBudgetItem(i, filter));
     return { count: matches.length, sample: matches.slice(0, 10).map((i: any) => ({ id: i.id, item: i.item, category: i.category, estimated: i.estimated, status: i.status })) };
   }
-  if (type === "rooms") {
+  if (type === "rooms" || type === "delete_rooms") {
     matches = (wedding.roomAllocations || []).filter((r: any) => matchRoom(r, filter));
     return { count: matches.length, sample: matches.slice(0, 10).map((r: any) => ({ id: r.id, guestName: r.guestName, hotel: r.hotel, status: r.status, roomType: r.roomType })) };
   }
