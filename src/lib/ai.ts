@@ -674,9 +674,11 @@ export async function askAI(
     // Try regex parser first (works perfectly, no model needed)
     const parsed = parseIntent(question, summary);
     if (parsed) {
+      console.log("[AI] Regex parser matched:", parsed.tool, JSON.stringify(parsed.args));
       const result = await executeTool(parsed.tool, parsed.args, summary?.weddingId || "");
       return `${parsed.description}. ${result}`;
     }
+    console.log("[AI] No regex match, falling back to LLM");
 
     const weddingCtx = buildWeddingContext(summary);
 

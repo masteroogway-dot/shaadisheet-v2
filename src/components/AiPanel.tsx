@@ -242,8 +242,23 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
     if (q.includes("bride")) filter.side = "Bride";
     if (q.includes("groom")) filter.side = "Groom";
 
-    const familyMatch = q.match(/(?:family|family of|from|named?|surname)\s+(\w+)/i);
-    if (familyMatch) filter.name_contains = familyMatch[1];
+    // Extract full name: remove action words and target, rest is the name
+    const nameFromCommand = q
+      .replace(/^(remove|delete|clear|drop)\s+/i, "")
+      .replace(/\s*(guest|guests|vendor|vendors|budget|items?|room|rooms|allocations?)\s*/gi, " ")
+      .replace(/\s*from\s+/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    
+    const stopWords = ['all', 'every', 'each', 'the', 'any', 'no', 'veg', 'non-veg', 'jain', 'vegan', 'pending', 'confirmed', 'declined', 'bride', 'groom', 'side', 'family', 'named', 'surname', 'dietary', 'rsvp'];
+    const nameWords = nameFromCommand.split(/\s+/).filter(w => !stopWords.includes(w.toLowerCase()) && w.length > 1);
+    
+    if (nameWords.length > 0) {
+      filter.name_contains = nameWords.join(" ");
+    }
+
+    const familyMatch = q.match(/(?:family|family of|from|named?|surname)\s+([\w\s]+)/i);
+    if (familyMatch && !filter.name_contains) filter.name_contains = familyMatch[1].trim();
     const sharmaMatch = q.match(/sharma|patel|gupta|singh|kumar|verma|jain| agarwal|mittal|reddy|nair|pillai|desai|rao/i);
     if (sharmaMatch && !filter.name_contains) filter.name_contains = sharmaMatch[0];
 
@@ -289,8 +304,22 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
     if (q.includes("bride")) filter.side = "Bride";
     if (q.includes("groom")) filter.side = "Groom";
 
-    const familyMatch = q.match(/(?:family|family of|from|named?|surname)\s+(\w+)/i);
-    if (familyMatch) filter.name_contains = familyMatch[1];
+    // Extract full name: remove action words and target, rest is the name
+    const nameFromCommand = q
+      .replace(/^(mark|set|change|update|make|turn|switch|assign)\s+/i, "")
+      .replace(/\s*(guest|guests|vendor|vendors|budget|items?|room|rooms|tasks?|to|as)\s*/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    
+    const stopWords = ['all', 'every', 'each', 'the', 'any', 'no', 'veg', 'non-veg', 'jain', 'vegan', 'pending', 'confirmed', 'declined', 'bride', 'groom', 'side', 'family', 'named', 'surname', 'dietary', 'rsvp', 'yes', 'signed', 'completed'];
+    const nameWords = nameFromCommand.split(/\s+/).filter(w => !stopWords.includes(w.toLowerCase()) && w.length > 1);
+    
+    if (nameWords.length > 0) {
+      filter.name_contains = nameWords.join(" ");
+    }
+
+    const familyMatch = q.match(/(?:family|family of|from|named?|surname)\s+([\w\s]+)/i);
+    if (familyMatch && !filter.name_contains) filter.name_contains = familyMatch[1].trim();
     const sharmaMatch = q.match(/sharma|patel|gupta|singh|kumar|verma|jain| agarwal|mittal|reddy|nair|pillai|desai|rao/i);
     if (sharmaMatch && !filter.name_contains) filter.name_contains = sharmaMatch[0];
 

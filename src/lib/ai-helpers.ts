@@ -1,10 +1,10 @@
 export function shouldUseAI(query: string): boolean {
   const q = query.toLowerCase().trim();
 
-  // Simple CRUD commands - use fast parser
+  // Simple CRUD commands - use fast parser (ALWAYS, regardless of length)
   const simplePatterns = [
     /^(mark|set|change|update|make|turn|switch|assign)\s+/,
-    /^(delete|remove|clear)\s+/,
+    /^(delete|remove|clear|drop)\s+/,
     /^(add|create|new)\s+/,
     /^(how many|what's|what is|show|list|count)\s+/,
     /^(yes|no|all yes|cancel|confirm|y|n)$/i,
@@ -24,7 +24,7 @@ export function shouldUseAI(query: string): boolean {
     /priorit/i,
     /analyze/i,
     /compare/i,
-    /plan/i,
+    /plan(?!ning)/i,
     /how.*improve/i,
     /how.*optimize/i,
     /what.*think/i,
@@ -39,17 +39,11 @@ export function shouldUseAI(query: string): boolean {
     /ritual/i,
     /tradition/i,
     /ceremony/i,
-    /schedule/i,
-    /timeline/i,
-    /itinerary/i,
     /find.*vendor/i,
     /food.*vendor/i,
     /vendor.*recommend/i,
   ];
   if (complexPatterns.some((p) => p.test(q))) return true;
-
-  // Long queries with multiple words - likely complex
-  if (q.split(/\s+/).length > 6) return true;
 
   // Default to parser
   return false;
