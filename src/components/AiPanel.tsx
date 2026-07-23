@@ -12,7 +12,15 @@ import {
   learnCommand,
   getLearnedPatterns,
 } from "@/lib/actions";
+
+function formatINR(n: number): string {
+  if (n >= 10000000) return `₹${(n / 10000000).toFixed(n % 10000000 === 0 ? 0 : 1)} Cr`;
+  if (n >= 100000) return `₹${(n / 100000).toFixed(n % 100000 === 0 ? 0 : 1)} L`;
+  if (n >= 1000) return `₹${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}K`;
+  return `₹${n}`;
+}
 import { shouldUseAI } from "@/lib/ai-helpers";
+import { parseWithPatterns } from "@/lib/patterns";
 
 function renderMarkdown(text: string): React.ReactNode {
   const lines = text.split("\n");
@@ -212,6 +220,21 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
 
     if (q.includes("yes") || q.includes("no") || q.includes("veg") || q.includes("non-veg")) {
       return parseUpdateCommand(`set all guests ${q.includes("yes") ? "rsvp to yes" : q.includes("veg") ? "dietary to veg" : "rsvp to " + q}`, summary);
+    }
+
+    // ── Pattern database fallback ──
+    const patternMatch = parseWithPatterns(q);
+    if (patternMatch && patternMatch.tool !== '__query') {
+      return { response: patternMatch.response, action: { type: patternMatch.tool, filter: patternMatch.args.filter || {}, updates: patternMatch.args.updates || {}, description: patternMatch.description, preview: { count: 0, sample: [] } } };
+    }
+    if (patternMatch && patternMatch.tool === '__query') {
+      // Handle query patterns
+      const type = patternMatch.args.type;
+      if (type === 'guests') return { response: `**Guest Summary:**\n- Total: ${summary.guestCount}\n- RSVP Yes: ${summary.rsvpYes}\n- Pending: ${summary.rsvpPending}\n- Declined: ${summary.rsvpDeclined}` };
+      if (type === 'vendors') return { response: `**Vendor Summary:**\n- Total: ${summary.vendorCount}\n- Booked: ${summary.vendorsBooked}\n- Remaining: ${summary.vendorCount - summary.vendorsBooked}` };
+      if (type === 'budget') return { response: `**Budget Summary:**\n- Total: ${formatINR(summary.budget)}\n- Allocated: ${formatINR(summary.budgetAllocated)}\n- Spent: ${formatINR(summary.budgetSpent)}\n- Remaining: ${formatINR(summary.budgetRemaining)}` };
+      if (type === 'tasks') return { response: `**Task Summary:**\n- Total: ${summary.taskCount}\n- Done: ${summary.tasksDone}\n- Remaining: ${summary.taskCount - summary.tasksDone}` };
+      if (type === 'rooms') return { response: `**Room Summary:**\n- Total: ${summary.roomCount}` };
     }
 
     return { response: `I can help with your wedding! Try:\n\n- "Mark all Sharma guests as RSVP Yes"\n- "Set dietary to Veg for all Bride side"\n- "Delete all Declined guests"\n- "How many vendors are booked?"\n- "What's my budget remaining?"\n\nOr click **Learn** to teach me a new command!` };
