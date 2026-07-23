@@ -268,7 +268,67 @@ const tools: OpenAI.ChatCompletionTool[] = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "search_vendors",
+      description: "Search for real wedding vendors in a city using Google Places. Use this when users ask about vendors, photographers, caterers, decorators, etc. in a specific city.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "Search query like 'wedding photographers in Nashik' or 'caterers in Mumbai'" },
+        },
+        required: ["query"],
+      },
+    },
+  },
 ];
+
+// ─── Google Places search ──────────────────────────────────────────
+
+async function searchGooglePlaces(query: string): Promise<string> {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) return "Google Places API key not configured.";
+
+  try {
+    const url = `https://places.googleapis.com/v1/places:searchText`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": apiKey,
+        "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.types,places.websiteUri,places.nationalPhoneNumber",
+      },
+      body: JSON.stringify({ textQuery: query, maxResultCount: 5 }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("Google Places error:", err);
+      return "Search failed. Please try again.";
+    }
+
+    const data = await res.json();
+    const places = data.places || [];
+
+    if (places.length === 0) return "No vendors found for that search. Try a different query.";
+
+    const rows = places.map((p: any) => {
+      const name = p.displayName?.text || "Unknown";
+      const addr = p.formattedAddress || "";
+      const rating = p.rating ? `${p.rating}/5 (${p.userRatingCount || 0} reviews)` : "No reviews";
+      const phone = p.nationalPhoneNumber || "";
+      return `| ${name} | ${addr.split(",").slice(-2).join(",").trim()} | ${rating} | ${phone} |`;
+    });
+
+    const header = "| Name | Area | Rating | Phone |";
+    const separator = "|------|------|--------|-------|";
+    return [header, separator, ...rows].join("\n");
+  } catch (error) {
+    console.error("Google Places search error:", error);
+    return "Search failed. Please try again.";
+  }
+}
 
 // ─── Pre-execution parameter validation ────────────────────────────
 
@@ -323,6 +383,8 @@ function validateAndCoerceArgs(name: string, args: any): any {
     case "delete_budget_items":
     case "delete_rooms":
       return { filter: args.filter || {} };
+    case "search_vendors":
+      return { query: toString(args.query) };
     default:
       return args;
   }
@@ -421,6 +483,9 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
       const result = await prisma.budgetItem.deleteMany({ where });
       return `Deleted ${result.count} budget item(s).`;
     }
+    case "search_vendors": {
+      return await searchGooglePlaces(a.query);
+    }
     default:
       return `Unknown tool: ${name}`;
   }
@@ -444,7 +509,7 @@ ${weddingCtx}
 FORMAT RULES (STRICT):
 - Max 80 words for advice/knowledge responses. Be extremely direct.
 - No emojis. No greetings. No "Great question!" No "Here's what I know." Just the answer.
-- NEVER make up vendor names, shop names, or business names. You do NOT have access to real vendor databases. If you don't know specific vendors, say so honestly and suggest how to find them (Google, wedding platforms, local recommendations).
+- NEVER make up vendor names, shop names, or business names. When users ask about real vendors in a city, use the search_vendors tool to find actual businesses. Only provide information from search results.
 - When listing prices, use a table: | Type | Price |.
 - After a tool runs, just confirm in one sentence.
 - No "Action:" or "Want me to..." sections. End with one short question if needed.
