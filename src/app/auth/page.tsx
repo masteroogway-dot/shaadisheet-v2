@@ -87,9 +87,7 @@ export default function AuthPage() {
           </p>
 
           <button
-            onClick={() => {
-              window.location.href = "/api/auth/signout?callbackUrl=" + encodeURIComponent("/api/auth/signin/google?callbackUrl=" + encodeURIComponent("/dashboard"));
-            }}
+            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
             className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white border-2 border-gray-300 rounded-lg font-semibold text-sm hover:border-gray-400 hover:shadow-sm transition-all cursor-pointer"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
