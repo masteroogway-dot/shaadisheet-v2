@@ -225,7 +225,7 @@ function HeroBackground({ active, onActiveChange }: { active: number; onActiveCh
   }, [active, onActiveChange]);
 
   return (
-    <div className="absolute inset-0 z-0">
+    <div className="absolute inset-0 z-0 w-full">
       {SCENES.map((scene, i) => {
         const showImage = scene.image && !imgErrors[scene.key];
         return (
@@ -239,7 +239,8 @@ function HeroBackground({ active, onActiveChange }: { active: number; onActiveCh
               <img
                 src={scene.image}
                 alt={scene.label}
-                className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover md:object-center"
+                style={{ objectPosition: "center 30%" }}
                 onError={() => setImgErrors((prev) => ({ ...prev, [scene.key]: true }))}
               />
             )}
@@ -314,7 +315,7 @@ export default function Home() {
       </nav>
 
       {/* HERO - FULL BACKGROUND */}
-      <section className="relative min-h-[85vh] md:min-h-[92vh] flex items-center overflow-hidden">
+      <section className="relative w-full min-h-[85vh] md:min-h-[92vh] flex items-center overflow-hidden">
         {/* Full-background image carousel */}
         <HeroBackground active={activeScene} onActiveChange={setActiveScene} />
 
