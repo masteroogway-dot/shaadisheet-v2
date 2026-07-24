@@ -36,6 +36,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
   const [rangeInput, setRangeInput] = useState("");
   const [search, setSearch] = useState("");
   const [filterContract, setFilterContract] = useState("All");
+  const [showFilters, setShowFilters] = useState(false);
 
   const vendors: any[] = wedding.vendors ?? [];
   const filteredVendors = vendors.filter((v: any) => {
@@ -244,31 +245,51 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
       )}
 
       {vendors.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-5">
-          <div className="relative flex-1 min-w-[200px]">
-            <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search vendors..."
-              className="card-input py-2 pl-8 text-sm w-full"
-            />
-            {search && (
-              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer text-xs">
-                <i className="fas fa-times" />
+        <div className="mb-5 space-y-2">
+          <div className="flex gap-2">
+            <div className="relative flex-1 min-w-0">
+              <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search vendors..."
+                className="w-full py-2 pl-9 pr-8 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-maroon"
+              />
+              {search && (
+                <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer text-xs">
+                  <i className="fas fa-times" />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-colors cursor-pointer shrink-0 ${
+                showFilters || filterContract !== "All"
+                  ? "bg-maroon text-white border-maroon"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              <i className="fas fa-filter text-xs" />
+              Filters
+              {filterContract !== "All" && (
+                <span className="w-1.5 h-1.5 bg-gold rounded-full" />
+              )}
+            </button>
+            {(search || filterContract !== "All") && (
+              <button onClick={() => { setSearch(""); setFilterContract("All"); }} className="px-3 py-2 text-xs text-gray-500 hover:text-gray-700 cursor-pointer">
+                <i className="fas fa-times mr-1" /> Clear
               </button>
             )}
           </div>
-          <select value={filterContract} onChange={(e) => setFilterContract(e.target.value)} className="card-select py-2 text-sm">
-            <option value="All">All Status</option>
-            <option value="Pending">Pending</option>
-            <option value="Signed">Signed</option>
-            <option value="Completed">Completed</option>
-          </select>
-          {(search || filterContract !== "All") && (
-            <button onClick={() => { setSearch(""); setFilterContract("All"); }} className="btn-cancel text-xs py-2 px-3">
-              <i className="fas fa-times mr-1" /> Clear
-            </button>
+          {showFilters && (
+            <div className="flex flex-wrap gap-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+              <select value={filterContract} onChange={(e) => setFilterContract(e.target.value)} className="py-2 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-maroon">
+                <option value="All">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Signed">Signed</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
           )}
         </div>
       )}

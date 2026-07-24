@@ -18,6 +18,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
   const [filterRsvp, setFilterRsvp] = useState("All");
   const [filterDietary, setFilterDietary] = useState("All");
   const [rsvpLink, setRsvpLink] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   const guests = wedding.guests || [];
   const filteredGuests = guests.filter((g: any) => {
@@ -226,44 +227,64 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
       )}
 
       {totalGuests > 0 && (
-        <div className="flex flex-wrap gap-2 mb-5">
-          <div className="relative flex-1 min-w-[200px]">
-            <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search guests..."
-              className="card-input py-2 pl-8 text-sm w-full"
-            />
-            {search && (
-              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer text-xs">
-                <i className="fas fa-times" />
+        <div className="mb-5 space-y-2">
+          <div className="flex gap-2">
+            <div className="relative flex-1 min-w-0">
+              <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search guests..."
+                className="w-full py-2 pl-9 pr-8 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-maroon"
+              />
+              {search && (
+                <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer text-xs">
+                  <i className="fas fa-times" />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-colors cursor-pointer shrink-0 ${
+                showFilters || filterSide !== "All" || filterRsvp !== "All" || filterDietary !== "All"
+                  ? "bg-maroon text-white border-maroon"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              <i className="fas fa-filter text-xs" />
+              Filters
+              {(filterSide !== "All" || filterRsvp !== "All" || filterDietary !== "All") && (
+                <span className="w-1.5 h-1.5 bg-gold rounded-full" />
+              )}
+            </button>
+            {(search || filterSide !== "All" || filterRsvp !== "All" || filterDietary !== "All") && (
+              <button onClick={() => { setSearch(""); setFilterSide("All"); setFilterRsvp("All"); setFilterDietary("All"); }} className="px-3 py-2 text-xs text-gray-500 hover:text-gray-700 cursor-pointer">
+                <i className="fas fa-times mr-1" /> Clear
               </button>
             )}
           </div>
-          <select value={filterSide} onChange={(e) => setFilterSide(e.target.value)} className="card-select py-2 text-sm">
-            <option value="All">All Sides</option>
-            <option value="Bride">Bride</option>
-            <option value="Groom">Groom</option>
-            <option value="Both">Both</option>
-          </select>
-          <select value={filterRsvp} onChange={(e) => setFilterRsvp(e.target.value)} className="card-select py-2 text-sm">
-            <option value="All">All RSVP</option>
-            <option value="Yes">Yes</option>
-            <option value="Pending">Pending</option>
-            <option value="Declined">Declined</option>
-          </select>
-          <select value={filterDietary} onChange={(e) => setFilterDietary(e.target.value)} className="card-select py-2 text-sm">
-            <option value="All">All Dietary</option>
-            <option value="Veg">Veg</option>
-            <option value="Non-Veg">Non-Veg</option>
-            <option value="Vegan">Vegan</option>
-            <option value="Jain">Jain</option>
-          </select>
-          {(search || filterSide !== "All" || filterRsvp !== "All" || filterDietary !== "All") && (
-            <button onClick={() => { setSearch(""); setFilterSide("All"); setFilterRsvp("All"); setFilterDietary("All"); }} className="btn-cancel text-xs py-2 px-3">
-              <i className="fas fa-times mr-1" /> Clear
-            </button>
+          {showFilters && (
+            <div className="flex flex-wrap gap-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+              <select value={filterSide} onChange={(e) => setFilterSide(e.target.value)} className="py-2 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-maroon">
+                <option value="All">All Sides</option>
+                <option value="Bride">Bride</option>
+                <option value="Groom">Groom</option>
+                <option value="Both">Both</option>
+              </select>
+              <select value={filterRsvp} onChange={(e) => setFilterRsvp(e.target.value)} className="py-2 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-maroon">
+                <option value="All">All RSVP</option>
+                <option value="Yes">Yes</option>
+                <option value="Pending">Pending</option>
+                <option value="Declined">Declined</option>
+              </select>
+              <select value={filterDietary} onChange={(e) => setFilterDietary(e.target.value)} className="py-2 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-maroon">
+                <option value="All">All Dietary</option>
+                <option value="Veg">Veg</option>
+                <option value="Non-Veg">Non-Veg</option>
+                <option value="Vegan">Vegan</option>
+                <option value="Jain">Jain</option>
+              </select>
+            </div>
           )}
         </div>
       )}
