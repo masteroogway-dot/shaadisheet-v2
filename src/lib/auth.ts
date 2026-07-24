@@ -1,12 +1,10 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(prisma),
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -57,6 +55,53 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   trustHost: true,
   callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider === "google" && user?.email) {
+        let dbUser = await prisma.user.findUnique({
+          where: { email: user.email },
+        });
+
+        if (!dbUser) {
+          dbUser = await prisma.user.create({
+            data: {
+              email: user.email,
+              name: user.name || "",
+              image: user.image,
+            },
+          });
+        }
+
+        const existingAccount = await prisma.account.findUnique({
+          where: {
+            provider_providerAccountId: {
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
+            },
+          },
+        });
+
+        if (!existingAccount) {
+          await prisma.account.create({
+            data: {
+              userId: dbUser.id,
+              type: account.type,
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
+              access_token: account.access_token,
+              token_type: account.token_type,
+              refresh_token: account.refresh_token,
+              expires_at: account.expires_at,
+              scope: account.scope,
+              id_token: account.id_token,
+            },
+          });
+        }
+
+        user.id = dbUser.id;
+      }
+
+      return true;
+    },
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
