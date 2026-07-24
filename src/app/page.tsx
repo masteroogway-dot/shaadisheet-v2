@@ -555,7 +555,7 @@ export default function Home() {
             {[
               { title: "Product", links: [
                 { label: "Features", href: "#features" },
-                { label: "Pricing", href: "#" },
+                { label: "Pricing", href: "/subscriptions" },
                 { label: "Blog", href: "/blog" },
               ]},
               { title: "Company", links: [
