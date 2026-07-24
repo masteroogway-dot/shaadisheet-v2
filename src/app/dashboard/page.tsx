@@ -17,6 +17,7 @@ export default function DashboardPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [leavingId, setLeavingId] = useState<string | null>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -89,6 +90,23 @@ export default function DashboardPage() {
       console.error(e);
     }
     setDeletingId(null);
+  };
+
+  const handleLeaveWedding = async (id: string) => {
+    if (leavingId !== id) {
+      setLeavingId(id);
+      setTimeout(() => setLeavingId(null), 4000);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/weddings/${id}/collaborators/${session?.user?.id}`, { method: "DELETE" });
+      if (res.ok) {
+        setCollaborated((prev) => prev.filter((w) => w.id !== id));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setLeavingId(null);
   };
 
   const formatDate = (dateStr: string | null) => {
@@ -314,11 +332,22 @@ export default function DashboardPage() {
                           <span>by {wedding.owner?.name || wedding.owner?.email || "Unknown"}</span>
                         </div>
                       </div>
-                      <div className="mt-5 pt-4 border-t border-gray-100">
+                      <div className="mt-5 pt-4 border-t border-gray-100 flex gap-2">
                         <Link href={`/dashboard/${wedding.id}`}
-                          className="block text-center py-2.5 text-sm font-semibold text-maroon bg-maroon/5 rounded-xl hover:bg-maroon/10 transition-colors">
+                          className="flex-1 text-center py-2.5 text-sm font-semibold text-maroon bg-maroon/5 rounded-xl hover:bg-maroon/10 transition-colors">
                           Open Planner {"\u2192"}
                         </Link>
+                        <button
+                          onClick={() => handleLeaveWedding(wedding.id)}
+                          className={`px-3 py-2.5 text-xs font-semibold rounded-xl transition-all cursor-pointer shrink-0 ${
+                            leavingId === wedding.id
+                              ? "bg-red-500 text-white"
+                              : "text-red-400 bg-red-50 hover:bg-red-100 hover:text-red-600"
+                          }`}
+                          title={leavingId === wedding.id ? "Click again to confirm" : "Leave planner"}
+                        >
+                          <i className={`fas ${leavingId === wedding.id ? "fa-exclamation-triangle" : "fa-right-from-bracket"}`} />
+                        </button>
                       </div>
                     </div>
                   </div>
