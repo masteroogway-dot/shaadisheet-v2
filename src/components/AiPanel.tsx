@@ -659,7 +659,7 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
         setMessages((prev) => [...prev, { role: "bot", content: "Thinking..." }]);
 
         try {
-          const conversationHistory = messages.slice(-10).map((m) => ({ role: m.role, content: m.content }));
+          const conversationHistory = messages.slice(-12).map((m) => ({ role: m.role, content: m.content }));
           const res = await fetch("/api/ai", {
             method: "POST",
             headers: { "Content-Type": "application/json" },

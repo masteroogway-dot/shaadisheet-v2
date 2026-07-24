@@ -1,11 +1,6 @@
 import OpenAI from "openai";
 import { prisma } from "@/lib/prisma";
 
-const openai = new OpenAI({
-  apiKey: process.env.BLUESMINDS_API_KEY || "",
-  baseURL: "https://api.bluesminds.com/v1",
-});
-
 // ─── Helpers ──────────────────────────────────────────────────────
 function formatINR(n: number) {
   if (n >= 10000000) return (n / 10000000).toFixed(1) + " Cr";
@@ -27,6 +22,78 @@ function toString(val: any, fallback = ""): string {
   if (val === null || val === undefined) return fallback;
   return String(val).trim();
 }
+
+// ─── Provider configuration ───────────────────────────────────────
+
+interface ProviderConfig {
+  name: string;
+  apiKey: string;
+  baseURL: string;
+  model: string;
+  priority: number;
+  maxTokens: number;
+  supportsTools: boolean;
+}
+
+function getProviders(): ProviderConfig[] {
+  const providers: ProviderConfig[] = [];
+
+  // Priority 1: Google Gemini (free, 1500 RPD, Claude-level)
+  if (process.env.GOOGLE_GEMINI_API_KEY) {
+    providers.push({
+      name: "gemini",
+      apiKey: process.env.GOOGLE_GEMINI_API_KEY,
+      baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",
+      model: "gemini-2.5-flash",
+      priority: 1,
+      maxTokens: 8192,
+      supportsTools: true,
+    });
+  }
+
+  // Priority 2: Groq (free, 1000 RPD, ultra-fast)
+  if (process.env.GROQ_API_KEY) {
+    providers.push({
+      name: "groq",
+      apiKey: process.env.GROQ_API_KEY,
+      baseURL: "https://api.groq.com/openai/v1",
+      model: "llama-3.3-70b-versatile",
+      priority: 2,
+      maxTokens: 32768,
+      supportsTools: true,
+    });
+  }
+
+  // Priority 3: Mistral (free, 1B tok/month, Claude-level)
+  if (process.env.MISTRAL_API_KEY) {
+    providers.push({
+      name: "mistral",
+      apiKey: process.env.MISTRAL_API_KEY,
+      baseURL: "https://api.mistral.ai/v1",
+      model: "mistral-medium-latest",
+      priority: 3,
+      maxTokens: 32768,
+      supportsTools: true,
+    });
+  }
+
+  // Priority 4: BluesMinds (current fallback)
+  if (process.env.BLUESMINDS_API_KEY) {
+    providers.push({
+      name: "bluesminds",
+      apiKey: process.env.BLUESMINDS_API_KEY,
+      baseURL: "https://api.bluesminds.com/v1",
+      model: "meta/llama-3.1-70b-instruct",
+      priority: 4,
+      maxTokens: 4096,
+      supportsTools: true,
+    });
+  }
+
+  return providers.sort((a, b) => a.priority - b.priority);
+}
+
+// ─── Wedding context builder ──────────────────────────────────────
 
 function buildWeddingContext(summary: any): string {
   const weddingDate = summary.weddingDate
@@ -178,7 +245,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
           task: { type: "string", description: "Task description" },
           category: { type: "string", description: "Category" },
           deadline: { type: "string", description: "Deadline in YYYY-MM-DD format" },
-          priority: { type: "string", enum: ["Low", "Medium", "High", "Urgent"] },
+          priority: { type: "string", enum: ["Low", "Medium", "High", "Urgent"], description: "Priority level" },
         },
         required: ["task"],
       },
@@ -188,17 +255,17 @@ const tools: OpenAI.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "delete_guests",
-      description: "Delete guests based on filters. Use name_contains to match partial or full guest names (e.g. 'Sameer Jain' matches the guest named Sameer Jain). NEVER combine name_contains with dietary — they are separate operations.",
+      description: "Delete guests based on filters. Use name_contains to match partial or full guest names.",
       parameters: {
         type: "object",
         properties: {
           filter: {
             type: "object",
             properties: {
-              side: { type: "string", enum: ["Bride", "Groom"], description: "Filter by bride or groom side" },
-              name_contains: { type: "string", description: "Full or partial guest name to match, e.g. 'Sameer Jain'" },
-              rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"], description: "Filter by RSVP status" },
-              dietary: { type: "string", enum: ["Veg", "Non-Veg", "Jain", "Vegan"], description: "Filter by dietary preference. Only use when user explicitly mentions dietary (e.g. 'delete veg guests'). NEVER use when user gives a person's name." },
+              side: { type: "string", enum: ["Bride", "Groom"] },
+              name_contains: { type: "string" },
+              rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"] },
+              dietary: { type: "string", enum: ["Veg", "Non-Veg", "Jain", "Vegan"] },
             },
           },
         },
@@ -231,16 +298,16 @@ const tools: OpenAI.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "delete_vendors",
-      description: "Delete vendors based on filters. Use name_contains to match vendor names.",
+      description: "Delete vendors based on filters.",
       parameters: {
         type: "object",
         properties: {
           filter: {
             type: "object",
             properties: {
-              category: { type: "string", description: "Filter by vendor category" },
-              name_contains: { type: "string", description: "Full or partial vendor name to match" },
-              contract: { type: "string", enum: ["Pending", "Signed", "Completed"], description: "Filter by contract status" },
+              category: { type: "string" },
+              name_contains: { type: "string" },
+              contract: { type: "string", enum: ["Pending", "Signed", "Completed"] },
             },
           },
         },
@@ -252,15 +319,15 @@ const tools: OpenAI.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "delete_budget_items",
-      description: "Delete budget items based on filters. Use item_contains to match item names.",
+      description: "Delete budget items based on filters.",
       parameters: {
         type: "object",
         properties: {
           filter: {
             type: "object",
             properties: {
-              category: { type: "string", description: "Filter by budget category" },
-              item_contains: { type: "string", description: "Full or partial item name to match" },
+              category: { type: "string" },
+              item_contains: { type: "string" },
             },
           },
         },
@@ -272,11 +339,11 @@ const tools: OpenAI.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "search_vendors",
-      description: "Search for real wedding vendors in a city using Google Places. Use this when users ask about vendors, photographers, caterers, decorators, etc. in a specific city.",
+      description: "Search for real wedding vendors in a city using Google Places.",
       parameters: {
         type: "object",
         properties: {
-          query: { type: "string", description: "Search query like 'wedding photographers in Nashik' or 'caterers in Mumbai'" },
+          query: { type: "string", description: "Search query like 'wedding photographers in Nashik'" },
         },
         required: ["query"],
       },
@@ -284,7 +351,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
   },
 ];
 
-// ─── Google Places search ──────────────────────────────────────────
+// ─── Google Places search ─────────────────────────────────────────
 
 async function searchGooglePlaces(query: string): Promise<string> {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
@@ -302,16 +369,10 @@ async function searchGooglePlaces(query: string): Promise<string> {
       body: JSON.stringify({ textQuery: query, maxResultCount: 5 }),
     });
 
-    if (!res.ok) {
-      const err = await res.text();
-      console.error("Google Places error:", err);
-      return "Search failed. Please try again.";
-    }
-
+    if (!res.ok) return "Search failed. Please try again.";
     const data = await res.json();
     const places = data.places || [];
-
-    if (places.length === 0) return "No vendors found for that search. Try a different query.";
+    if (places.length === 0) return "No vendors found for that search.";
 
     const rows = places.map((p: any) => {
       const name = p.displayName?.text || "Unknown";
@@ -321,11 +382,8 @@ async function searchGooglePlaces(query: string): Promise<string> {
       return `| ${name} | ${addr.split(",").slice(-2).join(",").trim()} | ${rating} | ${phone} |`;
     });
 
-    const header = "| Name | Area | Rating | Phone |";
-    const separator = "|------|------|--------|-------|";
-    return [header, separator, ...rows].join("\n");
-  } catch (error) {
-    console.error("Google Places search error:", error);
+    return ["| Name | Area | Rating | Phone |", "|------|------|--------|-------|", ...rows].join("\n");
+  } catch {
     return "Search failed. Please try again.";
   }
 }
@@ -490,7 +548,115 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
   }
 }
 
-// ─── Intent parser (regex fallback for free-tier models) ───────────
+// ─── Claude-level system prompt ────────────────────────────────────
+
+function buildSystemPrompt(weddingCtx: string): string {
+  return `You are ShaadiSheet AI — an elite wedding planning assistant with deep expertise in Indian weddings across all religions and regions. You think step-by-step, reason carefully, and always give actionable, specific advice.
+
+${weddingCtx}
+
+## WHO YOU ARE
+You are a seasoned Indian wedding planner with 15+ years of experience across Hindu, Muslim, Sikh, Christian, and Jain weddings. You understand every ritual, every tradition, every nuance. You speak with authority but warmth. You are direct, specific, and never waste words.
+
+## RESPONSE STYLE (CRITICAL)
+- **Think before responding.** Consider context, implications, and what the user really needs.
+- **Be direct.** No filler words, no "Great question!", no "I'd be happy to help." Just answer.
+- **Be specific.** Give exact amounts (₹), exact dates, exact names. Never be vague.
+- **Be structured.** Use tables for data, bullet lists for options, bold for key info.
+- **Max 100 words** for advice responses. Max 150 words for detailed analysis.
+- **No emojis.** No greetings. No sign-offs. Just the answer.
+- **Match the user's language.** If they write in Hindi-English mix, respond similarly.
+
+## YOUR CAPABILITIES
+You have direct access to the wedding database. You can:
+- **CREATE**: Add guests, vendors, budget items, tasks, room allocations, events
+- **UPDATE**: Modify RSVP, dietary preferences, vendor contracts, task status, room status
+- **DELETE**: Remove guests, vendors, budget items, rooms by any filter
+- **SEARCH**: Find real vendors in any city via Google Places
+- **ANALYZE**: Review budget allocation, guest list health, vendor coverage, task completion
+
+## INDIAN WEDDING EXPERTISE
+
+### Rituals by Religion:
+- **Hindu**: Roka → Engagement → Mehendi → Sangeet → Haldi → Wedding (Baraat, Jaimala, Kanyadaan, Mangal Pheras, Sindoor, Vidaai) → Reception
+- **Muslim**: Mangni → Mehendi → Nikah (Ijab-e-Qubool, Khutba, Signing) → Walima → Ruksati
+- **Sikh**: Kurmai → Mehendi → Sangeet → Anand Karaj (Lavaan around Guru Granth Sahib) → Langar → Reception
+- **Christian**: Engagement → Roce → Church Wedding (Vows, Rings, Register) → Reception
+- **Jain**: Roka → Engagement → Mehendi → Sangeet → Wedding (Phere around Agni) → Reception
+
+### Budget Allocation (Indian weddings 2026):
+| Category | % of Total | Notes |
+|----------|-----------|-------|
+| Venue & Catering | 40-50% | Biggest expense, negotiate bulk deals |
+| Photography & Videography | 8-12% | Book 8-10 months early |
+| Bridal Outfit & Jewellery | 10-15% | Lehenga ₹50K-5L range |
+| Decor & Flowers | 8-12% | Stage + mandap + entrance |
+| Makeup & Mehendi | 3-5% | Bridal makeup ₹20K-2L |
+| Music & Entertainment | 5-8% | DJ, band, sangeet |
+| Invitations | 2-3% | E-invites saves ₹20-50K |
+| Transport | 2-3% | Baraat, guest pickup |
+| Misc & Buffer | 10-15% | Always keep buffer |
+
+### Vendor Price Ranges (2026):
+| Category | Budget | Mid-Range | Premium |
+|----------|--------|-----------|---------|
+| Photography | ₹80K-1.5L | ₹1.5L-3L | ₹3L-5L |
+| Videography | ₹60K-1L | ₹1L-2.5L | ₹2.5L-4L |
+| Catering | ₹800-1200/plate | ₹1200-2000/plate | ₹2000-3000/plate |
+| Decoration | ₹1L-3L | ₹3L-6L | ₹6L-10L |
+| Makeup | ₹20K-50K | ₹50K-1L | ₹1L-2L |
+| Mehendi | ₹10K-30K | ₹30K-60K | ₹60K-80K |
+| DJ/Music | ₹30K-80K | ₹80K-1.5L | ₹1.5L-3L |
+| Venue | ₹2L-8L | ₹8L-15L | ₹15L-25L |
+
+## TOOL USAGE RULES
+
+### When to use tools (ACT IMMEDIATELY):
+- User asks to add/create guests, vendors, budget, tasks → use create tool
+- User asks to update/change/mark something → use update tool
+- User asks to delete/remove something → use delete tool
+- User asks about vendors in a city → use search_vendors tool
+- User gives a list of guests to add → use create_guests with the full list
+
+### Tool argument rules:
+- **name_contains**: Full or partial name (e.g. "Sameer Jain" matches the guest named Sameer Jain)
+- **NEVER combine name_contains and dietary in same filter** — they are separate operations
+- **"Jain" in a person's name is part of their NAME**, not a dietary filter
+- Names with spaces (e.g. "Neha Oswal") are a SINGLE name — do not split
+
+### Example tool calls:
+User: "Add 3 guests: Rahul Sharma (Groom, Veg), Priya Patel (Bride, Non-Veg), Amit Desai (Groom, Jain)"
+→ create_guests({ guests: [
+    { guestName: "Rahul Sharma", side: "Groom", dietary: "Veg", rsvp: "Pending" },
+    { guestName: "Priya Patel", side: "Bride", dietary: "Non-Veg", rsvp: "Pending" },
+    { guestName: "Amit Desai", side: "Groom", dietary: "Jain", rsvp: "Pending" }
+]})
+
+User: "Remove Sameer Jain"
+→ delete_guests({ filter: { name_contains: "Sameer Jain" } })
+(NOT dietary: "Jain" — Jain is part of the NAME)
+
+User: "Delete all Jain dietary guests"
+→ delete_guests({ filter: { dietary: "Jain" } })
+(Here Jain is the dietary filter, not a name)
+
+## ANALYSIS MODE
+When users ask for advice, analysis, or recommendations:
+1. Consider their budget, guest count, and timeline
+2. Give specific, actionable suggestions with exact amounts
+3. Prioritize what matters most for their specific wedding
+4. Flag potential issues (budget overrun, timeline conflicts, missing vendors)
+
+## IMPORTANT RULES
+- Always use tools when the user asks to create/update/delete data. Actually do it.
+- Never make up vendor names, shop names, or business names. Use search_vendors for real results.
+- When listing prices, use a table format.
+- After a tool runs, confirm in one sentence, then ask if they need anything else.
+- If ambiguous, ask for clarification with specific options.
+- Never use horizontal rules (---).`;
+}
+
+// ─── Regex intent parser (fast path, no LLM needed) ───────────────
 
 interface ParsedIntent {
   tool: string;
@@ -500,116 +666,80 @@ interface ParsedIntent {
 
 function parseIntent(question: string, summary: any): ParsedIntent | null {
   const q = question.toLowerCase().trim();
-  const weddingId = summary?.weddingId;
 
-  // DELETE GUESTS by name: "remove/delete Sameer Jain", "remove Sameer Jain from guests"
+  // DELETE GUESTS by name
   const deleteGuestName = q.match(/(?:remove|delete|drop)\s+["']?([a-z][a-z\s]+?)["']?\s*(?:from\s+guests)?$/i);
   if (deleteGuestName) {
     let name = deleteGuestName[1].trim();
-    // Strip entity nouns from the end
     name = name.replace(/\s+(guests?|invitees?|attendees?|people|person)$/i, '').trim();
-    // Skip if it looks like a filter, not a name
-    const dietaryTerms = ['veg', 'non-veg', 'non veg', 'jain', 'vegan', 'meat', 'vegetarian'];
-    const rsvpTerms = ['pending', 'yes', 'no', 'declined', 'confirmed', 'attending', 'checked in', 'arrived'];
+    const dietaryTerms = ['veg', 'non-veg', 'jain', 'vegan'];
     const sideTerms = ['bride', 'groom'];
-    const skipTerms = ['all', 'every', 'each', ...dietaryTerms, ...rsvpTerms, ...sideTerms];
+    const skipTerms = ['all', 'every', 'each', ...dietaryTerms, ...sideTerms];
     if (!skipTerms.includes(name) && name.length > 0) {
-      return {
-        tool: "delete_guests",
-        args: { filter: { name_contains: name } },
-        description: `Delete guest "${name}"`,
-      };
+      return { tool: "delete_guests", args: { filter: { name_contains: name } }, description: `Delete guest "${name}"` };
     }
   }
 
-  // DELETE GUESTS by dietary: "remove/delete all veg/jain/non-veg/vegan guests"
+  // DELETE GUESTS by dietary
   const deleteGuestDietary = q.match(/(?:remove|delete|drop)\s+(?:all\s+)?(?:guests?\s+(?:who\s+)?(?:are\s+)?|with\s+)?(veg|non-veg|jain|vegan)\s*(?:dietary|guests?)?/i);
   if (deleteGuestDietary) {
     const dietary = deleteGuestDietary[1].charAt(0).toUpperCase() + deleteGuestDietary[1].slice(1).toLowerCase();
-    return {
-      tool: "delete_guests",
-      args: { filter: { dietary } },
-      description: `Delete all ${dietary} dietary guests`,
-    };
+    return { tool: "delete_guests", args: { filter: { dietary } }, description: `Delete all ${dietary} dietary guests` };
   }
 
-  // DELETE GUESTS by side: "remove/delete all bride/groom side guests"
+  // DELETE GUESTS by side
   const deleteGuestSide = q.match(/(?:remove|delete|drop)\s+(?:all\s+)?(?:guests?\s+(?:who\s+)?(?:are\s+)?(?:on\s+)?|from\s+)?(bride|groom)\s*(?:side|guests?)?/i);
   if (deleteGuestSide) {
     const side = deleteGuestSide[1].charAt(0).toUpperCase() + deleteGuestSide[1].slice(1).toLowerCase();
-    return {
-      tool: "delete_guests",
-      args: { filter: { side } },
-      description: `Delete all ${side} side guests`,
-    };
+    return { tool: "delete_guests", args: { filter: { side } }, description: `Delete all ${side} side guests` };
   }
 
-  // DELETE GUESTS by RSVP: "remove/delete all pending/confirmed guests"
+  // DELETE GUESTS by RSVP
   const deleteGuestRsvp = q.match(/(?:remove|delete|drop)\s+(?:all\s+)?(?:guests?\s+(?:who\s+)?(?:have\s+)?|with\s+)?(pending|confirmed|attending|checked[\s-]?in|declined|cancelled|no[\s-]?show)\s*(?:rsvp|guests?)?/i);
   if (deleteGuestRsvp) {
     let rsvp = deleteGuestRsvp[1].toLowerCase();
     if (rsvp === 'confirmed' || rsvp === 'attending') rsvp = 'yes';
     if (rsvp === 'checked-in') rsvp = 'yes';
     rsvp = rsvp.charAt(0).toUpperCase() + rsvp.slice(1);
-    return {
-      tool: "delete_guests",
-      args: { filter: { rsvp } },
-      description: `Delete all ${rsvp} RSVP guests`,
-    };
+    return { tool: "delete_guests", args: { filter: { rsvp } }, description: `Delete all ${rsvp} RSVP guests` };
   }
 
-  // UPDATE GUESTS RSVP: "mark Sameer Jain as attended/confirmed/pending"
+  // UPDATE GUESTS RSVP
   const updateGuestRsvp = q.match(/(?:mark|set|change|update)\s+["']?([a-z][a-z\s]+?)["']?\s+(?:as|to)\s+(attended|confirmed|pending|declined|cancelled|no[\s-]?show|yes|no)/i);
   if (updateGuestRsvp) {
     const name = updateGuestRsvp[1].trim();
     let rsvp = updateGuestRsvp[2].toLowerCase();
     if (rsvp === 'attended' || rsvp === 'confirmed') rsvp = 'yes';
     rsvp = rsvp.charAt(0).toUpperCase() + rsvp.slice(1);
-    return {
-      tool: "update_guests",
-      args: { filter: { name_contains: name }, updates: { rsvp } },
-      description: `Update "${name}" RSVP to ${rsvp}`,
-    };
+    return { tool: "update_guests", args: { filter: { name_contains: name }, updates: { rsvp } }, description: `Update "${name}" RSVP to ${rsvp}` };
   }
 
-  // DELETE VENDORS by name: "remove/delete Tenda Events vendor"
+  // DELETE VENDORS by name
   const deleteVendorName = q.match(/(?:remove|delete|drop)\s+["']?([a-z][a-z\s]+?)["']?\s*(?:vendor|from\s+vendors)?$/i);
   if (deleteVendorName && (q.includes('vendor') || q.includes('from vendors'))) {
     const name = deleteVendorName[1].trim();
     if (!['all', 'every', 'each', 'pending', 'signed', 'completed'].includes(name)) {
-      return {
-        tool: "delete_vendors",
-        args: { filter: { name_contains: name } },
-        description: `Delete vendor "${name}"`,
-      };
+      return { tool: "delete_vendors", args: { filter: { name_contains: name } }, description: `Delete vendor "${name}"` };
     }
   }
 
-  // DELETE VENDORS by contract status: "remove all pending vendors"
+  // DELETE VENDORS by contract status
   const deleteVendorContract = q.match(/(?:remove|delete|drop)\s+(?:all\s+)?(?:vendors?\s+(?:who\s+)?(?:have\s+)?|with\s+)?(pending|signed|completed)\s*(?:contract|vendors?)?/i);
   if (deleteVendorContract) {
     const contract = deleteVendorContract[1].charAt(0).toUpperCase() + deleteVendorContract[1].slice(1).toLowerCase();
-    return {
-      tool: "delete_vendors",
-      args: { filter: { contract } },
-      description: `Delete all ${contract} contract vendors`,
-    };
+    return { tool: "delete_vendors", args: { filter: { contract } }, description: `Delete all ${contract} contract vendors` };
   }
 
-  // DELETE BUDGET ITEMS: "remove catering budget", "delete venue expenses"
+  // DELETE BUDGET ITEMS
   const deleteBudget = q.match(/(?:remove|delete|drop)\s+["']?([a-z][a-z\s]+?)["']?\s*(?:budget|expense|item|from\s+budget)?$/i);
-  if (deleteBudget && (q.includes('budget') || q.includes('expense') || q.includes('item') || q.includes('from budget'))) {
+  if (deleteBudget && (q.includes('budget') || q.includes('expense') || q.includes('item'))) {
     const item = deleteBudget[1].trim();
     if (!['all', 'every', 'each'].includes(item)) {
-      return {
-        tool: "delete_budget_items",
-        args: { filter: { item_contains: item } },
-        description: `Delete budget item "${item}"`,
-      };
+      return { tool: "delete_budget_items", args: { filter: { item_contains: item } }, description: `Delete budget item "${item}"` };
     }
   }
 
-  // CREATE GUEST: "add Sameer Jain as groom side cousin veg"
+  // CREATE GUEST
   const createGuest = q.match(/(?:add|create|new)\s+["']?([a-z][a-z\s]+?)["']?\s+(?:as|on|to)\s+(bride|groom)\s*(?:side)?/i);
   if (createGuest) {
     const name = createGuest[1].trim();
@@ -618,14 +748,10 @@ function parseIntent(question: string, summary: any): ParsedIntent | null {
     const dietary = dietaryMatch ? dietaryMatch[1].charAt(0).toUpperCase() + dietaryMatch[1].slice(1).toLowerCase() : 'Veg';
     const relationMatch = q.match(/(?:as|who(?:'s| is))\s+(?:a\s+)?(\w+)/i);
     const relation = relationMatch ? relationMatch[1] : '';
-    return {
-      tool: "create_guests",
-      args: { guests: [{ guestName: name, side, dietary, relation, rsvp: 'Pending' }] },
-      description: `Add ${name} as ${side} side guest`,
-    };
+    return { tool: "create_guests", args: { guests: [{ guestName: name, side, dietary, relation, rsvp: 'Pending' }] }, description: `Add ${name} as ${side} side guest` };
   }
 
-  // CREATE VENDOR: "add photography vendor Creative Lens contact 9876543210 quote 200000"
+  // CREATE VENDOR
   const createVendor = q.match(/(?:add|create|new)\s+(?:a\s+)?(?:vendor\s+)?["']?([a-z][a-z\s]+?)["']?\s+(?:vendor|photographer|caterer|decorator)/i);
   if (createVendor) {
     const name = createVendor[1].trim();
@@ -635,14 +761,10 @@ function parseIntent(question: string, summary: any): ParsedIntent | null {
     const contact = contactMatch ? contactMatch[1] : '';
     const quoteMatch = q.match(/(?:quote|price|cost|budget)\s+(?:rs\.?\s*)?(\d[\d,]*)/i);
     const quote = quoteMatch ? parseInt(quoteMatch[1].replace(/,/g, '')) : undefined;
-    return {
-      tool: "create_vendor",
-      args: { name, category, contact: contact || undefined, quote },
-      description: `Add vendor "${name}" (${category})`,
-    };
+    return { tool: "create_vendor", args: { name, category, contact: contact || undefined, quote }, description: `Add vendor "${name}" (${category})` };
   }
 
-  // CREATE BUDGET ITEM: "add catering budget 500000"
+  // CREATE BUDGET ITEM
   const createBudget = q.match(/(?:add|create|new)\s+(?:a\s+)?(?:budget\s+)?(?:item\s+)?["']?([a-z][a-z\s]+?)["']?\s+(?:budget|expense|item|cost)/i);
   if (createBudget) {
     const item = createBudget[1].trim();
@@ -650,24 +772,68 @@ function parseIntent(question: string, summary: any): ParsedIntent | null {
     const category = categoryMatch ? categoryMatch[1].charAt(0).toUpperCase() + categoryMatch[1].slice(1).toLowerCase() : 'Misc';
     const amountMatch = q.match(/(?:rs\.?\s*)?(\d[\d,]*)\b/i);
     const estimated = amountMatch ? parseInt(amountMatch[1].replace(/,/g, '')) : 0;
-    return {
-      tool: "create_budget_item",
-      args: { item, category, estimated },
-      description: `Add budget item "${item}" (₹${estimated.toLocaleString('en-IN')})`,
-    };
+    return { tool: "create_budget_item", args: { item, category, estimated }, description: `Add budget item "${item}" (₹${estimated.toLocaleString('en-IN')})` };
   }
 
-  // CREATE TASK: "add task book photographer deadline 2026-09-15"
+  // CREATE TASK
   const createTask = q.match(/(?:add|create|new)\s+(?:a\s+)?(?:task|todo|to-do)\s+["']?(.+?)["']?\s*(?:deadline|by|before)\s+(\d{4}-\d{2}-\d{2})/i);
   if (createTask) {
-    return {
-      tool: "create_task",
-      args: { task: createTask[1].trim(), deadline: createTask[2], priority: 'Medium' },
-      description: `Add task "${createTask[1].trim()}"`,
-    };
+    return { tool: "create_task", args: { task: createTask[1].trim(), deadline: createTask[2], priority: 'Medium' }, description: `Add task "${createTask[1].trim()}"` };
   }
 
   return null;
+}
+
+// ─── Provider caller with fallback ─────────────────────────────────
+
+async function callProvider(
+  provider: ProviderConfig,
+  messages: OpenAI.ChatCompletionMessageParam[],
+  weddingId: string,
+): Promise<{ response: string; provider: string } | null> {
+  try {
+    const client = new OpenAI({
+      apiKey: provider.apiKey,
+      baseURL: provider.baseURL,
+    });
+
+    let iterations = 0;
+    const msgs = [...messages];
+
+    while (iterations < 6) {
+      iterations++;
+      const completion = await client.chat.completions.create({
+        model: provider.model,
+        messages: msgs,
+        tools: provider.supportsTools ? tools : undefined,
+        temperature: 0.3,
+        max_tokens: provider.maxTokens,
+      });
+
+      const choice = completion.choices[0];
+      const msg = choice.message;
+
+      if (!msg.tool_calls || msg.tool_calls.length === 0) {
+        return { response: msg.content || "Done.", provider: provider.name };
+      }
+
+      msgs.push({ role: "assistant", content: msg.content || "", tool_calls: msg.tool_calls });
+
+      for (const tc of msg.tool_calls) {
+        if (tc.type !== "function") continue;
+        const fnName = tc.function.name;
+        let fnArgs;
+        try { fnArgs = JSON.parse(tc.function.arguments); } catch { fnArgs = {}; }
+        const result = await executeTool(fnName, fnArgs, weddingId);
+        msgs.push({ role: "tool", tool_call_id: tc.id, content: result });
+      }
+    }
+
+    return { response: "Completed all operations.", provider: provider.name };
+  } catch (error: any) {
+    console.error(`[AI] Provider ${provider.name} failed:`, error?.message || error);
+    return null;
+  }
 }
 
 // ─── Main AI function ──────────────────────────────────────────────
@@ -678,147 +844,41 @@ export async function askAI(
   conversationHistory: { role: string; content: string }[] = [],
   userId?: string
 ): Promise<string> {
-  try {
-    // Try regex parser first (works perfectly, no model needed)
-    const parsed = parseIntent(question, summary);
-    if (parsed) {
-      console.log("[AI] Regex parser matched:", parsed.tool, JSON.stringify(parsed.args));
-      const result = await executeTool(parsed.tool, parsed.args, summary?.weddingId || "");
-      return `${parsed.description}. ${result}`;
-    }
-    console.log("[AI] No regex match, falling back to LLM");
-
-    const weddingCtx = buildWeddingContext(summary);
-
-    const systemPrompt = `You are ShaadiSheet AI, a wedding planning assistant. You manage the couple's database and give expert advice.
-
-${weddingCtx}
-
-FORMAT RULES (STRICT):
-- Max 80 words for advice/knowledge responses. Be extremely direct.
-- No emojis. No greetings. No "Great question!" No "Here's what I know." Just the answer.
-- NEVER make up vendor names, shop names, or business names. When users ask about real vendors in a city, use the search_vendors tool to find actual businesses. Only provide information from search results.
-- When listing prices, use a table: | Type | Price |.
-- After a tool runs, just confirm in one sentence.
-- No "Action:" or "Want me to..." sections. End with one short question if needed.
-- Never use horizontal rules (---).
-- Respond in the same language the user writes in.
-
-INDIAN WEDDING KNOWLEDGE:
-- Hindu: Roka, Engagement, Mehendi, Sangeet, Haldi, Wedding (Baraat, Jaimala, Kanyadaan, Mangal Pheras, Sindoor, Vidaai), Reception
-- Muslim: Mangni, Mehendi, Nikah, Walima, Ruksati
-- Sikh: Kurmai, Mehendi, Sangeet, Anand Karaj (Lavaan), Langar, Reception
-- Christian: Engagement, Roce, Church Wedding (Vows, Rings, Register), Reception
-- Jain: Roka, Engagement, Mehendi, Sangeet, Wedding (Phere), Reception
-
-BUDGET ALLOCATION (% of total):
-- Venue & Catering: 40-50%
-- Photography & Videography: 8-12%
-- Bridal Outfit & Jewellery: 10-15%
-- Decor & Flowers: 8-12%
-- Makeup & Mehendi: 3-5%
-- Music & Entertainment: 5-8%
-- Invitations: 2-3%
-- Transport: 2-3%
-- Misc & Buffer: 10-15%
-
-VENDOR PRICE RANGES (Indian market, 2026):
-- Photography: ₹80K - ₹5L
-- Videography: ₹60K - ₹4L
-- Catering: ₹800 - ₹3,000/plate
-- Decoration: ₹1L - ₹10L
-- Makeup Artist: ₹20K - ₹2L
-- Mehendi Artist: ₹10K - ₹80K
-- DJ/Music: ₹30K - ₹3L
-- Band/Baraat: ₹50K - ₹5L
-- Venue: ₹2L - ₹25L
-
-RULES:
-- Use tools to CREATE, UPDATE, or DELETE data. Actually do it.
-- When users ask to add guests/vendors/budget/tasks, use the tool immediately.
-- When users ask about budget allocation, give specific ₹ amounts based on their total budget.
-- When users ask about rituals, give accurate info for their religion.
-- When users ask about vendors in their city, give specific guidance and typical prices.
-- If ambiguous, ask for clarification.
-
-NAME-BASED COMMANDS (critical):
-- "Remove Sameer Jain" → delete_guests with filter { name_contains: "Sameer Jain" } ONLY. Do NOT add dietary.
-- "Delete Neha Oswal" → delete_guests with filter { name_contains: "Neha Oswal" } ONLY. Do NOT add dietary.
-- "Remove all Jain dietary guests" → delete_guests with filter { dietary: "Jain" } ONLY. Do NOT add name_contains.
-- "Delete groom side" → delete_guests with filter { side: "Groom" } ONLY.
-- Names with spaces (e.g. "Sameer Jain") are a SINGLE name. Do NOT split them into separate fields.
-- "Jain" in a person's name is part of their NAME, NOT a dietary filter.
-- If the user gives a person's name like "Sameer Jain", use ONLY name_contains. NEVER add dietary.
-- If the user mentions a dietary category like "delete veg guests" or "delete Jain guests", use ONLY dietary. NEVER add name_contains.
-- NEVER combine name_contains and dietary in the same filter.
-
-EXAMPLES:
-User: "Remove Sameer Jain from guests"
-Tool: delete_guests({ filter: { name_contains: "Sameer Jain" } })
-(WRONG: delete_guests({ filter: { name_contains: "Sameer Jain", dietary: "Jain" } }) — "Jain" is part of the name, NOT dietary!)
-
-User: "Delete all pending vendors"
-Tool: delete_vendors({ filter: { contract: "Pending" } })
-
-User: "Remove veg dietary guests"
-Tool: delete_guests({ filter: { dietary: "Veg" } })
-
-User: "Delete Neha Oswal"
-Tool: delete_guests({ filter: { name_contains: "Neha Oswal" } })
-
-User: "Delete all Jain guests"
-Tool: delete_guests({ filter: { dietary: "Jain" } })`;
-
-    const messages: OpenAI.ChatCompletionMessageParam[] = [
-      { role: "system", content: systemPrompt },
-    ];
-
-    for (const m of conversationHistory.slice(-8)) {
-      messages.push({ role: m.role === "bot" ? "assistant" : "user", content: m.content });
-    }
-
-    messages.push({ role: "user", content: question });
-
-    let iterations = 0;
-    while (iterations < 6) {
-      iterations++;
-      const completion = await openai.chat.completions.create({
-        model: "meta/llama-3.1-70b-instruct",
-        messages,
-        tools,
-        temperature: 0.3,
-        max_tokens: 4096,
-      });
-
-      const choice = completion.choices[0];
-      const msg = choice.message;
-
-      if (!msg.tool_calls || msg.tool_calls.length === 0) {
-        return msg.content || "Done.";
-      }
-
-      messages.push({ role: "assistant", content: msg.content || "", tool_calls: msg.tool_calls });
-
-      for (const tc of msg.tool_calls) {
-        if (tc.type !== "function") continue;
-        const fnName = tc.function.name;
-        let fnArgs;
-        try {
-          fnArgs = JSON.parse(tc.function.arguments);
-        } catch {
-          fnArgs = {};
-        }
-        const result = await executeTool(fnName, fnArgs, summary.weddingId || "");
-        messages.push({ role: "tool", tool_call_id: tc.id, content: result });
-      }
-    }
-
-    return "Completed all operations.";
-  } catch (error: any) {
-    console.error("AI error:", error?.message || error);
-    if (error.message?.includes("API key")) return "AI service is temporarily unavailable. Please try again.";
-    if (error.message?.includes("rate_limit")) return "Too many requests. Please wait a moment.";
-    if (error.message?.includes("context_length")) return "Conversation too long. Please start a new chat.";
-    return "Something went wrong. Please try again.";
+  // Try regex parser first (works perfectly, no model needed)
+  const parsed = parseIntent(question, summary);
+  if (parsed) {
+    console.log("[AI] Regex parser matched:", parsed.tool, JSON.stringify(parsed.args));
+    const result = await executeTool(parsed.tool, parsed.args, summary?.weddingId || "");
+    return `${parsed.description}. ${result}`;
   }
+
+  console.log("[AI] No regex match, falling back to LLM");
+
+  const weddingCtx = buildWeddingContext(summary);
+  const systemPrompt = buildSystemPrompt(weddingCtx);
+
+  const messages: OpenAI.ChatCompletionMessageParam[] = [
+    { role: "system", content: systemPrompt },
+  ];
+
+  for (const m of conversationHistory.slice(-12)) {
+    messages.push({ role: m.role === "bot" ? "assistant" : "user", content: m.content });
+  }
+
+  messages.push({ role: "user", content: question });
+
+  // Try providers in priority order with fallback
+  const providers = getProviders();
+
+  for (const provider of providers) {
+    console.log(`[AI] Trying provider: ${provider.name} (${provider.model})`);
+    const result = await callProvider(provider, messages, summary?.weddingId || "");
+    if (result) {
+      console.log(`[AI] Success with provider: ${result.provider}`);
+      return result.response;
+    }
+    console.log(`[AI] Provider ${provider.name} failed, trying next...`);
+  }
+
+  return "AI service is temporarily unavailable. Please try again in a moment.";
 }
