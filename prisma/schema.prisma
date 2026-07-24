@@ -96,6 +96,7 @@ model Wedding {
   weddingDate     DateTime?
   weddingCity     String        @default("")
   selectedEvents  String        @default("[]")
+  rsvpToken       String        @default("")
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   budgetItems     BudgetItem[]
@@ -206,13 +207,14 @@ model Guest {
 }
 
 model Task {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   weddingId String
-  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
-  period    String  @default("")
-  text      String  @default("")
-  done      Boolean @default(false)
-  order     Int     @default(0)
+  wedding   Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  period    String   @default("")
+  text      String   @default("")
+  done      Boolean  @default(false)
+  dueDate   String   @default("")
+  order     Int      @default(0)
 }
 
 model SeatingTable {

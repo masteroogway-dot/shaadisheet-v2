@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { updateBudgetItem, createBudgetItem, deleteBudgetItem, batchCreateBudgetItems, bulkDeleteBudgetItems, bulkAddBudgetItems } from "@/lib/actions";
+import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
 import DatePicker from "@/components/DatePicker";
 
@@ -101,6 +102,11 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canE
           <p className="text-gray-500 text-sm">Track every rupee {'\u2014'} from estimate to final payment</p>
         </div>
         <div className="flex gap-2.5 items-center flex-wrap">
+          {canEdit && items.length > 0 && (
+            <button onClick={() => exportToCSV(items.map((i: any, idx: number) => ({ "#": idx + 1, Category: i.category, Item: i.item, Estimated: i.estimated, Paid: i.paid, Balance: i.balance, Status: i.status, "Due Date": i.dueDate || "", Notes: i.notes || "" })), "budget")} className="btn-edit text-xs py-2 px-3">
+              <i className="fas fa-download mr-1.5" /> Export
+            </button>
+          )}
           {canEdit && (
             <button onClick={() => setShowImport(true)} className="btn-maroon">
               <i className="fas fa-file-import" /> Import

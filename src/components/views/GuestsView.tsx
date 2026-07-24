@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { updateGuest, createGuest, deleteGuest, batchCreateGuests, bulkDeleteGuests, bulkAddGuests } from "@/lib/actions";
+import { updateGuest, createGuest, deleteGuest, batchCreateGuests, bulkDeleteGuests, bulkAddGuests, getRsvpToken } from "@/lib/actions";
+import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
 
-export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canEdit = true }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void; canEdit?: boolean }) {
+export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canEdit = true }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error", options?: { undoAction?: () => void }) => void; canEdit?: boolean }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
   const [showImport, setShowImport] = useState(false);
@@ -12,8 +13,20 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
   const [bulkAddCount, setBulkAddCount] = useState<number>(5);
   const [showBulkAdd, setShowBulkAdd] = useState(false);
   const [rangeInput, setRangeInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [filterSide, setFilterSide] = useState("All");
+  const [filterRsvp, setFilterRsvp] = useState("All");
+  const [filterDietary, setFilterDietary] = useState("All");
+  const [rsvpLink, setRsvpLink] = useState("");
 
   const guests = wedding.guests || [];
+  const filteredGuests = guests.filter((g: any) => {
+    if (search && !g.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filterSide !== "All" && g.side !== filterSide) return false;
+    if (filterRsvp !== "All" && g.rsvp !== filterRsvp) return false;
+    if (filterDietary !== "All" && g.dietary !== filterDietary) return false;
+    return true;
+  });
   const totalGuests = guests.length;
   const rsvpYes = guests.filter((g: any) => g.rsvp === "Yes").length;
   const pending = guests.filter((g: any) => g.rsvp === "Pending").length;
@@ -83,11 +96,22 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
   };
 
   const handleDelete = async (id: string) => {
+    const guest = guests.find((g: any) => g.id === id);
     try {
       await deleteGuest(weddingId, id);
       setSelected((prev) => { const next = new Set(prev); next.delete(id); return next; });
       onUpdate();
-      onToast("Guest deleted", "success");
+      onToast("Guest deleted", "success", guest ? {
+        undoAction: async () => {
+          try {
+            await createGuest(weddingId, { name: guest.name, relation: guest.relation, side: guest.side, rsvp: guest.rsvp, dietary: guest.dietary, tableNum: guest.tableNum || 0, giftGiven: guest.giftGiven || "No", thankYou: guest.thankYou || "No", notes: guest.notes || "" });
+            onUpdate();
+            onToast("Guest restored", "success");
+          } catch {
+            onToast("Failed to restore guest", "error");
+          }
+        }
+      } : undefined);
     } catch {
       onToast("Failed to delete guest", "error");
     }
@@ -95,11 +119,22 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
 
   const handleBulkDelete = async () => {
     if (selected.size === 0) return;
+    const toDelete = guests.filter((g: any) => selected.has(g.id));
     try {
       await bulkDeleteGuests(weddingId, Array.from(selected));
       setSelected(new Set());
       onUpdate();
-      onToast(`${selected.size} guest(s) deleted`, "success");
+      onToast(`${toDelete.length} guest(s) deleted`, "success", {
+        undoAction: async () => {
+          try {
+            await batchCreateGuests(weddingId, toDelete.map((g: any) => ({ name: g.name, relation: g.relation, side: g.side, rsvp: g.rsvp, dietary: g.dietary, tableNum: g.tableNum || 0, giftGiven: g.giftGiven || "No", thankYou: g.thankYou || "No", notes: g.notes || "" })));
+            onUpdate();
+            onToast("Guests restored", "success");
+          } catch {
+            onToast("Failed to restore guests", "error");
+          }
+        }
+      });
     } catch {
       onToast("Failed to delete guests", "error");
     }
@@ -115,6 +150,18 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
       onToast(`${bulkAddCount} row${bulkAddCount > 1 ? "s" : ""} created`, "success");
     } catch {
       onToast("Failed to add rows", "error");
+    }
+  };
+
+  const handleShareRsvp = async () => {
+    try {
+      const token = await getRsvpToken(weddingId);
+      const link = `${window.location.origin}/rsvp/${token}`;
+      setRsvpLink(link);
+      await navigator.clipboard.writeText(link);
+      onToast("RSVP link copied to clipboard!", "success");
+    } catch {
+      onToast("Failed to generate link", "error");
     }
   };
 
@@ -145,6 +192,12 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
           )}
           {canEdit && (
             <>
+              <button onClick={handleShareRsvp} className="btn-edit text-xs py-2 px-3">
+                <i className="fas fa-share-nodes mr-1.5" /> Share RSVP Link
+              </button>
+              <button onClick={() => exportToCSV(filteredGuests.map((g: any, i: number) => ({ "#": i + 1, Name: g.name, Relation: g.relation, Side: g.side, RSVP: g.rsvp, Dietary: g.dietary, Notes: g.notes || "" })), "guests")} className="btn-edit text-xs py-2 px-3">
+                <i className="fas fa-download mr-1.5" /> Export
+              </button>
               <button onClick={() => setShowImport(true)} className="btn-maroon">
                 <i className="fas fa-file-import" /> Import
               </button>
@@ -169,6 +222,49 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
               <span className="text-xs text-gray-500">{s.label}</span>
             </div>
           ))}
+        </div>
+      )}
+
+      {totalGuests > 0 && (
+        <div className="flex flex-wrap gap-2 mb-5">
+          <div className="relative flex-1 min-w-[200px]">
+            <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search guests..."
+              className="card-input py-2 pl-8 text-sm w-full"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer text-xs">
+                <i className="fas fa-times" />
+              </button>
+            )}
+          </div>
+          <select value={filterSide} onChange={(e) => setFilterSide(e.target.value)} className="card-select py-2 text-sm">
+            <option value="All">All Sides</option>
+            <option value="Bride">Bride</option>
+            <option value="Groom">Groom</option>
+            <option value="Both">Both</option>
+          </select>
+          <select value={filterRsvp} onChange={(e) => setFilterRsvp(e.target.value)} className="card-select py-2 text-sm">
+            <option value="All">All RSVP</option>
+            <option value="Yes">Yes</option>
+            <option value="Pending">Pending</option>
+            <option value="Declined">Declined</option>
+          </select>
+          <select value={filterDietary} onChange={(e) => setFilterDietary(e.target.value)} className="card-select py-2 text-sm">
+            <option value="All">All Dietary</option>
+            <option value="Veg">Veg</option>
+            <option value="Non-Veg">Non-Veg</option>
+            <option value="Vegan">Vegan</option>
+            <option value="Jain">Jain</option>
+          </select>
+          {(search || filterSide !== "All" || filterRsvp !== "All" || filterDietary !== "All") && (
+            <button onClick={() => { setSearch(""); setFilterSide("All"); setFilterRsvp("All"); setFilterDietary("All"); }} className="btn-cancel text-xs py-2 px-3">
+              <i className="fas fa-times mr-1" /> Clear
+            </button>
+          )}
         </div>
       )}
 
@@ -206,7 +302,9 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
         </div>
       ) : (
         <div className="space-y-3">
-          {guests.map((g: any, idx: number) => {
+          {filteredGuests.length === 0 ? (
+            <div className="text-center py-8 text-gray-400 text-sm">No guests match your filters</div>
+          ) : filteredGuests.map((g: any, idx: number) => {
             const isEditing = editing === g.id;
             const isSelected = selected.has(g.id);
 

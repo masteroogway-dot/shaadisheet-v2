@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { updateVendor, createVendor, deleteVendor, batchCreateVendors, bulkDeleteVendors, bulkAddVendors } from "@/lib/actions";
+import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
 
 function StarRating({ value, onChange, readonly }: { value: string; onChange?: (v: string) => void; readonly?: boolean }) {
@@ -25,7 +26,7 @@ function StarRating({ value, onChange, readonly }: { value: string; onChange?: (
   );
 }
 
-export default function VendorsView({ wedding, weddingId, onUpdate, onToast, canEdit = true }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void; canEdit?: boolean }) {
+export default function VendorsView({ wedding, weddingId, onUpdate, onToast, canEdit = true }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error", options?: { undoAction?: () => void }) => void; canEdit?: boolean }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
   const [showImport, setShowImport] = useState(false);
@@ -33,8 +34,18 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
   const [bulkCount, setBulkCount] = useState<number>(1);
   const [showBulkInput, setShowBulkInput] = useState(false);
   const [rangeInput, setRangeInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [filterContract, setFilterContract] = useState("All");
 
   const vendors: any[] = wedding.vendors ?? [];
+  const filteredVendors = vendors.filter((v: any) => {
+    if (search) {
+      const q = search.toLowerCase();
+      if (!v.category?.toLowerCase().includes(q) && !v.name?.toLowerCase().includes(q)) return false;
+    }
+    if (filterContract !== "All" && v.contract !== filterContract) return false;
+    return true;
+  });
 
   const handleSave = async (id: string) => {
     const data = { ...editData };
@@ -66,11 +77,22 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
   };
 
   const handleDelete = async (id: string) => {
+    const vendor = vendors.find((v: any) => v.id === id);
     try {
       await deleteVendor(weddingId, id);
       setSelected((prev) => { const next = new Set(prev); next.delete(id); return next; });
       onUpdate();
-      onToast("Vendor deleted", "success");
+      onToast("Vendor deleted", "success", vendor ? {
+        undoAction: async () => {
+          try {
+            await createVendor(weddingId, { category: vendor.category, name: vendor.name, contact: vendor.contact, quote: vendor.quote || 0, paid: vendor.paid || 0, balance: vendor.balance || 0, rating: vendor.rating || "\u2605\u2605\u2605\u2605\u2606", contract: vendor.contract || "Pending", notes: vendor.notes || "" });
+            onUpdate();
+            onToast("Vendor restored", "success");
+          } catch {
+            onToast("Failed to restore vendor", "error");
+          }
+        }
+      } : undefined);
     } catch {
       onToast("Failed to delete vendor", "error");
     }
@@ -119,11 +141,22 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
 
   const handleBulkDelete = async () => {
     if (selected.size === 0) return;
+    const toDelete = vendors.filter((v: any) => selected.has(v.id));
     try {
       await bulkDeleteVendors(weddingId, Array.from(selected));
       setSelected(new Set());
       onUpdate();
-      onToast(`Deleted ${selected.size} vendor(s)`, "success");
+      onToast(`Deleted ${toDelete.length} vendor(s)`, "success", {
+        undoAction: async () => {
+          try {
+            await batchCreateVendors(weddingId, toDelete.map((v: any) => ({ category: v.category, name: v.name, contact: v.contact, quote: v.quote || 0, paid: v.paid || 0, balance: v.balance || 0, rating: v.rating || "\u2605\u2605\u2605\u2605\u2606", contract: v.contract || "Pending", notes: v.notes || "" })));
+            onUpdate();
+            onToast("Vendors restored", "success");
+          } catch {
+            onToast("Failed to restore vendors", "error");
+          }
+        }
+      });
     } catch {
       onToast("Failed to bulk delete", "error");
     }
@@ -172,6 +205,11 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
             </>
           )}
           {canEdit && (
+            <button onClick={() => exportToCSV(filteredVendors.map((v: any, i: number) => ({ "#": i + 1, Category: v.category, Name: v.name, Contact: v.contact, Quote: v.quote, Paid: v.paid, Balance: v.balance, Rating: v.rating, Contract: v.contract, Notes: v.notes || "" })), "vendors")} className="btn-edit text-xs py-2 px-3">
+              <i className="fas fa-download mr-1.5" /> Export
+            </button>
+          )}
+          {canEdit && (
             <button onClick={() => setShowImport(true)} className="btn-maroon">
               <i className="fas fa-file-import" /> Import
             </button>
@@ -202,6 +240,36 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
             <span className="text-2xl font-extrabold text-green block">{'\u20B9'}{(totalPaid / 100000).toFixed(1)}L</span>
             <span className="text-xs text-gray-500">Total Paid</span>
           </div>
+        </div>
+      )}
+
+      {vendors.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-5">
+          <div className="relative flex-1 min-w-[200px]">
+            <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search vendors..."
+              className="card-input py-2 pl-8 text-sm w-full"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer text-xs">
+                <i className="fas fa-times" />
+              </button>
+            )}
+          </div>
+          <select value={filterContract} onChange={(e) => setFilterContract(e.target.value)} className="card-select py-2 text-sm">
+            <option value="All">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Signed">Signed</option>
+            <option value="Completed">Completed</option>
+          </select>
+          {(search || filterContract !== "All") && (
+            <button onClick={() => { setSearch(""); setFilterContract("All"); }} className="btn-cancel text-xs py-2 px-3">
+              <i className="fas fa-times mr-1" /> Clear
+            </button>
+          )}
         </div>
       )}
 
@@ -241,7 +309,9 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
         </div>
       ) : (
         <div className="space-y-3">
-          {vendors.map((v: any, idx: number) => {
+          {filteredVendors.length === 0 ? (
+            <div className="text-center py-8 text-gray-400 text-sm">No vendors match your filters</div>
+          ) : filteredVendors.map((v: any, idx: number) => {
             const isEditing = editing === v.id;
             const isSelected = selected.has(v.id);
             const quote = isEditing ? (editData.quote ?? v.quote) : v.quote;

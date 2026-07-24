@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export interface Toast {
   id: number;
   message: string;
   type: "success" | "error";
+  undoAction?: () => void;
 }
 
 interface ToastProps {
@@ -14,10 +15,26 @@ interface ToastProps {
 }
 
 function ToastItem({ toast, onDismiss }: ToastProps) {
+  const [remaining, setRemaining] = useState(5);
+  const hasUndo = !!toast.undoAction;
+
   useEffect(() => {
-    const timer = setTimeout(() => onDismiss(toast.id), 3000);
-    return () => clearTimeout(timer);
-  }, [toast.id, onDismiss]);
+    if (!hasUndo) {
+      const timer = setTimeout(() => onDismiss(toast.id), 3000);
+      return () => clearTimeout(timer);
+    }
+    const interval = setInterval(() => {
+      setRemaining((r) => {
+        if (r <= 1) {
+          clearInterval(interval);
+          onDismiss(toast.id);
+          return 0;
+        }
+        return r - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [toast.id, onDismiss, hasUndo]);
 
   return (
     <div
@@ -36,8 +53,16 @@ function ToastItem({ toast, onDismiss }: ToastProps) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
       )}
-      <span>{toast.message}</span>
-      <button onClick={() => onDismiss(toast.id)} className="ml-2 text-gray-400 hover:text-gray-600 cursor-pointer">
+      <span className="flex-1">{toast.message}</span>
+      {hasUndo && (
+        <button
+          onClick={() => { toast.undoAction?.(); onDismiss(toast.id); }}
+          className="text-xs font-bold text-maroon hover:text-maroon-dark underline cursor-pointer shrink-0"
+        >
+          Undo ({remaining}s)
+        </button>
+      )}
+      <button onClick={() => onDismiss(toast.id)} className="ml-1 text-gray-400 hover:text-gray-600 cursor-pointer">
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>

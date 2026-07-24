@@ -35,9 +35,9 @@ export default function WeddingDashboardPage() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [userRole, setUserRole] = useState<string>("owner");
 
-  const addToast = useCallback((message: string, type: "success" | "error" = "success") => {
+  const addToast = useCallback((message: string, type: "success" | "error" = "success", options?: { undoAction?: () => void }) => {
     const id = ++toastId;
-    setToasts((prev) => [...prev, { id, message, type }]);
+    setToasts((prev) => [...prev, { id, message, type, undoAction: options?.undoAction }]);
   }, []);
 
   const dismissToast = useCallback((id: number) => {

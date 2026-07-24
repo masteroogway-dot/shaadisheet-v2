@@ -415,6 +415,7 @@ export async function createTask(weddingId: string, data: {
   period: string;
   text: string;
   done?: boolean;
+  dueDate?: string;
 }) {
   const wedding = await getCurrentWedding(weddingId);
   const maxOrder = Math.max(
@@ -426,7 +427,7 @@ export async function createTask(weddingId: string, data: {
   });
 }
 
-export async function updateTask(weddingId: string, id: string, data: { done?: boolean; text?: string }) {
+export async function updateTask(weddingId: string, id: string, data: { done?: boolean; text?: string; dueDate?: string }) {
   const wedding = await getCurrentWedding(weddingId);
   const task = await prisma.task.findUnique({ where: { id } });
   if (!task || task.weddingId !== wedding.id) throw new Error("Unauthorized");
@@ -455,6 +456,41 @@ export async function bulkCreateTasks(weddingId: string, tasks: Array<{
 
 // ═══════════════════════════════════════════════════════════════
 // SEATING
+// ═══════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════
+// RSVP TOKEN
+// ═══════════════════════════════════════════════════════════════
+
+import crypto from "crypto";
+
+export async function getRsvpToken(weddingId: string) {
+  const wedding = await getCurrentWedding(weddingId);
+  if (wedding.rsvpToken) return wedding.rsvpToken;
+  const token = crypto.randomBytes(16).toString("base64url");
+  await prisma.wedding.update({ where: { id: wedding.id }, data: { rsvpToken: token } });
+  return token;
+}
+
+export async function getWeddingByRsvpToken(token: string) {
+  const wedding = await prisma.wedding.findFirst({
+    where: { rsvpToken: token },
+    select: { id: true, name: true, weddingDate: true, weddingCity: true, guests: { select: { id: true, name: true, rsvp: true, dietary: true, side: true } } },
+  });
+  return wedding;
+}
+
+export async function submitRsvp(token: string, guestId: string, rsvp: string, dietary: string) {
+  const wedding = await prisma.wedding.findFirst({ where: { rsvpToken: token } });
+  if (!wedding) throw new Error("Invalid link");
+  const guest = await prisma.guest.findFirst({ where: { id: guestId, weddingId: wedding.id } });
+  if (!guest) throw new Error("Guest not found");
+  await prisma.guest.update({ where: { id: guestId }, data: { rsvp, dietary } });
+  return { success: true };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SEATING TABLES
 // ═══════════════════════════════════════════════════════════════
 
 export async function getSeatingTables(weddingId: string) {
