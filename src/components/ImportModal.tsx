@@ -10,6 +10,7 @@ import {
   ParsedData,
   MappingResult,
 } from "@/lib/import-utils";
+import { downloadTemplate } from "@/lib/templates";
 
 interface Props {
   open: boolean;
@@ -214,6 +215,13 @@ export default function ImportModal({ open, onClose, type, onImport }: Props) {
                 Choose File
               </button>
               <p className="text-xs text-gray-400 mt-4">Supports .xlsx, .xls, .csv files</p>
+              <button
+                onClick={() => downloadTemplate(type)}
+                className="mt-3 text-sm text-maroon hover:text-maroon-dark font-medium underline cursor-pointer"
+              >
+                <i className="fas fa-download mr-1" />
+                Download template with sample data
+              </button>
               <input
                 ref={fileRef}
                 type="file"
