@@ -196,6 +196,7 @@ const SCENES = [
     label: "Muslim Wedding",
     gradient: "linear-gradient(135deg, #0A2E12 0%, #1B5E20 50%, #2E7D32 100%)",
     image: "/weddings/muslim.jpg",
+    mobileImage: "/weddings/muslim-mobile.jpg",
     mobilePos: "center 45%",
   },
   {
@@ -203,6 +204,7 @@ const SCENES = [
     label: "Sikh Wedding",
     gradient: "linear-gradient(135deg, #3E1A00 0%, #7A3B00 50%, #E65100 100%)",
     image: "/weddings/sikh.jpg",
+    mobileImage: "/weddings/sikh-mobile.jpg",
     mobilePos: "center 40%",
   },
   {
@@ -241,13 +243,24 @@ function HeroBackground({ active, onActiveChange }: { active: number; onActiveCh
           >
             <div className="absolute inset-0" style={{ background: scene.gradient }} />
             {showImage && (
-              <img
-                src={scene.image}
-                alt={scene.label}
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{ objectPosition: scene.mobilePos || "center 30%" }}
-                onError={() => setImgErrors((prev) => ({ ...prev, [scene.key]: true }))}
-              />
+              <>
+                {scene.mobileImage && (
+                  <img
+                    src={scene.mobileImage}
+                    alt={scene.label}
+                    className="absolute inset-0 w-full h-full object-cover block md:hidden"
+                    style={{ objectPosition: "center center" }}
+                    onError={() => {}}
+                  />
+                )}
+                <img
+                  src={scene.image}
+                  alt={scene.label}
+                  className={`absolute inset-0 w-full h-full object-cover ${scene.mobileImage ? "hidden md:block" : ""}`}
+                  style={{ objectPosition: scene.mobilePos || "center 30%" }}
+                  onError={() => setImgErrors((prev) => ({ ...prev, [scene.key]: true }))}
+                />
+              </>
             )}
           </div>
         );
