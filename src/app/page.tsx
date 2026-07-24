@@ -243,24 +243,21 @@ function HeroBackground({ active, onActiveChange }: { active: number; onActiveCh
           >
             <div className="absolute inset-0" style={{ background: scene.gradient }} />
             {showImage && (
-              <>
+              <picture>
                 {scene.mobileImage && (
-                  <img
-                    src={scene.mobileImage}
-                    alt={scene.label}
-                    className="absolute inset-0 w-full h-full object-cover block md:hidden"
-                    style={{ objectPosition: "center center" }}
-                    onError={() => {}}
+                  <source
+                    media="(max-width: 767px)"
+                    srcSet={scene.mobileImage}
                   />
                 )}
                 <img
                   src={scene.image}
                   alt={scene.label}
-                  className={`absolute inset-0 w-full h-full object-cover ${scene.mobileImage ? "hidden md:block" : ""}`}
+                  className="absolute inset-0 w-full h-full object-cover"
                   style={{ objectPosition: scene.mobilePos || "center 30%" }}
                   onError={() => setImgErrors((prev) => ({ ...prev, [scene.key]: true }))}
                 />
-              </>
+              </picture>
             )}
           </div>
         );
