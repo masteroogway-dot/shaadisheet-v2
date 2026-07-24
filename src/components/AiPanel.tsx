@@ -11,6 +11,7 @@ import {
   correctInteraction,
   learnCommand,
   getLearnedPatterns,
+  clearAiMessages,
 } from "@/lib/actions";
 
 function formatINR(n: number): string {
@@ -742,6 +743,16 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
           )}
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={async () => {
+              await clearAiMessages(weddingId);
+              setMessages([{ role: "bot", content: getWelcomeMessage() }]);
+            }}
+            className="text-[11px] bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-lg transition-colors cursor-pointer min-w-[44px] min-h-[36px]"
+            title="Clear conversation and start fresh"
+          >
+            <i className="fas fa-plus mr-1" /> New Chat
+          </button>
           <button
             onClick={() => setLearningMode(!learningMode)}
             className="text-[11px] bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-lg transition-colors cursor-pointer min-w-[44px] min-h-[36px]"
