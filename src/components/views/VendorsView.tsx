@@ -307,7 +307,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
       )}
 
       {showBulkInput && (
-        <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
+        <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">Add how many vendors?</span>
           <input type="number" min={1} max={100} value={bulkCount} onChange={(e) => setBulkCount(parseInt(e.target.value) || 1)} className="card-input w-20 py-1.5 text-center" />
           {canEdit && <button onClick={handleBulkAdd} className="btn-maroon text-xs py-2 px-4">Add</button>}
@@ -341,8 +341,8 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
 
             return (
               <div key={v.id} className={`item-card ${isEditing ? "editing" : ""}`}>
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div className="flex items-center gap-3 min-w-0">
+                <div className="flex items-start justify-between gap-2 sm:gap-4 mb-4">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <span className="text-[0.65rem] font-bold text-gray-400 bg-gray-100 rounded px-1.5 py-0.5 leading-none shrink-0">{idx + 1}</span>
                     <input
                       type="checkbox"
@@ -353,22 +353,22 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
                     {isEditing ? (
                       <input value={editData.category ?? v.category} onChange={(e) => setEditData({ ...editData, category: e.target.value })} className="card-input py-1.5 font-bold" placeholder="Category" />
                     ) : (
-                      <h4 className="font-bold text-base truncate">{v.category}</h4>
+                      <h4 className="font-bold text-sm sm:text-base truncate">{v.category}</h4>
                     )}
                     {v.contract === "Signed" && !isEditing && (
-                      <span className="status-badge paid text-[0.7rem]">Booked</span>
+                      <span className="status-badge paid text-[0.7rem] hidden sm:inline-block">Booked</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     {isEditing ? (
                       <>
-                        {canEdit && <button onClick={() => handleSave(v.id)} className="btn-save"><i className="fas fa-check mr-1" /> Save</button>}
-                        <button onClick={() => { setEditing(null); setEditData({}); }} className="btn-cancel">Cancel</button>
+                        {canEdit && <button onClick={() => handleSave(v.id)} className="btn-save"><i className="fas fa-check sm:mr-1" /> <span className="hidden sm:inline">Save</span></button>}
+                        <button onClick={() => { setEditing(null); setEditData({}); }} className="btn-cancel"><span className="hidden sm:inline">Cancel</span></button>
                       </>
                     ) : (
                       <>
-                        {canEdit && <button onClick={() => { setEditing(v.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen mr-1" /> Edit</button>}
-                        {canEdit && <button onClick={() => handleDelete(v.id)} className="btn-delete"><i className="fas fa-trash mr-1" /> Delete</button>}
+                        {canEdit && <button onClick={() => { setEditing(v.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen sm:mr-1" /> <span className="hidden sm:inline">Edit</span></button>}
+                        {canEdit && <button onClick={() => handleDelete(v.id)} className="btn-delete"><i className="fas fa-trash sm:mr-1" /> <span className="hidden sm:inline">Delete</span></button>}
                       </>
                     )}
                   </div>

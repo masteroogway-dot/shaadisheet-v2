@@ -218,7 +218,7 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
       )}
 
       {showBulkInput && canEdit && (
-        <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
+        <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">Add how many tables?</span>
           <input type="number" min={1} value={bulkCount} onChange={(e) => setBulkCount(parseInt(e.target.value) || 1)} className="card-input w-20 py-1.5 text-center" autoFocus onKeyDown={(e) => e.key === "Enter" && handleBulkAdd()} />
           <button onClick={handleBulkAdd} className="btn-maroon text-xs py-2 px-3">Add</button>
@@ -376,7 +376,7 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
           <h3 className="font-bold text-lg mb-2">No tables yet</h3>
           <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">Create seating tables and assign guests for your wedding.</p>
           {canEdit && (
-            <div className="flex gap-3 justify-center">
+            <div className="flex flex-wrap gap-3 justify-center">
               <button onClick={handleAddTable} className="btn-maroon">
                 <i className="fas fa-plus" /> Add First Table
               </button>

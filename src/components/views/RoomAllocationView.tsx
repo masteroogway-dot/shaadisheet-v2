@@ -203,7 +203,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
       )}
 
       {canEdit && showDeleteAllConfirm && (
-        <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 bg-red-50 border border-red-200 rounded-lg">
           <span className="text-sm font-medium text-red-700">Delete all {totalRooms} rooms? This cannot be undone.</span>
           <button onClick={handleDeleteAll} className="btn-delete text-xs py-2 px-4">
             <i className="fas fa-trash mr-1" /> Yes, Delete All
@@ -233,8 +233,8 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
 
             return (
               <div key={a.id} className={`item-card ${isEditing ? "editing" : ""}`}>
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div className="flex items-center gap-3 min-w-0">
+                <div className="flex items-start justify-between gap-2 sm:gap-4 mb-4">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <span className="text-[0.65rem] font-bold text-gray-400 bg-gray-100 rounded px-1.5 py-0.5 leading-none shrink-0">{idx + 1}</span>
                     <input
                       type="checkbox"
@@ -245,25 +245,25 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
                     {isEditing ? (
                       <input value={editData.guestName ?? a.guestName} onChange={(e) => setEditData({ ...editData, guestName: e.target.value })} className="card-input py-1.5 font-bold w-full sm:w-60" placeholder="Guest name" />
                     ) : (
-                      <h4 className="font-bold text-base truncate min-w-0">{a.guestName || '\u2014'}</h4>
+                      <h4 className="font-bold text-sm sm:text-base truncate min-w-0">{a.guestName || '\u2014'}</h4>
                     )}
                     {!isEditing && (
-                      <span className={`status-badge ${a.status === "Checked In" ? "paid" : a.status === "Cancelled" ? "pending" : "planning"}`}>{a.status}</span>
+                      <span className={`status-badge hidden sm:inline-block ${a.status === "Checked In" ? "paid" : a.status === "Cancelled" ? "pending" : "planning"}`}>{a.status}</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     {isEditing ? (
                       <>
-                        {canEdit && <button onClick={() => handleSave(a.id)} className="btn-save"><i className="fas fa-check mr-1" /> Save</button>}
-                        <button onClick={() => { setEditing(null); setEditData({}); }} className="btn-cancel">Cancel</button>
+                        {canEdit && <button onClick={() => handleSave(a.id)} className="btn-save"><i className="fas fa-check sm:mr-1" /> <span className="hidden sm:inline">Save</span></button>}
+                        <button onClick={() => { setEditing(null); setEditData({}); }} className="btn-cancel"><span className="hidden sm:inline">Cancel</span></button>
                       </>
                     ) : (
                       <>
                         {canEdit && (
-                          <button onClick={() => { setEditing(a.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen mr-1" /> Edit</button>
+                          <button onClick={() => { setEditing(a.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen sm:mr-1" /> <span className="hidden sm:inline">Edit</span></button>
                         )}
                         {canEdit && (
-                          <button onClick={() => handleDelete(a.id)} className="btn-delete"><i className="fas fa-trash mr-1" /> Delete</button>
+                          <button onClick={() => handleDelete(a.id)} className="btn-delete"><i className="fas fa-trash sm:mr-1" /> <span className="hidden sm:inline">Delete</span></button>
                         )}
                       </>
                     )}

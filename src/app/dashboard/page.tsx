@@ -240,10 +240,10 @@ export default function DashboardPage() {
                       </span>
                       <button
                         onClick={(e) => { e.stopPropagation(); handleDeleteWedding(wedding.id); }}
-                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                        className={`w-9 h-9 md:w-7 md:h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
                           deletingId === wedding.id
                             ? "bg-red-500 text-white"
-                            : "text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100"
+                            : "text-gray-400 hover:text-red-500 hover:bg-red-50 md:opacity-0 md:group-hover:opacity-100"
                         }`}
                         title={deletingId === wedding.id ? "Click again to confirm delete" : "Delete wedding"}
                       >

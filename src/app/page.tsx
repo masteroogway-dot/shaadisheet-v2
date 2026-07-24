@@ -325,7 +325,7 @@ export default function Home() {
         </div>
 
         {/* Content over background */}
-        <div className="relative z-[5] w-full pt-[90px] md:pt-[100px] pb-16 md:pb-28 px-4 md:px-6">
+        <div className="relative z-[5] w-full pt-[70px] md:pt-[100px] pb-16 md:pb-28 px-4 md:px-6">
           <div className="max-w-6xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-xs md:text-sm font-medium text-white/90 mb-6 md:mb-8">
               <span className="w-2 h-2 rounded-full bg-green animate-pulse" />
@@ -517,7 +517,7 @@ export default function Home() {
                 <div className={`religion-card ${t.bg}`} style={{ borderColor: "rgba(212, 175, 55, 0.15)" }}>
                   <div className="flex justify-center mb-2 md:mb-3">{t.svg}</div>
                   <h3 className="font-bold text-gray-900 text-sm md:text-base">{t.title}</h3>
-                  <p className="text-gray-500 text-[0.65rem] md:text-xs mt-1">{t.desc}</p>
+                  <p className="text-gray-500 text-xs md:text-xs mt-1">{t.desc}</p>
                 </div>
               </StaggerItem>
             ))}
@@ -548,7 +548,7 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 mb-6 md:mb-10">
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2.5 mb-3">
-                <img src="/logo.png" alt="ShaadiSheet" style={{ height: "55px", width: "auto", filter: "invert(1) brightness(2)" }} />
+                <img src="/logo.png" alt="ShaadiSheet" className="h-[40px] md:h-[55px] w-auto" style={{ filter: "invert(1) brightness(2)" }} />
               </div>
               <p className="text-gray-400 text-sm">Har Shaadi Ka Plan.</p>
             </div>

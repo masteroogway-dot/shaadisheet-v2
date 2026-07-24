@@ -300,7 +300,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
       )}
 
       {showBulkAdd && canEdit && (
-        <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
+        <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">Add how many guests?</span>
           <input type="number" min={1} max={500} value={bulkAddCount} onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 1)} className="card-input w-20 py-1.5 text-center" />
           <button onClick={handleBulkAdd} className="btn-maroon text-xs py-2 px-4">Add</button>
@@ -331,8 +331,8 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
 
             return (
               <div key={g.id} className={`item-card ${isEditing ? "editing" : ""}`}>
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div className="flex items-center gap-3 min-w-0">
+                <div className="flex items-start justify-between gap-2 sm:gap-4 mb-4">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <span className="text-[0.65rem] font-bold text-gray-400 bg-gray-100 rounded px-1.5 py-0.5 leading-none shrink-0">{idx + 1}</span>
                     <input
                       type="checkbox"
@@ -343,23 +343,23 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
                     {isEditing ? (
                       <input value={editData.name ?? g.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="card-input py-1.5 font-bold w-full sm:w-60" placeholder="Guest name" />
                     ) : (
-                      <h4 className="font-bold text-base truncate min-w-0">{g.name}</h4>
+                      <h4 className="font-bold text-sm sm:text-base truncate min-w-0">{g.name}</h4>
                     )}
                     {!isEditing && (
-                      <span className={`status-badge ${g.rsvp === "Yes" ? "paid" : g.rsvp === "Pending" ? "planning" : "pending"}`}>{g.rsvp}</span>
+                      <span className={`status-badge hidden sm:inline-block ${g.rsvp === "Yes" ? "paid" : g.rsvp === "Pending" ? "planning" : "pending"}`}>{g.rsvp}</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     {isEditing ? (
                       <>
-                        {canEdit && <button onClick={() => handleSave(g.id)} className="btn-save"><i className="fas fa-check mr-1" /> Save</button>}
-                        <button onClick={() => { setEditing(null); setEditData({}); }} className="btn-cancel">Cancel</button>
+                        {canEdit && <button onClick={() => handleSave(g.id)} className="btn-save"><i className="fas fa-check sm:mr-1" /> <span className="hidden sm:inline">Save</span></button>}
+                        <button onClick={() => { setEditing(null); setEditData({}); }} className="btn-cancel"><span className="hidden sm:inline">Cancel</span></button>
                       </>
                     ) : (
                       <>
-                        {canEdit && <button onClick={() => { setEditing(g.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen mr-1" /> Edit</button>}
+                        {canEdit && <button onClick={() => { setEditing(g.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen sm:mr-1" /> <span className="hidden sm:inline">Edit</span></button>}
                         {canEdit && (
-                          <button onClick={() => handleDelete(g.id)} className="btn-delete"><i className="fas fa-trash mr-1" /> Delete</button>
+                          <button onClick={() => handleDelete(g.id)} className="btn-delete"><i className="fas fa-trash sm:mr-1" /> <span className="hidden sm:inline">Delete</span></button>
                         )}
                       </>
                     )}

@@ -561,11 +561,17 @@ input[type="number"]::placeholder {
 /* ── Wedding Religion Card ── */
 .religion-card {
   border-radius: 16px;
-  padding: 28px 20px;
+  padding: 16px 12px;
   text-align: center;
   transition: all 0.3s ease;
   position: relative;
   border: 1.5px solid transparent;
+}
+
+@media (min-width: 640px) {
+  .religion-card {
+    padding: 28px 20px;
+  }
 }
 
 .religion-card:hover {
@@ -593,8 +599,8 @@ input[type="number"]::placeholder {
     display: block;
   }
 
-  /* Improve touch targets */
-  button, a, [role="button"] {
+  /* Improve touch targets - only for standalone buttons, not inline */
+  button:not(:where(p, span, td)), a:not(:where(p, span, td)), [role="button"]:not(:where(p, span, td)) {
     min-height: 44px;
     min-width: 44px;
   }

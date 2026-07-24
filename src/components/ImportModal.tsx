@@ -197,7 +197,7 @@ export default function ImportModal({ open, onClose, type, onImport }: Props) {
               onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
               onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors ${
+              className={`border-2 border-dashed rounded-xl p-6 sm:p-12 text-center transition-colors ${
                 dragging ? "border-maroon bg-maroon/5" : "border-gray-300 hover:border-gray-400"
               }`}
             >
@@ -279,7 +279,7 @@ export default function ImportModal({ open, onClose, type, onImport }: Props) {
                     const sampleValues = parsed.rows.slice(0, 3).map((r) => r[header]).filter(Boolean);
 
                     return (
-                      <div key={header} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                      <div key={header} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 bg-gray-50 rounded-lg">
                         <div className="flex-1 min-w-0">
                           <div className="font-semibold text-sm truncate">{header}</div>
                           <div className="text-xs text-gray-400 truncate">
@@ -287,30 +287,32 @@ export default function ImportModal({ open, onClose, type, onImport }: Props) {
                             {sampleValues.length > 2 && ` (+${sampleValues.length - 2} more)`}
                           </div>
                         </div>
-                        <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
-                        <select
-                          value={currentTarget}
-                          onChange={(e) => handleMappingChange(header, e.target.value)}
-                          className="px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon bg-white min-w-[180px] cursor-pointer"
-                        >
-                          <option value="ignored">Ignore this column</option>
-                          {allFields
-                            .filter((f) => f === currentTarget || !mappings.some((m) => m.targetField === f && m.sourceColumn !== header))
-                            .map((f) => (
-                              <option key={f} value={f}>{FIELD_LABELS[type][f]}</option>
-                            ))}
-                        </select>
-                        {confidence !== "ignored" && (
-                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                            confidence === "high" ? "bg-green-100 text-green-700" :
-                            confidence === "medium" ? "bg-yellow-100 text-yellow-700" :
-                            "bg-red-100 text-red-700"
-                          }`}>
-                            {confidence}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <svg className="w-5 h-5 text-gray-400 shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                          </svg>
+                          <select
+                            value={currentTarget}
+                            onChange={(e) => handleMappingChange(header, e.target.value)}
+                            className="flex-1 sm:flex-none px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon bg-white sm:min-w-[160px] cursor-pointer"
+                          >
+                            <option value="ignored">Ignore this column</option>
+                            {allFields
+                              .filter((f) => f === currentTarget || !mappings.some((m) => m.targetField === f && m.sourceColumn !== header))
+                              .map((f) => (
+                                <option key={f} value={f}>{FIELD_LABELS[type][f]}</option>
+                              ))}
+                          </select>
+                          {confidence !== "ignored" && (
+                            <span className={`text-xs px-2 py-1 rounded-full font-medium shrink-0 ${
+                              confidence === "high" ? "bg-green-100 text-green-700" :
+                              confidence === "medium" ? "bg-yellow-100 text-yellow-700" :
+                              "bg-red-100 text-red-700"
+                            }`}>
+                              {confidence}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     );
                   })}

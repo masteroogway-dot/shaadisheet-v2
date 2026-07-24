@@ -235,7 +235,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
       ) : (
         <>
           <ScrollReveal>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-5 mb-7">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-5 mb-7">
               {[
                 { label: "Total Budget", numVal: totalBudget, prefix: totalBudget > 0 ? "\u20B9" : "", suffix: "", formatFn: totalBudget > 0 ? formatBudgetShort : undefined, sub: totalSpent > 0 ? `\u20B9${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
                 { label: "Guests", numVal: totalGuests, prefix: "", suffix: "", formatFn: undefined, sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : "No RSVPs yet", icon: "fa-users", gradient: "from-green to-green/80" },
@@ -571,9 +571,9 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                       const pct = budget > 0 ? Math.min(Math.round(spent / budget * 100), 100) : 0;
                       return (
                         <div key={cat}>
-                          <div className="flex justify-between text-sm mb-1.5">
-                            <span className="font-medium">{cat}</span>
-                            <span className="text-gray-500">{'\u20B9'}{formatINR(spent)} / {'\u20B9'}{formatINR(budget)}</span>
+                          <div className="flex justify-between text-sm mb-1.5 gap-2">
+                            <span className="font-medium truncate min-w-0">{cat}</span>
+                            <span className="text-gray-500 whitespace-nowrap shrink-0">{'\u20B9'}{formatINR(spent)} / {'\u20B9'}{formatINR(budget)}</span>
                           </div>
                           <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
                             <div className={`h-full bg-gradient-to-r ${colors[i % colors.length]} rounded-full transition-all duration-700`} style={{ width: `${pct}%` }} />

@@ -735,32 +735,33 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
 
   return (
     <div className={`fixed top-[60px] right-0 w-full sm:w-[420px] h-[calc(100vh-60px)] bg-white border-l border-gray-200 shadow-[-4px_0_20px_rgba(0,0,0,0.1)] flex flex-col z-[90] transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}>
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gradient-to-br from-maroon to-maroon-light text-white shrink-0 min-h-[56px]">
-        <div className="flex items-center gap-2.5 font-bold">
-          <i className="fas fa-wand-magic-sparkles" /> ShaadiSheet AI
+      <div className="flex items-center justify-between px-3 sm:px-5 py-3 sm:py-4 border-b border-gray-200 bg-gradient-to-br from-maroon to-maroon-light text-white shrink-0 min-h-[52px]">
+        <div className="flex items-center gap-2 font-bold min-w-0">
+          <i className="fas fa-wand-magic-sparkles shrink-0" />
+          <span className="truncate text-sm sm:text-base">ShaadiSheet AI</span>
           {learnedPatterns.length > 0 && (
-            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full">{learnedPatterns.length} learned</span>
+            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full hidden sm:inline-block">{learnedPatterns.length} learned</span>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           <button
             onClick={async () => {
               await clearAiMessages(weddingId);
               setMessages([{ role: "bot", content: getWelcomeMessage() }]);
             }}
-            className="text-[11px] bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-lg transition-colors cursor-pointer min-w-[44px] min-h-[36px]"
+            className="text-[11px] bg-white/20 hover:bg-white/30 px-2 sm:px-2.5 py-1 rounded-lg transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
             title="Clear conversation and start fresh"
           >
-            <i className="fas fa-plus mr-1" /> New Chat
+            <i className="fas fa-plus sm:mr-1" /> <span className="hidden sm:inline">New Chat</span>
           </button>
           <button
             onClick={() => setLearningMode(!learningMode)}
-            className="text-[11px] bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-lg transition-colors cursor-pointer min-w-[44px] min-h-[36px]"
+            className="text-[11px] bg-white/20 hover:bg-white/30 px-2 sm:px-2.5 py-1 rounded-lg transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
             title="Teach AI a new command"
           >
-            <i className="fas fa-graduation-cap mr-1" /> Learn
+            <i className="fas fa-graduation-cap sm:mr-1" /> <span className="hidden sm:inline">Learn</span>
           </button>
-          <button onClick={onClose} className="min-w-[44px] min-h-[44px] w-10 h-10 flex items-center justify-center text-white/80 hover:text-white cursor-pointer"><i className="fas fa-times text-lg w-5 h-5" /></button>
+          <button onClick={onClose} className="min-w-[40px] min-h-[40px] w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-white/80 hover:text-white cursor-pointer"><i className="fas fa-times text-base sm:text-lg w-5 h-5" /></button>
         </div>
       </div>
 

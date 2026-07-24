@@ -46,11 +46,14 @@ export default function Sidebar({ activeView, onViewChange, mobileOpen, onMobile
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        <div className="p-3 border-b border-gray-200">
+        <div className="p-3 border-b border-gray-200 flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all">
             <i className="fas fa-arrow-left w-5 text-center" />
             <span>My Weddings</span>
           </Link>
+          <button onClick={onMobileClose} className="lg:hidden w-9 h-9 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500 cursor-pointer">
+            <i className="fas fa-times" />
+          </button>
         </div>
         <nav className="flex-1 p-3">
           {NAV_ITEMS.map((item) => (
