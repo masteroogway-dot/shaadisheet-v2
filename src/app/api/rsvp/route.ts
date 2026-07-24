@@ -12,13 +12,13 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { token, guestId, rsvp, dietary } = await req.json();
+  const { token, guestId, rsvp, dietary, notes } = await req.json();
   if (!token || !guestId || !rsvp) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
   try {
-    await submitRsvp(token, guestId, rsvp, dietary);
+    await submitRsvp(token, guestId, rsvp, dietary, notes);
     return NextResponse.json({ success: true });
   } catch (e: any) {
     return NextResponse.json({ error: e.message || "Failed to submit" }, { status: 400 });

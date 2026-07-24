@@ -12,6 +12,7 @@ export default function RsvpPage() {
   const [selectedGuest, setSelectedGuest] = useState<any>(null);
   const [rsvp, setRsvp] = useState("Yes");
   const [dietary, setDietary] = useState("Veg");
+  const [notes, setNotes] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -38,7 +39,7 @@ export default function RsvpPage() {
       const res = await fetch("/api/rsvp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, guestId: selectedGuest.id, rsvp, dietary }),
+        body: JSON.stringify({ token, guestId: selectedGuest.id, rsvp, dietary, notes }),
       });
       const data = await res.json();
       if (data.success) setSubmitted(true);
@@ -81,6 +82,7 @@ export default function RsvpPage() {
           <h1 className="text-xl font-bold text-gray-900 mb-2">RSVP Submitted!</h1>
           <p className="text-gray-500 text-sm mb-1">Thank you, <strong>{selectedGuest?.name}</strong></p>
           <p className="text-gray-400 text-xs">RSVP: {rsvp} | Dietary: {dietary}</p>
+          {notes && <p className="text-gray-400 text-xs mt-1 italic">"{notes}"</p>}
           <p className="text-gray-400 text-xs mt-4">You can close this page now.</p>
         </div>
       </div>
@@ -188,6 +190,17 @@ export default function RsvpPage() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Additional Notes</label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Any special requests, allergies, plus-one details, etc."
+                  rows={3}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-maroon resize-none"
+                />
               </div>
 
               <button

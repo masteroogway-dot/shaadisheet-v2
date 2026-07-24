@@ -480,12 +480,12 @@ export async function getWeddingByRsvpToken(token: string) {
   return wedding;
 }
 
-export async function submitRsvp(token: string, guestId: string, rsvp: string, dietary: string) {
+export async function submitRsvp(token: string, guestId: string, rsvp: string, dietary: string, notes?: string) {
   const wedding = await prisma.wedding.findFirst({ where: { rsvpToken: token } });
   if (!wedding) throw new Error("Invalid link");
   const guest = await prisma.guest.findFirst({ where: { id: guestId, weddingId: wedding.id } });
   if (!guest) throw new Error("Guest not found");
-  await prisma.guest.update({ where: { id: guestId }, data: { rsvp, dietary } });
+  await prisma.guest.update({ where: { id: guestId }, data: { rsvp, dietary, ...(notes !== undefined && { notes }) } });
   return { success: true };
 }
 
