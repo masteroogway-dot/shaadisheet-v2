@@ -814,6 +814,13 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
         </div>
       )}
 
+      <div className="px-5 py-2.5 bg-amber-50 border-b border-amber-200 shrink-0">
+        <p className="text-[11px] text-amber-700 flex items-center gap-1.5">
+          <i className="fas fa-triangle-exclamation text-amber-500" />
+          This AI tool is still under development. Please verify important actions before relying on it.
+        </p>
+      </div>
+
       <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 flex flex-col gap-4">
         {messages.map((msg, i) => (
           <div key={i} className={`flex gap-2.5 items-start ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
