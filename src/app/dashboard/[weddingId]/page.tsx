@@ -149,27 +149,27 @@ export default function WeddingDashboardPage() {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-      <div className="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 sticky top-0 z-50 shrink-0">
-        <div className="flex items-center gap-3">
+      <div className="h-auto md:h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-3 md:px-6 py-2 md:py-0 sticky top-0 z-50 shrink-0">
+        <div className="flex items-center gap-2 md:gap-3">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="w-10 h-10 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 lg:hidden cursor-pointer"
+            className="w-9 h-9 md:w-10 md:h-10 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 lg:hidden cursor-pointer"
           >
-            <i className="fas fa-bars text-lg" />
+            <i className="fas fa-bars text-base md:text-lg" />
           </button>
-          <Link href="/dashboard" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="ShaadiSheet" style={{ height: "55px", width: "auto" }} />
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <img src="/logo.png" alt="ShaadiSheet" className="h-[38px] md:h-[55px] w-auto" />
           </Link>
         </div>
-        <div className="text-center">
-          <div className="font-bold text-sm">{wedding.name || "My Wedding"}</div>
-          <div className="text-xs text-gray-500">
+        <div className="text-right">
+          <div className="font-bold text-xs md:text-sm leading-tight">{wedding.name || "My Wedding"}</div>
+          <div className="text-[10px] md:text-xs text-gray-500 leading-tight">
             {wedding.weddingDate ? new Date(wedding.weddingDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Date TBD"} {'\u2022'} {wedding.weddingCity || "City TBD"}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setAiOpen(!aiOpen)} className="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-maroon transition-all cursor-pointer" title="AI Assistant">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24">
+        <div className="flex items-center gap-1.5 md:gap-2">
+          <button onClick={() => setAiOpen(!aiOpen)} className="w-9 h-9 md:w-10 md:h-10 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-maroon transition-all cursor-pointer" title="AI Assistant">
+            <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24">
               <path d="M12 2L9.5 8.5 3 11l6.5 2.5L12 20l2.5-6.5L21 11l-6.5-2.5z" fill="currentColor" />
               <path d="M19 15l-1.5 4-3.5-3 4-1z" fill="currentColor" opacity="0.6" />
               <path d="M5 15l1.5 4 3.5-3-4-1z" fill="currentColor" opacity="0.6" />
