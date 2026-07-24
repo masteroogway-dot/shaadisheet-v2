@@ -102,11 +102,15 @@ export default function DashboardPage() {
       const res = await fetch(`/api/weddings/${id}/collaborators/${session?.user?.id}`, { method: "DELETE" });
       if (res.ok) {
         setCollaborated((prev) => prev.filter((w) => w.id !== id));
+      } else {
+        const data = await res.json();
+        console.error("Failed to leave:", data.error);
+        setLeavingId(null);
       }
     } catch (e) {
       console.error(e);
+      setLeavingId(null);
     }
-    setLeavingId(null);
   };
 
   const formatDate = (dateStr: string | null) => {

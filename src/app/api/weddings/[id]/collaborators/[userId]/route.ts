@@ -33,9 +33,12 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
 
   const { id: weddingId, userId } = await params;
 
-  const userRole = await getUserRole(weddingId);
-  if (userRole !== "owner" && userRole !== "co-owner") {
-    return NextResponse.json({ error: "Only the owner or co-owner can remove collaborators" }, { status: 403 });
+  const isSelf = session.user.id === userId;
+  if (!isSelf) {
+    const userRole = await getUserRole(weddingId);
+    if (userRole !== "owner" && userRole !== "co-owner") {
+      return NextResponse.json({ error: "Only the owner or co-owner can remove collaborators" }, { status: 403 });
+    }
   }
 
   await prisma.weddingCollaborator.deleteMany({
