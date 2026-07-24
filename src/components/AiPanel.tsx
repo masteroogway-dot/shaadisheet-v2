@@ -4,14 +4,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import {
   addAiMessage,
   getAiMessages,
-  previewBulkAction,
-  executeBulkUpdate,
-  getWeddingSummary,
-  storeInteraction,
-  correctInteraction,
-  learnCommand,
-  getLearnedPatterns,
   clearAiMessages,
+  correctInteraction,
 } from "@/lib/actions";
 
 function formatINR(n: number): string {
@@ -20,8 +14,6 @@ function formatINR(n: number): string {
   if (n >= 1000) return `₹${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}K`;
   return `₹${n}`;
 }
-import { shouldUseAI } from "@/lib/ai-helpers";
-import { parseWithPatterns } from "@/lib/patterns";
 
 function renderMarkdown(text: string): React.ReactNode {
   const lines = text.split("\n");
@@ -81,22 +73,6 @@ function renderMarkdown(text: string): React.ReactNode {
   return <>{elements}</>;
 }
 
-type PendingAction = {
-  type: string;
-  filter: any;
-  updates: any;
-  description: string;
-  preview: { count: number; sample: any[] };
-};
-
-type LearnedPattern = {
-  id: string;
-  pattern: string | null;
-  intent: string | null;
-  targetType: string | null;
-  content: string;
-};
-
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -107,16 +83,9 @@ interface Props {
 
 export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }: Props) {
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<Array<{ role: string; content: string; action?: PendingAction; id?: string; learned?: boolean }>>([]);
+  const [messages, setMessages] = useState<Array<{ role: string; content: string; id?: string }>>([]);
   const [loaded, setLoaded] = useState(false);
   const [executing, setExecuting] = useState(false);
-  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
-  const [learnedPatterns, setLearnedPatterns] = useState<LearnedPattern[]>([]);
-  const [learningMode, setLearningMode] = useState(false);
-  const [learningPattern, setLearningPattern] = useState("");
-  const [learningIntent, setLearningIntent] = useState("update");
-  const [learningTarget, setLearningTarget] = useState("guests");
-  const [learningResponse, setLearningResponse] = useState("");
   const [correctingId, setCorrectingId] = useState<number | null>(null);
   const [correctionText, setCorrectionText] = useState("");
   const [dailyRemaining, setDailyRemaining] = useState<number | null>(null);
@@ -128,484 +97,20 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
 
   useEffect(() => {
     if (open && !loaded) {
-      Promise.all([
-        getAiMessages(weddingId),
-        getLearnedPatterns(weddingId),
-      ]).then(([dbMessages, patterns]) => {
+      getAiMessages(weddingId).then((dbMessages) => {
         if (dbMessages && dbMessages.length > 0) {
           setMessages([
             { role: "bot", content: getWelcomeMessage() },
-            ...dbMessages.map((m: any) => ({ role: m.role === "learned" ? "bot" : m.role, content: m.content, id: m.id })),
+            ...dbMessages.map((m: any) => ({ role: m.role, content: m.content, id: m.id })),
           ]);
         }
-        setLearnedPatterns(patterns || []);
         setLoaded(true);
       }).catch(() => setLoaded(true));
     }
   }, [open, loaded, weddingId]);
 
   const getWelcomeMessage = () => {
-    const learnedCount = learnedPatterns.length;
-    const base = `Hi! I'm your ShaadiSheet AI assistant. I can help with:\n\n**Quick Commands (instant):**\n- "Mark all Sharma guests as RSVP Yes"\n- "Set all Bride side guests dietary to Veg"\n- "Delete all guests with Declined RSVP"\n\n**AI Commands (creates real records):**\n- "Add 5 guests: Rahul (Groom, Veg), Priya (Bride, Non-Veg)..."\n- "Create a vendor: Sharma Catering, Catering, quote 5 lakhs"\n- "Allocate 10 rooms at Hotel Express Inn"\n- "Create a budget item: Venue Decor, 3 lakhs"\n\n**Smart Queries:**\n- "Summarize my wedding planning status"\n- "What should I prioritize next?"\n- "Analyze my budget and suggest savings"\n\nType **help** anytime for the full command guide.`;
-    if (learnedCount > 0) {
-      return base + `\n\n**Learned:** ${learnedCount} custom command${learnedCount > 1 ? "s" : ""} from past interactions.`;
-    }
-    return base + `\n\nJust type what you need in plain English!`;
-  };
-
-  const checkLearnedPatterns = (q: string): { response: string; action?: PendingAction; learned?: boolean } | null => {
-    for (const lp of learnedPatterns) {
-      if (!lp.pattern) continue;
-      try {
-        const regex = new RegExp(lp.pattern, "i");
-        if (regex.test(q)) {
-          return { response: lp.content, learned: true };
-        }
-      } catch {
-        // invalid regex, skip
-      }
-    }
-    return null;
-  };
-
-  const parseCommand = useCallback(async (userMsg: string): Promise<{ response: string; action?: PendingAction; learned?: boolean }> => {
-    const q = userMsg.toLowerCase().trim();
-
-    // ── Check learned patterns first ──
-    const learnedMatch = checkLearnedPatterns(q);
-    if (learnedMatch) return learnedMatch;
-
-    const summary = await getWeddingSummary(weddingId);
-
-    const isUpdateCmd = q.includes("mark") || q.includes("set") || q.includes("change") || q.includes("update") || q.includes("move") || q.includes("make") || q.includes("turn") || q.includes("switch") || q.includes("assign") || q.includes("apply");
-    const isDeleteCmd = q.includes("delete") || q.includes("remove") || q.includes("clear");
-    const isQueryCmd = q.includes("how many") || q.includes("what's") || q.includes("what is") || q.includes("show") || q.includes("list") || q.includes("count") || q.includes("give me");
-    const isAddCmd = q.includes("add") || q.includes("create") || q.includes("new");
-    const isBulkCmd = q.includes("all ") || q.includes("every") || q.includes("all the") || q.includes("entire") || /\d+/.test(q);
-
-    if (isDeleteCmd) return parseDeleteCommand(q, summary);
-    if (isUpdateCmd) return parseUpdateCommand(q, summary);
-    if (isAddCmd) return parseAddCommand(q, summary);
-
-    // Seating assignment: "assign Sameer Jain to Table 1", "move Chandak guests to Table 2"
-    if ((q.includes("assign") || q.includes("move") || q.includes("seat")) && q.includes("table")) {
-      return parseSeatingCommand(q, summary);
-    }
-
-    if (/^(yes|all\s*yes|mark\s*all|set\s*all|do\s*it|confirm|y)$/i.test(q) || (q.includes("them") && q.includes("yes"))) {
-      return parseUpdateCommand("set all guests rsvp to yes", summary);
-    }
-    if (/^(no|cancel|n)$/i.test(q)) return { response: "Action cancelled." };
-
-    if (isQueryCmd || isBulkCmd) return parseQueryCommand(q, summary);
-
-    if (q.includes("help") || q.includes("what can you do")) return { response: getWelcomeMessage() };
-
-    if (q.includes("budget") || q.includes("spend") || q.includes("cost") || q.includes("money")) {
-      return { response: `**Budget Summary:**\n- Total: ${formatINR(summary.budget)}\n- Allocated: ${formatINR(summary.budgetAllocated)}\n- Spent: ${formatINR(summary.budgetSpent)}\n- Remaining: ${formatINR(summary.budgetRemaining)}` };
-    }
-    if (q.includes("guest") || q.includes("rsvp") || q.includes("invite")) {
-      return { response: `**Guest Summary:**\n- Total: ${summary.guestCount}\n- RSVP Yes: ${summary.rsvpYes}\n- Pending: ${summary.rsvpPending}\n- Declined: ${summary.rsvpDeclined}` };
-    }
-    if (q.includes("vendor")) {
-      return { response: `**Vendor Summary:**\n- Total: ${summary.vendorCount}\n- Booked: ${summary.vendorsBooked}\n- Remaining: ${summary.vendorCount - summary.vendorsBooked}` };
-    }
-    if (q.includes("task")) {
-      return { response: `**Task Summary:**\n- Total: ${summary.taskCount}\n- Done: ${summary.tasksDone}\n- Remaining: ${summary.taskCount - summary.tasksDone}` };
-    }
-    if (q.includes("room")) {
-      return { response: `**Room Summary:**\n- Total: ${summary.roomCount}` };
-    }
-
-    if (q.includes("yes") || q.includes("no") || q.includes("veg") || q.includes("non-veg")) {
-      return parseUpdateCommand(`set all guests ${q.includes("yes") ? "rsvp to yes" : q.includes("veg") ? "dietary to veg" : "rsvp to " + q}`, summary);
-    }
-
-    // ── Pattern database fallback ──
-    const patternMatch = parseWithPatterns(q);
-    if (patternMatch && patternMatch.tool !== '__query') {
-      return { response: patternMatch.response, action: { type: patternMatch.tool, filter: patternMatch.args.filter || {}, updates: patternMatch.args.updates || {}, description: patternMatch.description, preview: { count: 0, sample: [] } } };
-    }
-    if (patternMatch && patternMatch.tool === '__query') {
-      // Handle query patterns
-      const type = patternMatch.args.type;
-      if (type === 'guests') return { response: `**Guest Summary:**\n- Total: ${summary.guestCount}\n- RSVP Yes: ${summary.rsvpYes}\n- Pending: ${summary.rsvpPending}\n- Declined: ${summary.rsvpDeclined}` };
-      if (type === 'vendors') return { response: `**Vendor Summary:**\n- Total: ${summary.vendorCount}\n- Booked: ${summary.vendorsBooked}\n- Remaining: ${summary.vendorCount - summary.vendorsBooked}` };
-      if (type === 'budget') return { response: `**Budget Summary:**\n- Total: ${formatINR(summary.budget)}\n- Allocated: ${formatINR(summary.budgetAllocated)}\n- Spent: ${formatINR(summary.budgetSpent)}\n- Remaining: ${formatINR(summary.budgetRemaining)}` };
-      if (type === 'tasks') return { response: `**Task Summary:**\n- Total: ${summary.taskCount}\n- Done: ${summary.tasksDone}\n- Remaining: ${summary.taskCount - summary.tasksDone}` };
-      if (type === 'rooms') return { response: `**Room Summary:**\n- Total: ${summary.roomCount}` };
-    }
-
-    return { response: `I can help with your wedding! Try:\n\n- "Mark all Sharma guests as RSVP Yes"\n- "Set dietary to Veg for all Bride side"\n- "Delete all Declined guests"\n- "How many vendors are booked?"\n- "What's my budget remaining?"\n\nOr click **Learn** to teach me a new command!` };
-  }, [weddingId, learnedPatterns]);
-
-  const parseDeleteCommand = (q: string, summary: any): { response: string; action?: PendingAction } => {
-    let type = "";
-    let filter: any = {};
-    let targetLabel = "";
-
-    if (q.includes("guest")) { type = "delete_guests"; targetLabel = "guests"; }
-    else if (q.includes("vendor")) { type = "delete_vendors"; targetLabel = "vendors"; }
-    else if (q.includes("budget") || q.includes("item")) { type = "delete_budget"; targetLabel = "budget items"; }
-    else if (q.includes("room")) { type = "delete_rooms"; targetLabel = "room allocations"; }
-    else return { response: "What would you like to delete? You can say:\n- \"Delete all Declined guests\"\n- \"Delete all Pending vendors\"\n- \"Delete all budget items in Venue category\"" };
-
-    if (q.includes("declined") || q.includes("reject")) {
-      filter.rsvp = targetLabel === "guests" ? "Declined" : undefined;
-      filter.status = targetLabel !== "guests" ? "Cancelled" : undefined;
-    } else if (q.includes("pending")) {
-      filter.rsvp = targetLabel === "guests" ? "Pending" : undefined;
-      filter.contract = targetLabel === "vendors" ? "Pending" : undefined;
-      filter.status = targetLabel === "rooms" ? "Reserved" : undefined;
-    } else if (q.includes("signed") || q.includes("booked")) {
-      filter.contract = "Signed";
-    }
-
-    if (q.includes("bride")) filter.side = "Bride";
-    if (q.includes("groom")) filter.side = "Groom";
-
-    // Extract full name: remove action words and target, rest is the name
-    const nameFromCommand = q
-      .replace(/^(remove|delete|clear|drop)\s+/i, "")
-      .replace(/\s*(guests?|vendors?|budget|items?|rooms?|allocations?|tasks?)\b\s*/gi, " ")
-      .replace(/\s*from\s+/gi, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-    
-    const stopWords = ['all', 'every', 'each', 'the', 'any', 'no', 'veg', 'non-veg', 'vegan', 'pending', 'confirmed', 'declined', 'bride', 'groom', 'side', 'family', 'named', 'surname', 'rsvp', 'yes', 'signed', 'completed', 'for', 'of', 'with', 'from', 'on', 'who', 'are', 'have'];
-    
-    // Only treat jain/veg as stop words if they appear with dietary context
-    const hasDietaryContext = /(?:dietary|food|meal|eat)/i.test(q);
-    const dietaryStopWords = hasDietaryContext ? ['jain', 'veg', 'non-veg', 'vegan'] : [];
-    
-    const nameWords = nameFromCommand.split(/\s+/).filter(w => {
-      const lower = w.toLowerCase();
-      return !stopWords.includes(lower) && !dietaryStopWords.includes(lower) && w.length > 1;
-    });
-    
-    if (nameWords.length > 0) {
-      filter.name_contains = nameWords.join(" ");
-    }
-
-    // Family/surname detection: "delete Chandak guests", "remove Sharma family"
-    const familyMatch = q.match(/(?:family|family of|named?|surname)\s+([\w\s]+?)(?:\s+guests?|\s*$)/i);
-    if (familyMatch && !filter.name_contains) filter.name_contains = familyMatch[1].trim();
-    const forAllMatch = q.match(/(?:delete|remove|drop)\s+(?:all\s+)?(\w+)\s+(?:guests?|family)/i);
-    if (forAllMatch && !filter.name_contains) filter.name_contains = forAllMatch[1].trim();
-
-    // Only add dietary filter if no name is being matched (i.e. "delete Jain guests" not "delete Sameer Jain")
-    if (!filter.name_contains) {
-      if (q.includes("veg") && !q.includes("non")) filter.dietary = "Veg";
-      if (q.includes("non-veg") || q.includes("nonveg")) filter.dietary = "Non-Veg";
-      if (q.includes("vegan")) filter.dietary = "Vegan";
-      if (q.includes("jain")) filter.dietary = "Jain";
-    }
-
-    // Clean undefined values
-    filter = Object.fromEntries(Object.entries(filter).filter(([_, v]) => v !== undefined));
-
-    const filterDesc = describeFilter(filter, targetLabel);
-
-    return {
-      response: `I'll delete ${targetLabel}${filterDesc}. Please confirm below.`,
-      action: { type, filter, updates: {}, description: `Delete ${targetLabel}${filterDesc}`, preview: { count: 0, sample: [] } },
-    };
-  };
-
-  const parseUpdateCommand = (q: string, summary: any): { response: string; action?: PendingAction } => {
-    let type = "";
-    let filter: any = {};
-    let updates: any = {};
-    let targetLabel = "";
-
-    if (q.includes("guest")) { type = "guests"; targetLabel = "guests"; }
-    else if (q.includes("vendor")) { type = "vendors"; targetLabel = "vendors"; }
-    else if (q.includes("budget") || q.includes("item")) { type = "budget"; targetLabel = "budget items"; }
-    else if (q.includes("room")) { type = "rooms"; targetLabel = "rooms"; }
-    else if (q.includes("task")) { type = "tasks"; targetLabel = "tasks"; }
-    else {
-      if (q.includes("rsvp") || q.includes("dietary") || q.includes("side") || q.includes("yes") || q.includes("veg")) {
-        type = "guests"; targetLabel = "guests";
-      } else if (q.includes("contract") || q.includes("rating")) {
-        type = "vendors"; targetLabel = "vendors";
-      } else if (q.includes("status") && q.includes("room")) {
-        type = "rooms"; targetLabel = "rooms";
-      } else {
-        return { response: "What would you like to update? Specify the target:\n- \"Mark all Sharma **guests** as RSVP Yes\"\n- \"Set **vendor** contract to Signed\"\n- \"Update **room** status to Checked In\"" };
-      }
-    }
-
-    if (q.includes("bride")) filter.side = "Bride";
-    if (q.includes("groom")) filter.side = "Groom";
-
-    // Extract full name: remove action words and target, rest is the name
-    const nameFromCommand = q
-      .replace(/^(mark|set|change|update|make|turn|switch|assign)\s+/i, "")
-      .replace(/\s*(guests?|vendors?|budget|items?|rooms?|tasks?|to|as)\b\s*/gi, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-    
-    const stopWords = ['all', 'every', 'each', 'the', 'any', 'no', 'veg', 'non-veg', 'jain', 'vegan', 'pending', 'confirmed', 'declined', 'bride', 'groom', 'side', 'family', 'named', 'surname', 'dietary', 'rsvp', 'yes', 'signed', 'completed', 'for', 'of', 'with', 'from', 'on', 'who', 'are', 'have'];
-    const nameWords = nameFromCommand.split(/\s+/).filter(w => !stopWords.includes(w.toLowerCase()) && w.length > 1);
-    
-    if (nameWords.length > 0) {
-      filter.name_contains = nameWords.join(" ");
-    }
-
-    // Family/surname detection: "for all Chandak guests", "Sharma family", "Patel guests"
-    const familyMatch = q.match(/(?:family|family of|named?|surname)\s+([\w\s]+?)(?:\s+guests?|\s*$)/i);
-    if (familyMatch && !filter.name_contains) filter.name_contains = familyMatch[1].trim();
-    // Also detect "for all X guests" pattern where X is a surname
-    const forAllMatch = q.match(/for\s+(?:all\s+)?(\w+)\s+(?:guests?|family)/i);
-    if (forAllMatch && !filter.name_contains) filter.name_contains = forAllMatch[1].trim();
-
-    if (q.includes("veg") && !q.includes("non") && !q.includes("dietary") && !q.includes("food")) filter.dietary = "Veg";
-    if ((q.includes("non-veg") || q.includes("nonveg")) && !q.includes("dietary") && !q.includes("food")) filter.dietary = "Non-Veg";
-    if (q.includes("jain") && !q.includes("dietary") && !q.includes("food")) filter.dietary = "Jain";
-
-    // Parse category
-    const catMatch = q.match(/(?:in|category)\s+(\w[\w\s&]*?)(?:\s+to|\s+as|\s*$)/i);
-    if (catMatch) filter.category = catMatch[1].trim();
-
-    // Parse updates
-    if (q.includes("rsvp") && (q.includes("yes") || q.includes("confirm"))) updates.rsvp = "Yes";
-    else if (q.includes("rsvp") && q.includes("pending")) updates.rsvp = "Pending";
-    else if (q.includes("rsvp") && q.includes("decline")) updates.rsvp = "Declined";
-    else if (!q.includes("rsvp") && !q.includes("dietary") && !q.includes("side") && !q.includes("contract") && !q.includes("status")) {
-      if (q.includes("yes") || q.includes("confirm") || q.includes("accept")) {
-        if (targetLabel === "guests") updates.rsvp = "Yes";
-        else if (targetLabel === "vendors") updates.contract = "Signed";
-        else updates.status = "Reserved";
-      } else if (q.includes("no") || q.includes("decline") || q.includes("reject")) {
-        if (targetLabel === "guests") updates.rsvp = "Declined";
-        else if (targetLabel === "vendors") updates.contract = "Pending";
-        else updates.status = "Cancelled";
-      } else if (q.includes("pending")) {
-        if (targetLabel === "guests") updates.rsvp = "Pending";
-        else if (targetLabel === "vendors") updates.contract = "Pending";
-        else updates.status = "Reserved";
-      }
-    } else {
-      if (q.includes("yes") || q.includes("confirm")) updates.rsvp = "Yes";
-      else if (q.includes("pending")) updates.rsvp = "Pending";
-      else if (q.includes("decline") || q.includes("declined")) updates.rsvp = "Declined";
-    }
-
-    if (q.includes("dietary") || q.includes("food")) {
-      if (q.includes("non-veg") || q.includes("nonveg")) updates.dietary = "Non-Veg";
-      else if (q.includes("vegan")) updates.dietary = "Vegan";
-      else if (q.includes("jain")) updates.dietary = "Jain";
-      else if (q.includes("veg")) updates.dietary = "Veg";
-    }
-
-    if (q.includes("side")) {
-      if (q.includes("bride")) updates.side = "Bride";
-      else if (q.includes("groom")) updates.side = "Groom";
-    }
-
-    if (q.includes("contract")) {
-      if (q.includes("signed") || q.includes("book")) updates.contract = "Signed";
-      else if (q.includes("pending")) updates.contract = "Pending";
-      else if (q.includes("complete")) updates.contract = "Completed";
-    }
-
-    if (q.includes("status")) {
-      if (q.includes("checked in")) updates.status = "Checked In";
-      else if (q.includes("checked out")) updates.status = "Checked Out";
-      else if (q.includes("reserved")) updates.status = "Reserved";
-      else if (q.includes("cancelled")) updates.status = "Cancelled";
-    }
-
-    if (type === "tasks" && (q.includes("done") || q.includes("complete") || q.includes("mark"))) {
-      if (q.includes("undo") || q.includes("uncomplete")) updates.done = false;
-      else updates.done = true;
-      if (q.includes("all")) filter.done = false;
-    }
-
-    if (Object.keys(updates).length === 0) {
-      return { response: `What should I change? For example:\n- "Set RSVP to Yes for all Sharma guests"\n- "Change dietary to Veg for Bride side"\n- "Set vendor contract to Signed"\n- "Mark all tasks as done"` };
-    }
-
-    // Clean undefined values
-    filter = Object.fromEntries(Object.entries(filter).filter(([_, v]) => v !== undefined));
-
-    const filterDesc = describeFilter(filter, targetLabel);
-    const updateDesc = describeUpdates(updates);
-
-    return {
-      response: `I'll ${updateDesc} for ${targetLabel}${filterDesc}. Please confirm below.`,
-      action: { type, filter, updates, description: `${updateDesc} for ${targetLabel}${filterDesc}`, preview: { count: 0, sample: [] } },
-    };
-  };
-
-  const parseQueryCommand = (q: string, summary: any): { response: string } => {
-    if (q.includes("budget") || q.includes("spend")) {
-      return { response: `**Budget Summary:**\n- Total: ${formatINR(summary.budget)}\n- Allocated: ${formatINR(summary.budgetAllocated)}\n- Spent: ${formatINR(summary.budgetSpent)}\n- Remaining: ${formatINR(summary.budgetRemaining)}` };
-    }
-    if (q.includes("guest")) {
-      return { response: `**Guest Summary:**\n- Total: ${summary.guestCount}\n- RSVP Yes: ${summary.rsvpYes}\n- Pending: ${summary.rsvpPending}\n- Declined: ${summary.rsvpDeclined}` };
-    }
-    if (q.includes("vendor")) {
-      return { response: `**Vendor Summary:**\n- Total: ${summary.vendorCount}\n- Booked: ${summary.vendorsBooked}\n- Remaining: ${summary.vendorCount - summary.vendorsBooked}` };
-    }
-    if (q.includes("task")) {
-      return { response: `**Task Summary:**\n- Total: ${summary.taskCount}\n- Done: ${summary.tasksDone}\n- Remaining: ${summary.taskCount - summary.tasksDone}` };
-    }
-    if (q.includes("room")) {
-      return { response: `**Room Summary:**\n- Total: ${summary.roomCount}` };
-    }
-    return { response: `**Wedding Overview:**\n- Date: ${summary.weddingDate ? new Date(summary.weddingDate).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }) : "TBD"}\n- City: ${summary.weddingCity || "TBD"}\n- Budget: ${formatINR(summary.budget)}\n- Guests: ${summary.guestCount}\n- Vendors: ${summary.vendorCount}` };
-  };
-
-  const parseAddCommand = (q: string, summary: any): { response: string } => {
-    if (q.includes("guest")) {
-      const countMatch = q.match(/(\d+)/);
-      const count = countMatch ? parseInt(countMatch[1]) : 1;
-      return { response: `I can add ${count} guest(s). Use the **Guests** section and click **Add Guest** or **Add Multiple Rows** to add ${count} rows at once.` };
-    }
-    if (q.includes("vendor")) return { response: `Use the **Vendors** section and click **Add Vendor** to add a new vendor entry.` };
-    if (q.includes("budget") || q.includes("item")) {
-      const countMatch = q.match(/(\d+)/);
-      const count = countMatch ? parseInt(countMatch[1]) : 1;
-      return { response: `Use the **Budget** section and click **Add Item** or **Add More Items** to add ${count} budget entries.` };
-    }
-    if (q.includes("table")) return { response: `Use the **Seating** section and click **Add Table** to create a new seating table.` };
-    if (q.includes("room")) return { response: `Use the **Room Allocation** section and click **Add Room** to add a new room allocation.` };
-    return { response: `What would you like to add? I can help with:\n- Guests\n- Vendors\n- Budget items\n- Seating tables\n- Room allocations` };
-  };
-
-  const parseSeatingCommand = (q: string, summary: any): { response: string; action?: PendingAction } => {
-    // Extract table name/number: "table 1", "table family", "Table A"
-    const tableMatch = q.match(/table\s+([\w\d]+(?:\s+[\w\d]+)*)/i);
-    if (!tableMatch) return { response: "Which table? Say something like:\n- \"Assign Sameer Jain to Table 1\"\n- \"Move Chandak guests to Table 2\"" };
-    const tableName = tableMatch[1].trim();
-
-    // Extract guest name: "assign X to table", "move X to table"
-    let guestName = q
-      .replace(/^(assign|move|seat|put|place)\s+/i, "")
-      .replace(/\s*(to|at|on|in)\s+table\s+[\w\d]+(?:\s+[\w\d]+)*/gi, "")
-      .replace(/\s*(guests?|people|family)\b/gi, "")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    // Stop words for guest extraction
-    const stopWords = ['all', 'every', 'each', 'the', 'any', 'no', 'for', 'of', 'with', 'from', 'on', 'who', 'are', 'have', 'those', 'these', 'them', 'some'];
-    const nameWords = guestName.split(/\s+/).filter(w => !stopWords.includes(w.toLowerCase()) && w.length > 1);
-    guestName = nameWords.join(" ");
-
-    if (!guestName) {
-      return { response: "Which guest(s) to assign? Say something like:\n- \"Assign Sameer Jain to Table 1\"\n- \"Move Chandak guests to Table 2\"" };
-    }
-
-    const response = `I'll assign guests named "${guestName}" to ${tableName}. Please confirm below.`;
-    const description = `Assign "${guestName}" to ${tableName}`;
-    return {
-      response,
-      action: {
-        type: "assign_seating",
-        filter: { name_contains: guestName, tableName },
-        updates: {},
-        description,
-        preview: { count: 0, sample: [] },
-      },
-    };
-  };
-
-  const describeFilter = (filter: any, target: string): string => {
-    const parts: string[] = [];
-    if (filter.side) parts.push(`${filter.side}'s side`);
-    if (filter.relation) parts.push(`${filter.relation} family`);
-    if (filter.name_contains) parts.push(`named "${filter.name_contains}"`);
-    if (filter.rsvp) parts.push(`with RSVP "${filter.rsvp}"`);
-    if (filter.dietary) parts.push(`dietary "${filter.dietary}"`);
-    if (filter.contract) parts.push(`contract "${filter.contract}"`);
-    if (filter.status) parts.push(`status "${filter.status}"`);
-    if (filter.category) parts.push(`in "${filter.category}" category`);
-    if (filter.hotel) parts.push(`at "${filter.hotel}"`);
-    if (filter.roomType) parts.push(`type "${filter.roomType}"`);
-    if (parts.length === 0) return "";
-    return ` where ${parts.join(", ")}`;
-  };
-
-  const describeUpdates = (updates: any): string => {
-    const parts: string[] = [];
-    if (updates.rsvp) parts.push(`RSVP to "${updates.rsvp}"`);
-    if (updates.dietary) parts.push(`dietary to "${updates.dietary}"`);
-    if (updates.side) parts.push(`side to "${updates.side}"`);
-    if (updates.contract) parts.push(`contract to "${updates.contract}"`);
-    if (updates.status) parts.push(`status to "${updates.status}"`);
-    if (updates.done !== undefined) parts.push(`mark as ${updates.done ? "done" : "undone"}`);
-    return "set " + parts.join(", ");
-  };
-
-  const getSmartSuggestions = (action: PendingAction): string[] => {
-    const suggestions: string[] = [];
-    if (action.type === "guests" && action.updates.rsvp === "Yes") {
-      suggestions.push("Assign these guests to seating tables");
-      suggestions.push("Set dietary preferences for confirmed guests");
-    }
-    if (action.type === "guests" && action.updates.rsvp === "Declined") {
-      suggestions.push("Remove declined guests from seating");
-    }
-    if (action.type === "vendors" && action.updates.contract === "Signed") {
-      suggestions.push("Set vendor payment status");
-    }
-    if (action.type === "budget") {
-      suggestions.push("Check budget remaining");
-    }
-    if (suggestions.length === 0) {
-      suggestions.push("What's my current summary?");
-    }
-    return suggestions.slice(0, 3);
-  };
-
-  const handleConfirmAction = async () => {
-    if (!pendingAction) return;
-    setExecuting(true);
-    try {
-      let confirmMsg: string;
-
-      if (pendingAction.type === "assign_seating") {
-        // Handle seating assignment
-        const { assignGuestsToTable } = await import("@/lib/actions");
-        const result = await assignGuestsToTable(weddingId, pendingAction.filter.tableName, pendingAction.filter.name_contains);
-        confirmMsg = `Done! Assigned **${result.assigned}** guest(s) to ${pendingAction.filter.tableName}.`;
-      } else {
-        const result = await executeBulkUpdate(weddingId, pendingAction.type, pendingAction.filter, pendingAction.updates);
-        const targetDesc = pendingAction.description.split(" for ")[1] || pendingAction.description;
-        confirmMsg = `Done! Updated **${result.updated}** ${targetDesc}.`;
-      }
-      setMessages((prev) => [...prev, { role: "bot", content: confirmMsg }]);
-
-      // Store successful interaction
-      const lastUserMsg = messages.filter((m) => m.role === "user").pop();
-      if (lastUserMsg) {
-        await storeInteraction(weddingId, "user", lastUserMsg.content, "update", pendingAction.type, true);
-        await storeInteraction(weddingId, "bot", confirmMsg, "update", pendingAction.type, true);
-      }
-
-      // Smart suggestions
-      const suggestions = getSmartSuggestions(pendingAction);
-      if (suggestions.length > 0) {
-        const sugMsg = `**Follow-up suggestions:**\n${suggestions.map((s) => `- ${s}`).join("\n")}`;
-        setTimeout(() => {
-          setMessages((prev) => [...prev, { role: "bot", content: sugMsg }]);
-        }, 500);
-      }
-
-      setPendingAction(null);
-      onUpdate();
-    } catch (e) {
-      const errMsg = `Failed to execute: ${(e as Error).message}`;
-      setMessages((prev) => [...prev, { role: "bot", content: errMsg }]);
-    } finally {
-      setExecuting(false);
-    }
-  };
-
-  const handleCancelAction = () => {
-    setPendingAction(null);
-    setMessages((prev) => [...prev, { role: "bot", content: "Action cancelled." }]);
+    return `Hi! I'm your ShaadiSheet AI assistant. I can help with anything — just ask naturally.\n\n**Examples:**\n- "Add Rahul Sharma as groom side veg guest"\n- "Mark all Sharma guests as RSVP Yes"\n- "Delete all declined guests"\n- "Create a vendor: Sharma Catering, Catering, quote 5 lakhs"\n- "Allocate 10 rooms at Hotel Express Inn"\n- "Analyze my budget and suggest savings"\n- "What rituals should I plan for a Hindu wedding?"\n\nI understand many ways of saying the same thing — just type naturally!`;
   };
 
   const handleCorrect = async (msgIndex: number) => {
@@ -622,29 +127,6 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
     setCorrectionText("");
   };
 
-  const handleLearn = async () => {
-    if (!learningPattern.trim() || !learningResponse.trim()) return;
-    try {
-      // Test the regex
-      new RegExp(learningPattern, "i");
-    } catch {
-      setMessages((prev) => [...prev, { role: "bot", content: "Invalid pattern. Use valid regex like `^show all veg guests$`" }]);
-      return;
-    }
-
-    const result = await learnCommand(weddingId, learningPattern, learningIntent, learningTarget, learningResponse);
-    if (result) {
-      setLearnedPatterns((prev) => [...prev, result as LearnedPattern]);
-      setMessages((prev) => [
-        ...prev,
-        { role: "bot", content: `Learned! I'll now respond to pattern \`${learningPattern}\` with: "${learningResponse}"`, learned: true },
-      ]);
-    }
-    setLearningMode(false);
-    setLearningPattern("");
-    setLearningResponse("");
-  };
-
   const send = async () => {
     if (!input.trim() || executing) return;
     const userMsg = input.trim();
@@ -654,82 +136,48 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
     try {
       await addAiMessage(weddingId, "user", userMsg);
 
-      // Check if should use Gemini for complex queries
-      if (shouldUseAI(userMsg)) {
-        setMessages((prev) => [...prev, { role: "bot", content: "Thinking..." }]);
+      setMessages((prev) => [...prev, { role: "bot", content: "Thinking..." }]);
 
-        try {
-          const conversationHistory = messages.slice(-12).map((m) => ({ role: m.role, content: m.content }));
-          const res = await fetch("/api/ai", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ weddingId, question: userMsg, conversationHistory }),
-          });
-          const data = await res.json();
-          if (!res.ok || data.error) {
-            // Check if it's a rate limit error
-            if (res.status === 429) {
-              setMessages((prev) => {
-                const without = prev.slice(0, -1);
-                return [...without, { role: "bot", content: data.error || "Daily limit reached. Please try again tomorrow." }];
-              });
-              if (data.dailyRemaining !== undefined) setDailyRemaining(data.dailyRemaining);
-              return;
-            }
-            // Gemini failed - fall back to rule-based parser
-            const fallback = await parseCommand(userMsg);
-            setMessages((prev) => {
-              const without = prev.slice(0, -1);
-              return [...without, { role: "bot", content: fallback.response, action: fallback.action }];
-            });
-            await addAiMessage(weddingId, "bot", fallback.response);
-            return;
-          }
-          const response = data.response || "No response from Gemini.";
+      const conversationHistory = messages.slice(-12).map((m) => ({ role: m.role, content: m.content }));
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ weddingId, question: userMsg, conversationHistory }),
+      });
+      const data = await res.json();
 
-          // Track usage
-          if (data.usage?.dailyRemaining !== undefined) setDailyRemaining(data.usage.dailyRemaining);
-
-          // Remove "Thinking..." and add real response
+      if (!res.ok || data.error) {
+        if (res.status === 429) {
           setMessages((prev) => {
             const without = prev.slice(0, -1);
-            return [...without, { role: "bot", content: response }];
+            return [...without, { role: "bot", content: data.error || "Daily limit reached. Please try again tomorrow." }];
           });
-
-        await addAiMessage(weddingId, "bot", response);
-        await storeInteraction(weddingId, "user", userMsg, "query", undefined, true);
-        onUpdate();
-        return;
-        } catch (geminiErr) {
-          // Gemini failed - fall back to rule-based parser
-          const fallback = await parseCommand(userMsg);
-          setMessages((prev) => {
-            const without = prev.slice(0, -1);
-            return [...without, { role: "bot", content: fallback.response, action: fallback.action }];
-          });
-          await addAiMessage(weddingId, "bot", fallback.response);
+          if (data.dailyRemaining !== undefined) setDailyRemaining(data.dailyRemaining);
           return;
         }
+        setMessages((prev) => {
+          const without = prev.slice(0, -1);
+          return [...without, { role: "bot", content: data.error || "Something went wrong. Please try again." }];
+        });
+        return;
       }
 
-      // Rule-based parser for simple commands
-      const { response, action, learned } = await parseCommand(userMsg);
+      const response = data.response || "No response.";
 
-      if (action) {
-        const preview = await previewBulkAction(weddingId, action.type, action.filter);
-        action.preview = preview;
-        setPendingAction(action);
-        setMessages((prev) => [...prev, { role: "bot", content: response, action, learned }]);
-      } else {
-        setMessages((prev) => [...prev, { role: "bot", content: response, learned }]);
-      }
+      if (data.usage?.dailyRemaining !== undefined) setDailyRemaining(data.usage.dailyRemaining);
+
+      setMessages((prev) => {
+        const without = prev.slice(0, -1);
+        return [...without, { role: "bot", content: response }];
+      });
 
       await addAiMessage(weddingId, "bot", response);
-      await storeInteraction(weddingId, "user", userMsg, action ? "update" : "query", action?.type || undefined, undefined);
       onUpdate();
     } catch (e) {
-      const errMsg = `Sorry, I couldn't process that. ${(e as Error).message}`;
-      setMessages((prev) => [...prev, { role: "bot", content: errMsg }]);
+      setMessages((prev) => {
+        const without = prev.slice(0, -1);
+        return [...without, { role: "bot", content: `Sorry, I couldn't process that. ${(e as Error).message}` }];
+      });
     }
   };
 
@@ -739,9 +187,6 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
         <div className="flex items-center gap-2 font-bold min-w-0">
           <i className="fas fa-wand-magic-sparkles shrink-0" />
           <span className="truncate text-sm sm:text-base">ShaadiSheet AI</span>
-          {learnedPatterns.length > 0 && (
-            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full hidden sm:inline-block">{learnedPatterns.length} learned</span>
-          )}
         </div>
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           <button
@@ -754,77 +199,9 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
           >
             <i className="fas fa-plus sm:mr-1" /> <span className="hidden sm:inline">New Chat</span>
           </button>
-          <button
-            onClick={() => setLearningMode(!learningMode)}
-            className="text-[11px] bg-white/20 hover:bg-white/30 px-2 sm:px-2.5 py-1 rounded-lg transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
-            title="Teach AI a new command"
-          >
-            <i className="fas fa-graduation-cap sm:mr-1" /> <span className="hidden sm:inline">Learn</span>
-          </button>
           <button onClick={onClose} className="min-w-[40px] min-h-[40px] w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-white/80 hover:text-white cursor-pointer"><i className="fas fa-times text-base sm:text-lg w-5 h-5" /></button>
         </div>
       </div>
-
-      {learningMode && (
-        <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-gold/10 to-gold/5 space-y-3 shrink-0">
-          <div className="text-xs font-bold text-gold flex items-center gap-1.5">
-            <i className="fas fa-graduation-cap" /> Teach AI a New Command
-          </div>
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <select
-                value={learningIntent}
-                onChange={(e) => setLearningIntent(e.target.value)}
-                className="px-2 py-1.5 border border-gray-300 rounded-lg text-xs"
-              >
-                <option value="update">Update</option>
-                <option value="delete">Delete</option>
-                <option value="query">Query</option>
-                <option value="add">Add</option>
-              </select>
-              <select
-                value={learningTarget}
-                onChange={(e) => setLearningTarget(e.target.value)}
-                className="px-2 py-1.5 border border-gray-300 rounded-lg text-xs"
-              >
-                <option value="guests">Guests</option>
-                <option value="vendors">Vendors</option>
-                <option value="budget">Budget</option>
-                <option value="rooms">Rooms</option>
-                <option value="tasks">Tasks</option>
-              </select>
-            </div>
-            <input
-              value={learningPattern}
-              onChange={(e) => setLearningPattern(e.target.value)}
-              placeholder="Pattern (regex): ^show all veg guests$"
-              className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-xs"
-            />
-            <textarea
-              value={learningResponse}
-              onChange={(e) => setLearningResponse(e.target.value)}
-              placeholder="Response: Here are all your vegetarian guests..."
-              className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-xs resize-none"
-              rows={2}
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={handleLearn}
-                disabled={!learningPattern.trim() || !learningResponse.trim()}
-                className="flex-1 px-3 py-1.5 bg-gradient-to-br from-gold to-gold-light text-white text-xs font-semibold rounded-lg hover:shadow-md disabled:opacity-50 transition-all cursor-pointer"
-              >
-                <i className="fas fa-check mr-1" /> Save
-              </button>
-              <button
-                onClick={() => setLearningMode(false)}
-                className="px-3 py-1.5 bg-gray-100 text-gray-600 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="px-5 py-2.5 bg-amber-50 border-b border-amber-200 shrink-0">
         <p className="text-[11px] text-amber-700 flex items-center gap-1.5">
@@ -841,10 +218,9 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
             </div>
             <div className="flex flex-col gap-1">
               <div className={`max-w-[85%] px-4 py-3 rounded-xl text-sm leading-relaxed overflow-hidden break-words ${msg.role === "bot" ? "bg-gray-100 rounded-tl-sm" : "bg-gradient-to-br from-maroon to-maroon-light text-white rounded-tr-sm"}`}>
-                {msg.learned && <span className="inline-block bg-gold/20 text-gold text-[10px] px-1.5 py-0.5 rounded-full mr-1.5 font-bold">Learned</span>}
                 {renderMarkdown(msg.content)}
               </div>
-              {msg.role === "bot" && i > 0 && !msg.action && correctingId !== i && (
+              {msg.role === "bot" && i > 0 && correctingId !== i && (
                 <button
                   onClick={() => { setCorrectingId(i); setCorrectionText(""); }}
                   className="text-[10px] text-gray-400 hover:text-maroon transition-colors self-start cursor-pointer min-h-[36px] min-w-[36px] flex items-center truncate max-w-full"
@@ -873,58 +249,6 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
             </div>
           </div>
         ))}
-
-        {pendingAction && (
-          <div className="bg-white border-2 border-maroon/20 rounded-xl p-4 space-y-3">
-            <div className="flex items-center gap-2 text-sm font-bold text-maroon">
-              <i className="fas fa-exclamation-triangle" /> Confirm Bulk Action
-            </div>
-
-            <p className="text-sm text-gray-600">{pendingAction.description}</p>
-
-            <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-xs font-semibold text-gray-500 uppercase mb-2">
-                {pendingAction.preview.count} items will be affected
-              </div>
-              {pendingAction.preview.count === 0 ? (
-                <p className="text-xs text-gray-400">No matching items found.</p>
-              ) : (
-                <div className="space-y-1">
-                  {pendingAction.preview.sample.slice(0, 5).map((item: any, idx: number) => (
-                    <div key={idx} className="flex items-center gap-2 text-xs">
-                      <i className="fas fa-circle text-[0.3rem] text-gray-400" />
-                      <span className="font-medium">{item.name || item.guestName || item.item || item.category}</span>
-                      {item.rsvp && <span className="text-gray-400">({item.rsvp})</span>}
-                      {item.side && <span className="text-gray-400">({item.side})</span>}
-                      {item.contract && <span className="text-gray-400">({item.contract})</span>}
-                      {item.status && <span className="text-gray-400">({item.status})</span>}
-                    </div>
-                  ))}
-                  {pendingAction.preview.count > 5 && (
-                    <p className="text-xs text-gray-400">...and {pendingAction.preview.count - 5} more</p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={handleConfirmAction}
-                disabled={executing || pendingAction.preview.count === 0}
-                className="flex-1 px-4 py-2.5 bg-gradient-to-br from-maroon to-maroon-light text-white text-sm font-semibold rounded-lg hover:shadow-md disabled:opacity-50 transition-all cursor-pointer"
-              >
-                {executing ? <><i className="fas fa-spinner fa-spin mr-1.5" /> Executing...</> : <><i className="fas fa-check mr-1.5" /> Confirm</>}
-              </button>
-              <button
-                onClick={handleCancelAction}
-                disabled={executing}
-                className="px-4 py-2.5 bg-gray-100 text-gray-600 text-sm font-semibold rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
 
         <div ref={messagesEnd} />
       </div>

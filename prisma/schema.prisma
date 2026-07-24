@@ -8,43 +8,43 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  password      String?
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  weddings      Wedding[]
+  id             String                @id @default(cuid())
+  name           String?
+  email          String?               @unique
+  emailVerified  DateTime?
+  image          String?
+  createdAt      DateTime              @default(now())
+  password       String?
+  accounts       Account[]
+  sessions       Session[]
+  weddings       Wedding[]
   collaborations WeddingCollaborator[]
-  sentInvites   WeddingInvite[]
-  createdAt   DateTime @default(now())
+  sentInvites    WeddingInvite[]
 }
 
 model WeddingInvite {
-  id          String   @id @default(cuid())
-  weddingId   String
-  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
-  inviterId   String
-  inviter     User     @relation(fields: [inviterId], references: [id], onDelete: Cascade)
-  token       String   @unique
-  role        String   @default("viewer")
-  status      String   @default("pending")
-  expiresAt   DateTime
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  weddingId String
+  inviterId String
+  token     String   @unique
+  role      String   @default("viewer")
+  status    String   @default("pending")
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  inviter   User     @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+  wedding   Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 }
 
 model WeddingCollaborator {
-  id          String   @id @default(cuid())
-  weddingId   String
-  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role        String   @default("viewer")
-  invitedBy   String
-  status      String   @default("accepted")
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  weddingId String
+  userId    String
+  role      String   @default("viewer")
+  invitedBy String
+  status    String   @default("accepted")
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wedding   Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 
   @@unique([weddingId, userId])
 }
@@ -55,12 +55,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -84,84 +84,83 @@ model VerificationToken {
 }
 
 model Wedding {
-  id              String        @id @default(cuid())
+  id              String                @id @default(cuid())
   userId          String
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name            String        @default("")
-  religion        String        @default("")
-  region          String        @default("")
-  budget          Int           @default(0)
-  guestCount      Int           @default(0)
-  weddingDays     Int           @default(1)
+  name            String                @default("")
+  religion        String                @default("")
+  region          String                @default("")
   weddingDate     DateTime?
-  weddingCity     String        @default("")
-  selectedEvents  String        @default("[]")
-  rsvpToken       String        @default("")
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  budgetItems     BudgetItem[]
-  vendors         Vendor[]
-  guests          Guest[]
-  tasks           Task[]
-  seatingTables   SeatingTable[]
+  weddingCity     String                @default("")
+  selectedEvents  String                @default("[]")
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  budget          Int                   @default(0)
+  guestCount      Int                   @default(0)
+  weddingDays     Int                   @default(1)
+  rsvpToken       String                @default("")
   aiMessages      AiMessage[]
-  events          WeddingEvent[]
-  timelineItems   WeddingTimelineItem[]
+  budgetItems     BudgetItem[]
+  guests          Guest[]
   roomAllocations RoomAllocation[]
+  seatingTables   SeatingTable[]
+  tasks           Task[]
+  vendors         Vendor[]
+  user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   collaborators   WeddingCollaborator[]
+  events          WeddingEvent[]
   invites         WeddingInvite[]
+  timelineItems   WeddingTimelineItem[]
 }
 
 model RoomAllocation {
-  id          String   @id @default(cuid())
-  weddingId   String
-  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
-  guestName   String   @default("")
-  hotel       String   @default("")
-  roomNumber  String   @default("")
-  roomType    String   @default("Standard")
-  checkIn     String   @default("")
-  checkOut    String   @default("")
-  status      String   @default("Reserved")
-  notes       String   @default("")
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
+  id         String   @id @default(cuid())
+  weddingId  String
+  guestName  String   @default("")
+  hotel      String   @default("")
+  roomNumber String   @default("")
+  roomType   String   @default("Standard")
+  checkIn    String   @default("")
+  checkOut   String   @default("")
+  status     String   @default("Reserved")
+  notes      String   @default("")
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  wedding    Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 }
 
 model WeddingEvent {
-  id          String   @id @default(cuid())
-  weddingId   String
-  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
-  name        String
-  description String   @default("")
-  date        String   @default("")
-  startTime   String   @default("10:00")
-  duration    Int      @default(60)
-  location    String   @default("")
+  id             String   @id @default(cuid())
+  weddingId      String
+  name           String
+  description    String   @default("")
+  date           String   @default("")
+  startTime      String   @default("10:00")
+  duration       Int      @default(60)
+  location       String   @default("")
   isRitual       Boolean  @default(false)
-  isSimultaneous Boolean  @default(false)
   order          Int      @default(0)
   createdAt      DateTime @default(now())
+  isSimultaneous Boolean  @default(false)
+  wedding        Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 }
 
 model WeddingTimelineItem {
   id             String   @id @default(cuid())
   weddingId      String
-  wedding        Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
   title          String
   description    String   @default("")
   startTime      String   @default("09:00")
   duration       Int      @default(30)
   isHighlight    Boolean  @default(false)
-  isSimultaneous Boolean  @default(false)
   order          Int      @default(0)
   createdAt      DateTime @default(now())
+  isSimultaneous Boolean  @default(false)
+  wedding        Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 }
 
 model BudgetItem {
   id        String  @id @default(cuid())
   weddingId String
-  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
   category  String  @default("")
   item      String  @default("")
   estimated Int     @default(0)
@@ -172,12 +171,12 @@ model BudgetItem {
   dueDate   String  @default("")
   notes     String  @default("")
   order     Int     @default(0)
+  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 }
 
 model Vendor {
   id        String  @id @default(cuid())
   weddingId String
-  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
   category  String  @default("")
   name      String  @default("")
   contact   String  @default("")
@@ -188,57 +187,58 @@ model Vendor {
   contract  String  @default("Pending")
   notes     String  @default("")
   order     Int     @default(0)
+  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 }
 
 model Guest {
-  id         String  @id @default(cuid())
-  weddingId  String
-  wedding    Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
-  name       String  @default("")
-  relation   String  @default("")
-  side       String  @default("")
-  rsvp       String  @default("Pending")
-  dietary    String  @default("Veg")
-  tableNum   Int     @default(0)
-  giftGiven  String  @default("No")
-  thankYou   String  @default("No")
-  notes      String  @default("")
-  order      Int     @default(0)
+  id        String  @id @default(cuid())
+  weddingId String
+  name      String  @default("")
+  relation  String  @default("")
+  side      String  @default("")
+  rsvp      String  @default("Pending")
+  dietary   String  @default("Veg")
+  tableNum  Int     @default(0)
+  giftGiven String  @default("No")
+  thankYou  String  @default("No")
+  notes     String  @default("")
+  order     Int     @default(0)
+  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 }
 
 model Task {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   weddingId String
-  wedding   Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
-  period    String   @default("")
-  text      String   @default("")
-  done      Boolean  @default(false)
-  dueDate   String   @default("")
-  order     Int      @default(0)
+  period    String  @default("")
+  text      String  @default("")
+  done      Boolean @default(false)
+  order     Int     @default(0)
+  dueDate   String  @default("")
+  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 }
 
 model SeatingTable {
   id        String  @id @default(cuid())
   weddingId String
-  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
   name      String  @default("")
   capacity  Int     @default(8)
   guests    String  @default("[]")
   order     Int     @default(0)
+  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 }
 
 model AiMessage {
   id          String   @id @default(cuid())
   weddingId   String
-  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
   role        String   @default("user")
   content     String   @default("")
-  intent      String?  // "update", "delete", "query", "add", "learn"
-  targetType  String?  // "guests", "vendors", "budget", "rooms", "tasks"
-  successful  Boolean? // whether the action succeeded
-  correctedTo String?  // if user corrected this, the correct response
-  pattern     String?  // if learned command, the pattern regex
   createdAt   DateTime @default(now())
+  correctedTo String?
+  intent      String?
+  pattern     String?
+  successful  Boolean?
+  targetType  String?
+  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 }
 
 model AiUsage {
