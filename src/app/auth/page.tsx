@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn, signOut } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -87,9 +87,8 @@ export default function AuthPage() {
           </p>
 
           <button
-            onClick={async () => {
-              await signOut({ redirect: false });
-              signIn("google", { callbackUrl: "/dashboard" });
+            onClick={() => {
+              window.location.href = "/api/auth/signout?callbackUrl=" + encodeURIComponent("/api/auth/signin/google?callbackUrl=" + encodeURIComponent("/dashboard"));
             }}
             className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white border-2 border-gray-300 rounded-lg font-semibold text-sm hover:border-gray-400 hover:shadow-sm transition-all cursor-pointer"
           >
