@@ -386,10 +386,14 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
                   </div>
                 </div>
 
-                {isEditing && (
+                {(isEditing || g.notes) && (
                   <div className="mt-3">
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Notes</label>
-                    <input value={editData.notes ?? g.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} className="card-input" placeholder="Add notes" />
+                    {isEditing ? (
+                      <input value={editData.notes ?? g.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} className="card-input" placeholder="Add notes" />
+                    ) : (
+                      <p className="text-sm text-gray-600">{g.notes}</p>
+                    )}
                   </div>
                 )}
               </div>
