@@ -189,30 +189,35 @@ const SCENES = [
     label: "Hindu Wedding",
     gradient: "linear-gradient(135deg, #3B1A08 0%, #5C2E0E 50%, #8B4513 100%)",
     image: "/weddings/hindu.jpg",
+    mobilePos: "center 30%",
   },
   {
     key: "muslim",
     label: "Muslim Wedding",
     gradient: "linear-gradient(135deg, #0A2E12 0%, #1B5E20 50%, #2E7D32 100%)",
     image: "/weddings/muslim.jpg",
+    mobilePos: "center 45%",
   },
   {
     key: "sikh",
     label: "Sikh Wedding",
     gradient: "linear-gradient(135deg, #3E1A00 0%, #7A3B00 50%, #E65100 100%)",
     image: "/weddings/sikh.jpg",
+    mobilePos: "center 40%",
   },
   {
     key: "christian",
     label: "Christian Wedding",
     gradient: "linear-gradient(135deg, #0D1B3E 0%, #1A3A6B 50%, #1565C0 100%)",
     image: "/weddings/christian.jpg",
+    mobilePos: "center 30%",
   },
   {
     key: "jain",
     label: "Jain Wedding",
     gradient: "linear-gradient(135deg, #1A0A2E 0%, #4A148C 50%, #6A1B9A 100%)",
     image: "/weddings/jain.jpg",
+    mobilePos: "center 30%",
   },
 ];
 
@@ -239,8 +244,8 @@ function HeroBackground({ active, onActiveChange }: { active: number; onActiveCh
               <img
                 src={scene.image}
                 alt={scene.label}
-                className="absolute inset-0 w-full h-full object-cover md:object-center"
-                style={{ objectPosition: "center 30%" }}
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ objectPosition: scene.mobilePos || "center 30%" }}
                 onError={() => setImgErrors((prev) => ({ ...prev, [scene.key]: true }))}
               />
             )}
