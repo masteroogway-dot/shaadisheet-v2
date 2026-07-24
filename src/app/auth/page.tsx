@@ -1,19 +1,26 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signup } from "@/lib/actions";
 
 export default function AuthPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [mode, setMode] = useState<"login" | "signup">("signup");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (status === "authenticated" && session) {
+      window.location.href = "/api/auth/signout?callbackUrl=" + encodeURIComponent("/auth");
+    }
+  }, [session, status]);
 
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

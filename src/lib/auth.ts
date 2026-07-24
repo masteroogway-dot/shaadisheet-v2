@@ -11,12 +11,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      allowDangerousEmailAccountLinking: true,
-      checks: ["none"],
+      checks: ["state"],
       authorization: {
         params: {
           prompt: "select_account",
-          access_type: "offline",
         },
       },
     }),
@@ -57,50 +55,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: {
     strategy: "jwt",
   },
-  cookies: {
-    sessionToken: {
-      name: "next-auth.session-token",
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: true,
-      },
-    },
-    callbackUrl: {
-      name: "next-auth.callback-url",
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: true,
-      },
-    },
-    csrfToken: {
-      name: "next-auth.csrf-token",
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: true,
-      },
-    },
-  },
   trustHost: true,
   callbacks: {
-    async signIn({ user, account }) {
-      if (account?.provider === "google" && user?.email) {
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email },
-          select: { id: true },
-        });
-        if (existingUser) {
-          user.id = existingUser.id;
-        }
-      }
-      return true;
-    },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
       }
