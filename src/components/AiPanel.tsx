@@ -136,7 +136,7 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
     try {
       await addAiMessage(weddingId, "user", userMsg);
 
-      setMessages((prev) => [...prev, { role: "bot", content: "Thinking..." }]);
+      setMessages((prev) => [...prev, { role: "bot", content: "Thinking\u00A0..." }]);
 
       const conversationHistory = messages.slice(-12).map((m) => ({ role: m.role, content: m.content }));
       const res = await fetch("/api/ai", {
