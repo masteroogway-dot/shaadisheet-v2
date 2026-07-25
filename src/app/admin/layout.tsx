@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const navItems = [
@@ -16,13 +16,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
+  const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/auth");
-    if (status === "authenticated" && session?.user?.role !== "admin") router.push("/dashboard");
+    if (status === "loading") return;
+    if (status === "unauthenticated") {
+      router.push("/auth");
+      return;
+    }
+    if (status === "authenticated") {
+      if (session?.user?.role === "admin") {
+        setAllowed(true);
+      } else {
+        router.push("/dashboard");
+      }
+    }
   }, [session, status, router]);
 
-  if (status === "loading" || !session || session.user.role !== "admin") {
+  if (status === "loading" || !allowed) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-cream">
         <div className="text-center">
@@ -47,7 +58,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
         <div className="flex items-center gap-2">
           <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-[10px] font-bold rounded uppercase">Admin</span>
-          <span className="text-sm font-medium">{session.user.name || session.user.email}</span>
+          <span className="text-sm font-medium">{session?.user?.name || session?.user?.email}</span>
         </div>
       </div>
 
