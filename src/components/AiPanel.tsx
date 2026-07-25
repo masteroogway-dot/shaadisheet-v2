@@ -83,7 +83,7 @@ interface Props {
 
 export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }: Props) {
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<Array<{ role: string; content: string; id?: string }>>([]);
+  const [messages, setMessages] = useState<Array<{ role: string; content: string; id?: string; thinking?: boolean }>>([]);
   const [loaded, setLoaded] = useState(false);
   const [executing, setExecuting] = useState(false);
   const [correctingId, setCorrectingId] = useState<number | null>(null);
@@ -136,7 +136,7 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
     try {
       await addAiMessage(weddingId, "user", userMsg);
 
-      setMessages((prev) => [...prev, { role: "bot", content: "Thinking\u00A0..." }]);
+      setMessages((prev) => [...prev, { role: "bot", content: "Thinking...", thinking: true }]);
 
       const conversationHistory = messages.slice(-12).map((m) => ({ role: m.role, content: m.content }));
       const res = await fetch("/api/ai", {
@@ -217,7 +217,7 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
               {msg.role === "bot" ? <i className="fas fa-wand-magic-sparkles" /> : (wedding.name?.charAt(0) || "U")}
             </div>
             <div className="flex flex-col gap-1">
-              <div className={`max-w-[85%] px-4 py-3 rounded-xl text-sm leading-relaxed overflow-hidden break-words ${msg.role === "bot" ? "bg-gray-100 rounded-tl-sm" : "bg-gradient-to-br from-maroon to-maroon-light text-white rounded-tr-sm"}`}>
+              <div className={`max-w-[85%] px-4 py-3 rounded-xl text-sm leading-relaxed overflow-hidden ${msg.thinking ? "whitespace-nowrap" : "break-words"} ${msg.role === "bot" ? "bg-gray-100 rounded-tl-sm" : "bg-gradient-to-br from-maroon to-maroon-light text-white rounded-tr-sm"}`}>
                 {renderMarkdown(msg.content)}
               </div>
               {msg.role === "bot" && i > 0 && correctingId !== i && (
