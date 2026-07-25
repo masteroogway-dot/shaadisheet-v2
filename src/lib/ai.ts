@@ -38,40 +38,44 @@ interface ProviderConfig {
 function getProviders(): ProviderConfig[] {
   const providers: ProviderConfig[] = [];
 
-  // Priority 1: Google Gemini (free, 1500 RPD, Claude-level)
-  if (process.env.GOOGLE_GEMINI_API_KEY) {
+  // Priority 1: Google Gemini keys (stacked, 1500 RPD each, Claude-level)
+  const geminiKeys = (process.env.GOOGLE_GEMINI_API_KEY || "")
+    .split(",")
+    .map((k) => k.trim())
+    .filter(Boolean);
+  for (let i = 0; i < geminiKeys.length; i++) {
     providers.push({
-      name: "gemini",
-      apiKey: process.env.GOOGLE_GEMINI_API_KEY,
+      name: `gemini-${i + 1}`,
+      apiKey: geminiKeys[i],
       baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",
       model: "gemini-2.0-flash",
-      priority: 1,
+      priority: i + 1,
       maxTokens: 8192,
       supportsTools: true,
     });
   }
 
-  // Priority 2: Mistral (free, 1B tok/month, Claude-level)
+  // Priority: Mistral (free, 1B tok/month, Claude-level)
   if (process.env.MISTRAL_API_KEY) {
     providers.push({
       name: "mistral",
       apiKey: process.env.MISTRAL_API_KEY,
       baseURL: "https://api.mistral.ai/v1",
       model: "mistral-medium-latest",
-      priority: 2,
+      priority: geminiKeys.length + 1,
       maxTokens: 32768,
       supportsTools: true,
     });
   }
 
-  // Priority 3: BluesMinds (fallback)
+  // Priority: BluesMinds (last resort fallback)
   if (process.env.BLUESMINDS_API_KEY) {
     providers.push({
       name: "bluesminds",
       apiKey: process.env.BLUESMINDS_API_KEY,
       baseURL: "https://api.bluesminds.com/v1",
       model: "meta/llama-3.1-70b-instruct",
-      priority: 4,
+      priority: geminiKeys.length + 2,
       maxTokens: 4096,
       supportsTools: true,
     });
