@@ -46,3 +46,15 @@ export function canManageCollaborators(role: WeddingRole): boolean {
 export function canDeleteWedding(role: WeddingRole): boolean {
   return role === "owner";
 }
+
+export function isAdmin(session: any): boolean {
+  return session?.user?.role === "admin";
+}
+
+export async function isBanned(userId: string): Promise<boolean> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+  return user?.role === "banned";
+}
