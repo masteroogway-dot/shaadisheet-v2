@@ -217,7 +217,7 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
               {msg.role === "bot" ? <i className="fas fa-wand-magic-sparkles" /> : (wedding.name?.charAt(0) || "U")}
             </div>
             <div className="flex flex-col gap-1">
-              <div className={`max-w-[85%] px-4 py-3 rounded-xl text-sm leading-relaxed overflow-hidden ${msg.thinking ? "whitespace-nowrap" : "break-words"} ${msg.role === "bot" ? "bg-gray-100 rounded-tl-sm" : "bg-gradient-to-br from-maroon to-maroon-light text-white rounded-tr-sm"}`}>
+              <div className={`${msg.thinking ? "w-fit" : "max-w-[85%]"} px-4 py-3 rounded-xl text-sm leading-relaxed overflow-hidden ${msg.thinking ? "whitespace-nowrap" : "break-words"} ${msg.role === "bot" ? "bg-gray-100 rounded-tl-sm" : "bg-gradient-to-br from-maroon to-maroon-light text-white rounded-tr-sm"}`}>
                 {renderMarkdown(msg.content)}
               </div>
               {msg.role === "bot" && i > 0 && correctingId !== i && (
