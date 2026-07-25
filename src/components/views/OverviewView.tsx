@@ -258,7 +258,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Budget */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-lg gap-3 sm:gap-4">
-                  <div className="min-w-0 flex-1">
+                  <div className={`min-w-0 ${editingBudget ? "w-full sm:w-[220px]" : "flex-1"}`}>
                     <p className="text-xs text-gray-500 font-medium mb-1">Total Budget</p>
                     {editingBudget ? (
                       <div>
