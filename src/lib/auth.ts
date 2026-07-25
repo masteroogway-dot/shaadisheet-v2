@@ -105,8 +105,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
+      }
+      // Always fetch current role from DB so ban/promote takes effect immediately
+      if (token.id) {
         const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
+          where: { id: token.id as string },
           select: { role: true },
         });
         token.role = dbUser?.role || "user";
