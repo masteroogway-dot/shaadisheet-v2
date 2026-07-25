@@ -242,6 +242,8 @@ input[type="number"] {
 .input-currency input {
   padding-left: 28px !important;
   font-variant-numeric: tabular-nums;
+  min-width: 0;
+  flex: 1;
 }
 
 /* Date input styling */
