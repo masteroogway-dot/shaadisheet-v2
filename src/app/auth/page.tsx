@@ -18,7 +18,7 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (status === "authenticated" && session) {
-      window.location.href = "/api/auth/signout?callbackUrl=" + encodeURIComponent("/auth");
+      router.push("/dashboard");
     }
   }, [session, status]);
 
