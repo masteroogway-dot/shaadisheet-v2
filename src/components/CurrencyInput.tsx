@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 
 interface CurrencyInputProps {
   value: number;
@@ -17,26 +17,22 @@ export default function CurrencyInput({
   className = "",
   disabled = false,
 }: CurrencyInputProps) {
-  const [displayValue, setDisplayValue] = useState("");
   const [focused, setFocused] = useState(false);
+  const [typed, setTyped] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (!focused) {
-      setDisplayValue(value > 0 ? value.toLocaleString("en-IN") : "");
-    }
-  }, [value, focused]);
+  const formatted = value > 0 ? value.toLocaleString("en-IN") : "";
+  const showValue = focused ? typed : formatted;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/[^0-9]/g, "");
-    const num = raw ? parseInt(raw, 10) : 0;
-    setDisplayValue(raw);
-    onChange(num);
+    setTyped(raw);
+    onChange(raw ? parseInt(raw, 10) : 0);
   };
 
   const handleFocus = () => {
     setFocused(true);
-    setDisplayValue(value > 0 ? String(value) : "");
+    setTyped(value > 0 ? String(value) : "");
     setTimeout(() => inputRef.current?.select(), 0);
   };
 
@@ -46,19 +42,19 @@ export default function CurrencyInput({
 
   return (
     <div className={`input-currency ${className}`}>
-      <span className="currency-symbol">{'₹'}</span>
+      <span className="currency-symbol">₹</span>
       <input
         ref={inputRef}
         type="text"
         inputMode="numeric"
         pattern="[0-9]*"
-        value={focused ? displayValue : (value > 0 ? value.toLocaleString("en-IN") : "")}
+        value={showValue}
         onChange={handleChange}
         onFocus={handleFocus}
         onBlur={handleBlur}
         placeholder={placeholder}
         disabled={disabled}
-        className="w-full"
+        className="card-input"
       />
     </div>
   );

@@ -51,7 +51,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
   const handleSaveBudget = async () => {
     const val = parseInt(editBudget) || 0;
     if (val < BUDGET_MIN || val > BUDGET_MAX) {
-      addToast("Budget must be between \u20B910 Lakh and \u20B910 Crore", "error");
+      addToast("Budget must be between ₹10 Lakh and ₹10 Crore", "error");
       return;
     }
     setSaving(true);
@@ -223,7 +223,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
           <ScrollReveal>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-5 mb-7">
               {[
-                { label: "Total Budget", numVal: totalBudget, prefix: totalBudget > 0 ? "\u20B9" : "", suffix: "", formatFn: totalBudget > 0 ? formatINRAbbrev : undefined, sub: totalSpent > 0 ? `\u20B9${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
+                { label: "Total Budget", numVal: totalBudget, prefix: totalBudget > 0 ? "₹" : "", suffix: "", formatFn: totalBudget > 0 ? formatINRAbbrev : undefined, sub: totalSpent > 0 ? `₹${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
                 { label: "Guests", numVal: totalGuests, prefix: "", suffix: "", formatFn: undefined, sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : "No RSVPs yet", icon: "fa-users", gradient: "from-green to-green/80" },
                 { label: "Vendors", numVal: vendorsBooked, prefix: "", suffix: totalVendors > 0 ? ` / ${totalVendors}` : "", formatFn: undefined, sub: totalVendors > 0 ? `${totalVendors - vendorsBooked} remaining` : "No vendors added", icon: "fa-store", gradient: "from-blue to-blue/80" },
                 { label: "Tasks", numVal: tasksDone, prefix: "", suffix: totalTasks > 0 ? ` / ${totalTasks}` : "", formatFn: undefined, sub: totalTasks > 0 ? `${totalTasks - tasksDone} remaining` : "No tasks yet", icon: "fa-tasks", gradient: "from-orange-600 to-red-700" },
@@ -268,7 +268,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                           placeholder={String(wedding.budget || "")}
                           className="w-full sm:w-[200px]"
                         />
-                        <p className="text-[0.65rem] text-gray-400 mt-1 ml-7">Min: \u20B910 Lakh, Max: \u20B910 Crore</p>
+                        <p className="text-[0.65rem] text-gray-400 mt-1 ml-7">Min: ₹10 Lakh, Max: ₹10 Crore</p>
                       </div>
                     ) : (
                       <p className="text-lg font-extrabold text-gray-900 overflow-hidden text-ellipsis">
