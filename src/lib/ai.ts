@@ -44,40 +44,27 @@ function getProviders(): ProviderConfig[] {
       name: "gemini",
       apiKey: process.env.GOOGLE_GEMINI_API_KEY,
       baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",
-      model: "gemini-2.5-flash",
+      model: "gemini-2.0-flash",
       priority: 1,
       maxTokens: 8192,
       supportsTools: true,
     });
   }
 
-  // Priority 2: Groq (free, 1000 RPD, ultra-fast)
-  if (process.env.GROQ_API_KEY) {
-    providers.push({
-      name: "groq",
-      apiKey: process.env.GROQ_API_KEY,
-      baseURL: "https://api.groq.com/openai/v1",
-      model: "llama-3.3-70b-versatile",
-      priority: 2,
-      maxTokens: 32768,
-      supportsTools: true,
-    });
-  }
-
-  // Priority 3: Mistral (free, 1B tok/month, Claude-level)
+  // Priority 2: Mistral (free, 1B tok/month, Claude-level)
   if (process.env.MISTRAL_API_KEY) {
     providers.push({
       name: "mistral",
       apiKey: process.env.MISTRAL_API_KEY,
       baseURL: "https://api.mistral.ai/v1",
       model: "mistral-medium-latest",
-      priority: 3,
+      priority: 2,
       maxTokens: 32768,
       supportsTools: true,
     });
   }
 
-  // Priority 4: BluesMinds (current fallback)
+  // Priority 3: BluesMinds (fallback)
   if (process.env.BLUESMINDS_API_KEY) {
     providers.push({
       name: "bluesminds",
@@ -153,14 +140,13 @@ const tools: OpenAI.ChatCompletionTool[] = [
             items: {
               type: "object",
               properties: {
-                guestName: { type: "string", description: "Full name of the guest" },
+                name: { type: "string", description: "Full name of the guest" },
                 side: { type: "string", enum: ["Bride", "Groom"], description: "Bride or Groom side" },
                 relation: { type: "string", description: "Relation like Father, Mother, Friend" },
                 dietary: { type: "string", enum: ["Veg", "Non-Veg", "Jain", "Vegan"], description: "Dietary preference" },
                 rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"], description: "RSVP status" },
-                phone: { type: "string", description: "Phone number" },
               },
-              required: ["guestName", "side"],
+              required: ["name", "side"],
             },
             description: "Array of guest objects to create",
           },
@@ -404,12 +390,11 @@ function validateAndCoerceArgs(name: string, args: any): any {
     case "create_guests":
       return {
         guests: (args.guests || []).map((g: any) => ({
-          guestName: toString(g.guestName),
+          name: toString(g.name || g.guestName),
           side: toString(g.side, "Bride"),
           relation: toString(g.relation),
           dietary: toString(g.dietary, "Veg"),
           rsvp: toString(g.rsvp, "Pending"),
-          phone: toString(g.phone),
         })),
       };
     case "update_guests":
@@ -474,17 +459,17 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
     }
     case "create_guests": {
       const data = a.guests.map((g: any) => ({
-        weddingId, guestName: g.guestName, side: g.side, relation: g.relation,
-        dietary: g.dietary, rsvp: g.rsvp, phone: g.phone,
+        weddingId, name: g.name, side: g.side, relation: g.relation,
+        dietary: g.dietary, rsvp: g.rsvp,
       }));
       await prisma.guest.createMany({ data });
-      return `Created ${a.guests.length} guest(s): ${a.guests.map((g: any) => g.guestName).join(", ")}.`;
+      return `Created ${a.guests.length} guest(s): ${a.guests.map((g: any) => g.name).join(", ")}.`;
     }
     case "update_guests": {
       const { filter = {}, updates } = a;
       const where: any = { weddingId };
       if (filter.side) where.side = filter.side;
-      if (filter.name_contains) where.guestName = { contains: filter.name_contains, mode: "insensitive" };
+      if (filter.name_contains) where.name = { contains: filter.name_contains, mode: "insensitive" };
       if (filter.rsvp) where.rsvp = filter.rsvp;
       if (filter.dietary) where.dietary = filter.dietary;
       const result = await prisma.guest.updateMany({ where, data: updates });
@@ -511,7 +496,7 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
     case "delete_guests": {
       const where: any = { weddingId };
       if (a.filter.side) where.side = a.filter.side;
-      if (a.filter.name_contains) where.guestName = { contains: a.filter.name_contains, mode: "insensitive" };
+      if (a.filter.name_contains) where.name = { contains: a.filter.name_contains, mode: "insensitive" };
       if (a.filter.rsvp) where.rsvp = a.filter.rsvp;
       if (a.filter.dietary) where.dietary = a.filter.dietary;
       const result = await prisma.guest.deleteMany({ where });
@@ -551,237 +536,68 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
 // ─── Claude-level system prompt ────────────────────────────────────
 
 function buildSystemPrompt(weddingCtx: string): string {
-  return `You are ShaadiSheet AI — an elite wedding planning assistant with deep expertise in Indian weddings across all religions and regions. You think step-by-step, reason carefully, and always give actionable, specific advice.
+  return `You are ShaadiSheet AI — an elite Indian wedding planning assistant with deep expertise across all religions and regions.
 
 ${weddingCtx}
 
-## WHO YOU ARE
-You are a seasoned Indian wedding planner with 15+ years of experience across Hindu, Muslim, Sikh, Christian, and Jain weddings. You understand every ritual, every tradition, every nuance. You speak with authority but warmth. You are direct, specific, and never waste words.
-
-## RESPONSE STYLE (CRITICAL)
-- **Think before responding.** Consider context, implications, and what the user really needs.
-- **Be direct.** No filler words, no "Great question!", no "I'd be happy to help." Just answer.
-- **Be specific.** Give exact amounts (₹), exact dates, exact names. Never be vague.
-- **Be structured.** Use tables for data, bullet lists for options, bold for key info.
-- **Max 100 words** for advice responses. Max 150 words for detailed analysis.
-- **No emojis.** No greetings. No sign-offs. Just the answer.
-- **Match the user's language.** If they write in Hindi-English mix, respond similarly.
+## RESPONSE STYLE
+- Be direct. No filler, no greetings, no emojis.
+- Be specific. Give exact amounts (₹), dates, names.
+- Use tables for data, bold for key info.
+- Max 100 words for advice, 150 for analysis.
+- Match the user's language (Hindi-English mix is fine).
 
 ## YOUR CAPABILITIES
-You have direct access to the wedding database. You can:
-- **CREATE**: Add guests, vendors, budget items, tasks, room allocations, events
-- **UPDATE**: Modify RSVP, dietary preferences, vendor contracts, task status, room status
-- **DELETE**: Remove guests, vendors, budget items, rooms by any filter
-- **SEARCH**: Find real vendors in any city via Google Places
-- **ANALYZE**: Review budget allocation, guest list health, vendor coverage, task completion
+You have direct database access via tools:
+- CREATE guests, vendors, budget items, tasks, room allocations
+- UPDATE RSVP, dietary, vendor contracts, task status, room status
+- DELETE guests, vendors, budget items, rooms by any filter
+- SEARCH real vendors in any city via Google Places
 
-## INDIAN WEDDING EXPERTISE
+## TOOL USAGE RULES
+- Use tools IMMEDIATELY when user asks to create/update/delete
+- name_contains: Full or partial name (e.g. "Sameer Jain")
+- NEVER combine name_contains and dietary in same filter
+- "Jain" in a person's name is part of their NAME, not dietary
+- After tool runs, confirm in one sentence, then ask if they need anything else
+
+## WEDDING EXPERTISE
 
 ### Rituals by Religion:
-- **Hindu**: Roka → Engagement → Mehendi → Sangeet → Haldi → Wedding (Baraat, Jaimala, Kanyadaan, Mangal Pheras, Sindoor, Vidaai) → Reception
-- **Muslim**: Mangni → Mehendi → Nikah (Ijab-e-Qubool, Khutba, Signing) → Walima → Ruksati
-- **Sikh**: Kurmai → Mehendi → Sangeet → Anand Karaj (Lavaan around Guru Granth Sahib) → Langar → Reception
-- **Christian**: Engagement → Roce → Church Wedding (Vows, Rings, Register) → Reception
-- **Jain**: Roka → Engagement → Mehendi → Sangeet → Wedding (Phere around Agni) → Reception
+- Hindu: Roka → Engagement → Mehendi → Sangeet → Haldi → Wedding (Baraat, Jaimala, Kanyadaan, Mangal Pheras, Sindoor, Vidaai) → Reception
+- Muslim: Mangni → Mehendi → Nikah (Ijab-e-Qubool, Khutba) → Walima → Ruksati
+- Sikh: Kurmai → Mehendi → Sangeet → Anand Karaj (Lavaan) → Langar → Reception
+- Christian: Engagement → Roce → Church Wedding (Vows, Rings) → Reception
 
-### Budget Allocation (Indian weddings 2026):
-| Category | % of Total | Notes |
-|----------|-----------|-------|
-| Venue & Catering | 40-50% | Biggest expense, negotiate bulk deals |
-| Photography & Videography | 8-12% | Book 8-10 months early |
-| Bridal Outfit & Jewellery | 10-15% | Lehenga ₹50K-5L range |
-| Decor & Flowers | 8-12% | Stage + mandap + entrance |
-| Makeup & Mehendi | 3-5% | Bridal makeup ₹20K-2L |
-| Music & Entertainment | 5-8% | DJ, band, sangeet |
-| Invitations | 2-3% | E-invites saves ₹20-50K |
-| Transport | 2-3% | Baraat, guest pickup |
-| Misc & Buffer | 10-15% | Always keep buffer |
+### Budget Allocation:
+| Category | % of Total |
+|----------|-----------|
+| Venue & Catering | 40-50% |
+| Photography | 8-12% |
+| Bridal Outfit & Jewellery | 10-15% |
+| Decor & Flowers | 8-12% |
+| Makeup & Mehendi | 3-5% |
+| Music & Entertainment | 5-8% |
+| Invitations | 2-3% |
+| Transport | 2-3% |
+| Misc & Buffer | 10-15% |
 
 ### Vendor Price Ranges (2026):
 | Category | Budget | Mid-Range | Premium |
 |----------|--------|-----------|---------|
 | Photography | ₹80K-1.5L | ₹1.5L-3L | ₹3L-5L |
-| Videography | ₹60K-1L | ₹1L-2.5L | ₹2.5L-4L |
 | Catering | ₹800-1200/plate | ₹1200-2000/plate | ₹2000-3000/plate |
 | Decoration | ₹1L-3L | ₹3L-6L | ₹6L-10L |
 | Makeup | ₹20K-50K | ₹50K-1L | ₹1L-2L |
-| Mehendi | ₹10K-30K | ₹30K-60K | ₹60K-80K |
 | DJ/Music | ₹30K-80K | ₹80K-1.5L | ₹1.5L-3L |
 | Venue | ₹2L-8L | ₹8L-15L | ₹15L-25L |
 
-## TOOL USAGE RULES
-
-### When to use tools (ACT IMMEDIATELY):
-- User asks to add/create guests, vendors, budget, tasks → use create tool
-- User asks to update/change/mark something → use update tool
-- User asks to delete/remove something → use delete tool
-- User asks about vendors in a city → use search_vendors tool
-- User gives a list of guests to add → use create_guests with the full list
-
-### Tool argument rules:
-- **name_contains**: Full or partial name (e.g. "Sameer Jain" matches the guest named Sameer Jain)
-- **NEVER combine name_contains and dietary in same filter** — they are separate operations
-- **"Jain" in a person's name is part of their NAME**, not a dietary filter
-- Names with spaces (e.g. "Neha Oswal") are a SINGLE name — do not split
-
-### Example tool calls:
-User: "Add 3 guests: Rahul Sharma (Groom, Veg), Priya Patel (Bride, Non-Veg), Amit Desai (Groom, Jain)"
-→ create_guests({ guests: [
-    { guestName: "Rahul Sharma", side: "Groom", dietary: "Veg", rsvp: "Pending" },
-    { guestName: "Priya Patel", side: "Bride", dietary: "Non-Veg", rsvp: "Pending" },
-    { guestName: "Amit Desai", side: "Groom", dietary: "Jain", rsvp: "Pending" }
-]})
-
-User: "Remove Sameer Jain"
-→ delete_guests({ filter: { name_contains: "Sameer Jain" } })
-(NOT dietary: "Jain" — Jain is part of the NAME)
-
-User: "Delete all Jain dietary guests"
-→ delete_guests({ filter: { dietary: "Jain" } })
-(Here Jain is the dietary filter, not a name)
-
-## ANALYSIS MODE
-When users ask for advice, analysis, or recommendations:
-1. Consider their budget, guest count, and timeline
-2. Give specific, actionable suggestions with exact amounts
-3. Prioritize what matters most for their specific wedding
-4. Flag potential issues (budget overrun, timeline conflicts, missing vendors)
-
 ## IMPORTANT RULES
-- Always use tools when the user asks to create/update/delete data. Actually do it.
-- Never make up vendor names, shop names, or business names. Use search_vendors for real results.
-- When listing prices, use a table format.
-- After a tool runs, confirm in one sentence, then ask if they need anything else.
+- Always use tools when user asks to create/update/delete data. Actually do it.
+- Never make up vendor names. Use search_vendors for real results.
+- When listing prices, use table format.
 - If ambiguous, ask for clarification with specific options.
 - Never use horizontal rules (---).`;
-}
-
-// ─── Regex intent parser (fast path, no LLM needed) ───────────────
-
-interface ParsedIntent {
-  tool: string;
-  args: any;
-  description: string;
-}
-
-function parseIntent(question: string, summary: any): ParsedIntent | null {
-  const q = question.toLowerCase().trim();
-
-  // DELETE GUESTS by name
-  const deleteGuestName = q.match(/(?:remove|delete|drop)\s+["']?([a-z][a-z\s]+?)["']?\s*(?:from\s+guests)?$/i);
-  if (deleteGuestName) {
-    let name = deleteGuestName[1].trim();
-    name = name.replace(/\s+(guests?|invitees?|attendees?|people|person)$/i, '').trim();
-    const dietaryTerms = ['veg', 'non-veg', 'jain', 'vegan'];
-    const sideTerms = ['bride', 'groom'];
-    const skipTerms = ['all', 'every', 'each', ...dietaryTerms, ...sideTerms];
-    if (!skipTerms.includes(name) && name.length > 0) {
-      return { tool: "delete_guests", args: { filter: { name_contains: name } }, description: `Delete guest "${name}"` };
-    }
-  }
-
-  // DELETE GUESTS by dietary
-  const deleteGuestDietary = q.match(/(?:remove|delete|drop)\s+(?:all\s+)?(?:guests?\s+(?:who\s+)?(?:are\s+)?|with\s+)?(veg|non-veg|jain|vegan)\s*(?:dietary|guests?)?/i);
-  if (deleteGuestDietary) {
-    const dietary = deleteGuestDietary[1].charAt(0).toUpperCase() + deleteGuestDietary[1].slice(1).toLowerCase();
-    return { tool: "delete_guests", args: { filter: { dietary } }, description: `Delete all ${dietary} dietary guests` };
-  }
-
-  // DELETE GUESTS by side
-  const deleteGuestSide = q.match(/(?:remove|delete|drop)\s+(?:all\s+)?(?:guests?\s+(?:who\s+)?(?:are\s+)?(?:on\s+)?|from\s+)?(bride|groom)\s*(?:side|guests?)?/i);
-  if (deleteGuestSide) {
-    const side = deleteGuestSide[1].charAt(0).toUpperCase() + deleteGuestSide[1].slice(1).toLowerCase();
-    return { tool: "delete_guests", args: { filter: { side } }, description: `Delete all ${side} side guests` };
-  }
-
-  // DELETE GUESTS by RSVP
-  const deleteGuestRsvp = q.match(/(?:remove|delete|drop)\s+(?:all\s+)?(?:guests?\s+(?:who\s+)?(?:have\s+)?|with\s+)?(pending|confirmed|attending|checked[\s-]?in|declined|cancelled|no[\s-]?show)\s*(?:rsvp|guests?)?/i);
-  if (deleteGuestRsvp) {
-    let rsvp = deleteGuestRsvp[1].toLowerCase();
-    if (rsvp === 'confirmed' || rsvp === 'attending') rsvp = 'yes';
-    if (rsvp === 'checked-in') rsvp = 'yes';
-    rsvp = rsvp.charAt(0).toUpperCase() + rsvp.slice(1);
-    return { tool: "delete_guests", args: { filter: { rsvp } }, description: `Delete all ${rsvp} RSVP guests` };
-  }
-
-  // UPDATE GUESTS RSVP
-  const updateGuestRsvp = q.match(/(?:mark|set|change|update)\s+["']?([a-z][a-z\s]+?)["']?\s+(?:as|to)\s+(attended|confirmed|pending|declined|cancelled|no[\s-]?show|yes|no)/i);
-  if (updateGuestRsvp) {
-    const name = updateGuestRsvp[1].trim();
-    let rsvp = updateGuestRsvp[2].toLowerCase();
-    if (rsvp === 'attended' || rsvp === 'confirmed') rsvp = 'yes';
-    rsvp = rsvp.charAt(0).toUpperCase() + rsvp.slice(1);
-    return { tool: "update_guests", args: { filter: { name_contains: name }, updates: { rsvp } }, description: `Update "${name}" RSVP to ${rsvp}` };
-  }
-
-  // DELETE VENDORS by name
-  const deleteVendorName = q.match(/(?:remove|delete|drop)\s+["']?([a-z][a-z\s]+?)["']?\s*(?:vendor|from\s+vendors)?$/i);
-  if (deleteVendorName && (q.includes('vendor') || q.includes('from vendors'))) {
-    const name = deleteVendorName[1].trim();
-    if (!['all', 'every', 'each', 'pending', 'signed', 'completed'].includes(name)) {
-      return { tool: "delete_vendors", args: { filter: { name_contains: name } }, description: `Delete vendor "${name}"` };
-    }
-  }
-
-  // DELETE VENDORS by contract status
-  const deleteVendorContract = q.match(/(?:remove|delete|drop)\s+(?:all\s+)?(?:vendors?\s+(?:who\s+)?(?:have\s+)?|with\s+)?(pending|signed|completed)\s*(?:contract|vendors?)?/i);
-  if (deleteVendorContract) {
-    const contract = deleteVendorContract[1].charAt(0).toUpperCase() + deleteVendorContract[1].slice(1).toLowerCase();
-    return { tool: "delete_vendors", args: { filter: { contract } }, description: `Delete all ${contract} contract vendors` };
-  }
-
-  // DELETE BUDGET ITEMS
-  const deleteBudget = q.match(/(?:remove|delete|drop)\s+["']?([a-z][a-z\s]+?)["']?\s*(?:budget|expense|item|from\s+budget)?$/i);
-  if (deleteBudget && (q.includes('budget') || q.includes('expense') || q.includes('item'))) {
-    const item = deleteBudget[1].trim();
-    if (!['all', 'every', 'each'].includes(item)) {
-      return { tool: "delete_budget_items", args: { filter: { item_contains: item } }, description: `Delete budget item "${item}"` };
-    }
-  }
-
-  // CREATE GUEST
-  const createGuest = q.match(/(?:add|create|new)\s+["']?([a-z][a-z\s]+?)["']?\s+(?:as|on|to)\s+(bride|groom)\s*(?:side)?/i);
-  if (createGuest) {
-    const name = createGuest[1].trim();
-    const side = createGuest[2].charAt(0).toUpperCase() + createGuest[2].slice(1).toLowerCase();
-    const dietaryMatch = q.match(/(veg|non-veg|jain|vegan)/i);
-    const dietary = dietaryMatch ? dietaryMatch[1].charAt(0).toUpperCase() + dietaryMatch[1].slice(1).toLowerCase() : 'Veg';
-    const relationMatch = q.match(/(?:as|who(?:'s| is))\s+(?:a\s+)?(\w+)/i);
-    const relation = relationMatch ? relationMatch[1] : '';
-    return { tool: "create_guests", args: { guests: [{ guestName: name, side, dietary, relation, rsvp: 'Pending' }] }, description: `Add ${name} as ${side} side guest` };
-  }
-
-  // CREATE VENDOR
-  const createVendor = q.match(/(?:add|create|new)\s+(?:a\s+)?(?:vendor\s+)?["']?([a-z][a-z\s]+?)["']?\s+(?:vendor|photographer|caterer|decorator)/i);
-  if (createVendor) {
-    const name = createVendor[1].trim();
-    const categoryMatch = q.match(/(photography|catering|decoration|makeup|dj|music|band|venue|videography|mehendi)/i);
-    const category = categoryMatch ? categoryMatch[1].charAt(0).toUpperCase() + categoryMatch[1].slice(1).toLowerCase() : 'Other';
-    const contactMatch = q.match(/(?:contact|phone|number)\s+(\d{10})/i);
-    const contact = contactMatch ? contactMatch[1] : '';
-    const quoteMatch = q.match(/(?:quote|price|cost|budget)\s+(?:rs\.?\s*)?(\d[\d,]*)/i);
-    const quote = quoteMatch ? parseInt(quoteMatch[1].replace(/,/g, '')) : undefined;
-    return { tool: "create_vendor", args: { name, category, contact: contact || undefined, quote }, description: `Add vendor "${name}" (${category})` };
-  }
-
-  // CREATE BUDGET ITEM
-  const createBudget = q.match(/(?:add|create|new)\s+(?:a\s+)?(?:budget\s+)?(?:item\s+)?["']?([a-z][a-z\s]+?)["']?\s+(?:budget|expense|item|cost)/i);
-  if (createBudget) {
-    const item = createBudget[1].trim();
-    const categoryMatch = q.match(/(?:category|under|for)\s+(\w+)/i);
-    const category = categoryMatch ? categoryMatch[1].charAt(0).toUpperCase() + categoryMatch[1].slice(1).toLowerCase() : 'Misc';
-    const amountMatch = q.match(/(?:rs\.?\s*)?(\d[\d,]*)\b/i);
-    const estimated = amountMatch ? parseInt(amountMatch[1].replace(/,/g, '')) : 0;
-    return { tool: "create_budget_item", args: { item, category, estimated }, description: `Add budget item "${item}" (₹${estimated.toLocaleString('en-IN')})` };
-  }
-
-  // CREATE TASK
-  const createTask = q.match(/(?:add|create|new)\s+(?:a\s+)?(?:task|todo|to-do)\s+["']?(.+?)["']?\s*(?:deadline|by|before)\s+(\d{4}-\d{2}-\d{2})/i);
-  if (createTask) {
-    return { tool: "create_task", args: { task: createTask[1].trim(), deadline: createTask[2], priority: 'Medium' }, description: `Add task "${createTask[1].trim()}"` };
-  }
-
-  return null;
 }
 
 // ─── Provider caller with fallback ─────────────────────────────────
