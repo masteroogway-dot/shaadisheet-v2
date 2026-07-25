@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { getAllWeddings, createWedding, updateWedding, deleteWedding } from "@/lib/actions";
+import { formatINR } from "@/lib/format";
 import ProfileMenu from "@/components/ProfileMenu";
 
 export default function DashboardPage() {
@@ -124,12 +125,7 @@ export default function DashboardPage() {
 
   const formatBudget = (budget: number) => {
     if (budget === 0) return "Not set";
-    if (budget >= 10000000) {
-      const c = budget / 10000000;
-      return c % 1 === 0 ? `\u20B9${c} Cr` : `\u20B9${c.toFixed(1)} Cr`;
-    }
-    const l = budget / 100000;
-    return l % 1 === 0 ? `\u20B9${l}L` : `\u20B9${l.toFixed(1)}L`;
+    return formatINR(budget);
   };
 
   const formatGuestCount = (count: number) => {

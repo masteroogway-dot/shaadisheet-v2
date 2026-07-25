@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { updateVendor, createVendor, deleteVendor, batchCreateVendors, bulkDeleteVendors, bulkAddVendors } from "@/lib/actions";
+import { formatINR } from "@/lib/format";
 import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
+import CurrencyInput from "@/components/CurrencyInput";
 
 function StarRating({ value, onChange, readonly }: { value: string; onChange?: (v: string) => void; readonly?: boolean }) {
   const stars = 5;
@@ -234,11 +236,11 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
             <span className="text-xs text-gray-500">Booked</span>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className="text-2xl font-extrabold block">{'\u20B9'}{(totalQuote / 100000).toFixed(1)}L</span>
+            <span className="text-2xl font-extrabold block">{formatINR(totalQuote)}</span>
             <span className="text-xs text-gray-500">Total Quote</span>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className="text-2xl font-extrabold text-green block">{'\u20B9'}{(totalPaid / 100000).toFixed(1)}L</span>
+            <span className="text-2xl font-extrabold text-green block">{formatINR(totalPaid)}</span>
             <span className="text-xs text-gray-500">Total Paid</span>
           </div>
         </div>
@@ -394,17 +396,17 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Quote</label>
                     {isEditing ? (
-                      <div className="input-currency"><span className="currency-symbol">{'\u20B9'}</span><input type="number" value={editData.quote ?? ""} placeholder="0" onChange={(e) => setEditData({ ...editData, quote: e.target.value === "" ? "" : parseInt(e.target.value) || 0 })} className="card-input" /></div>
+                      <CurrencyInput value={editData.quote ?? 0} onChange={(val) => setEditData({ ...editData, quote: val })} />
                     ) : (
-                      <p className="text-sm font-semibold">{'\u20B9'}{v.quote.toLocaleString("en-IN")}</p>
+                      <p className="text-sm font-semibold">{formatINR(v.quote)}</p>
                     )}
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Paid</label>
                     {isEditing ? (
-                      <div className="input-currency"><span className="currency-symbol">{'\u20B9'}</span><input type="number" value={editData.paid ?? ""} placeholder="0" onChange={(e) => setEditData({ ...editData, paid: e.target.value === "" ? "" : parseInt(e.target.value) || 0 })} className="card-input" /></div>
+                      <CurrencyInput value={editData.paid ?? 0} onChange={(val) => setEditData({ ...editData, paid: val })} />
                     ) : (
-                      <p className="text-sm font-semibold text-green">{'\u20B9'}{v.paid.toLocaleString("en-IN")}</p>
+                      <p className="text-sm font-semibold text-green">{formatINR(v.paid)}</p>
                     )}
                   </div>
                 </div>
@@ -412,7 +414,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Balance</label>
-                    <p className={`text-sm font-bold ${balance > 0 ? "text-yellow" : "text-green"}`}>{'\u20B9'}{balance.toLocaleString("en-IN")}</p>
+                    <p className={`text-sm font-bold ${balance > 0 ? "text-yellow" : "text-green"}`}>{formatINR(balance)}</p>
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Rating</label>

@@ -2,17 +2,11 @@
 
 import { useState } from "react";
 import { updateBudgetItem, createBudgetItem, deleteBudgetItem, batchCreateBudgetItems, bulkDeleteBudgetItems, bulkAddBudgetItems } from "@/lib/actions";
+import { formatINR } from "@/lib/format";
 import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
 import DatePicker from "@/components/DatePicker";
-
-function formatINR(n: number): string {
-  if (n === 0) return "0";
-  if (n >= 10000000) return (n / 10000000).toFixed(1).replace(/\.0$/, "") + " Cr";
-  if (n >= 100000) return (n / 100000).toFixed(1).replace(/\.0$/, "") + " L";
-  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + " K";
-  return n.toLocaleString("en-IN");
-}
+import CurrencyInput from "@/components/CurrencyInput";
 
 export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canEdit = true }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void; canEdit?: boolean }) {
   const [editing, setEditing] = useState<string | null>(null);
@@ -123,19 +117,19 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canE
       {items.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className="text-2xl font-extrabold block">{'\u20B9'}{formatINR(totalBudget)}</span>
+            <span className="text-2xl font-extrabold block">{formatINR(totalBudget)}</span>
             <span className="text-xs text-gray-500">Total Budget</span>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className="text-2xl font-extrabold block text-blue-600">{'\u20B9'}{formatINR(totalEstimated)}</span>
+            <span className="text-2xl font-extrabold block text-blue-600">{formatINR(totalEstimated)}</span>
             <span className="text-xs text-gray-500">Allocated ({items.length} items)</span>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className="text-2xl font-extrabold block text-green">{'\u20B9'}{formatINR(totalPaid)}</span>
+            <span className="text-2xl font-extrabold block text-green">{formatINR(totalPaid)}</span>
             <span className="text-xs text-gray-500">Paid</span>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className={`text-2xl font-extrabold block ${budgetRemaining > 0 ? "text-yellow" : "text-green"}`}>{'\u20B9'}{formatINR(budgetRemaining)}</span>
+            <span className={`text-2xl font-extrabold block ${budgetRemaining > 0 ? "text-yellow" : "text-green"}`}>{formatINR(budgetRemaining)}</span>
             <span className="text-xs text-gray-500">Remaining</span>
           </div>
         </div>
@@ -230,30 +224,30 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canE
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Estimated</label>
                     {isEditing ? (
-                      <div className="input-currency"><span className="currency-symbol">{'\u20B9'}</span><input type="number" value={editData.estimated ?? ""} placeholder="0" onChange={(e) => setEditData({ ...editData, estimated: e.target.value === "" ? "" : parseInt(e.target.value) || 0 })} className="card-input" /></div>
+                      <CurrencyInput value={editData.estimated ?? 0} onChange={(val) => setEditData({ ...editData, estimated: val })} />
                     ) : (
-                      <p className="text-sm font-bold">{'\u20B9'}{item.estimated.toLocaleString("en-IN")}</p>
+                      <p className="text-sm font-bold">{formatINR(item.estimated)}</p>
                     )}
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Actual</label>
                     {isEditing ? (
-                      <div className="input-currency"><span className="currency-symbol">{'\u20B9'}</span><input type="number" value={editData.actual ?? ""} placeholder="0" onChange={(e) => setEditData({ ...editData, actual: e.target.value === "" ? "" : parseInt(e.target.value) || 0 })} className="card-input" /></div>
+                      <CurrencyInput value={editData.actual ?? 0} onChange={(val) => setEditData({ ...editData, actual: val })} />
                     ) : (
-                      <p className="text-sm">{'\u20B9'}{item.actual.toLocaleString("en-IN")}</p>
+                      <p className="text-sm">{formatINR(item.actual)}</p>
                     )}
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Paid</label>
                     {isEditing ? (
-                      <div className="input-currency"><span className="currency-symbol">{'\u20B9'}</span><input type="number" value={editData.paid ?? ""} placeholder="0" onChange={(e) => setEditData({ ...editData, paid: e.target.value === "" ? "" : parseInt(e.target.value) || 0 })} className="card-input" /></div>
+                      <CurrencyInput value={editData.paid ?? 0} onChange={(val) => setEditData({ ...editData, paid: val })} />
                     ) : (
-                      <p className="text-sm font-bold text-green">{'\u20B9'}{item.paid.toLocaleString("en-IN")}</p>
+                      <p className="text-sm font-bold text-green">{formatINR(item.paid)}</p>
                     )}
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Balance</label>
-                    <p className={`text-sm font-bold ${balance > 0 ? "text-yellow" : "text-green"}`}>{'\u20B9'}{balance.toLocaleString("en-IN")}</p>
+                    <p className={`text-sm font-bold ${balance > 0 ? "text-yellow" : "text-green"}`}>{formatINR(balance)}</p>
                   </div>
                 </div>
 

@@ -7,13 +7,7 @@ import {
   clearAiMessages,
   correctInteraction,
 } from "@/lib/actions";
-
-function formatINR(n: number): string {
-  if (n >= 10000000) return `₹${(n / 10000000).toFixed(n % 10000000 === 0 ? 0 : 1)} Cr`;
-  if (n >= 100000) return `₹${(n / 100000).toFixed(n % 100000 === 0 ? 0 : 1)} L`;
-  if (n >= 1000) return `₹${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}K`;
-  return `₹${n}`;
-}
+import { formatINR } from "@/lib/format";
 
 function renderMarkdown(text: string): React.ReactNode {
   const lines = text.split("\n");

@@ -4,16 +4,10 @@ import { useState, useCallback } from "react";
 import CountUp from "@/components/animations/CountUp";
 import ScrollReveal from "@/components/animations/ScrollReveal";
 import { updateWedding } from "@/lib/actions";
+import { formatINR, formatINRAbbrev } from "@/lib/format";
 import InviteModal from "@/components/InviteModal";
 import ToastContainer, { Toast } from "@/components/Toast";
-
-function formatINR(n: number): string {
-  if (n === 0) return "0";
-  if (n >= 10000000) return (n / 10000000).toFixed(1).replace(/\.0$/, "") + " Cr";
-  if (n >= 100000) return (n / 100000).toFixed(1).replace(/\.0$/, "") + " L";
-  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + " K";
-  return n.toLocaleString("en-IN");
-}
+import CurrencyInput from "@/components/CurrencyInput";
 
 function formatTime(time: string): string {
   if (!time) return "";
@@ -21,14 +15,6 @@ function formatTime(time: string): string {
   const ampm = h >= 12 ? "PM" : "AM";
   const hr = h % 12 || 12;
   return `${hr}:${String(m).padStart(2, "0")} ${ampm}`;
-}
-
-function formatBudgetShort(n: number): string {
-  if (n === 0) return "0";
-  if (n >= 10000000) return (n / 10000000).toFixed(2).replace(/\.0+$/, "").replace(/(\.\d)0$/, "$1") + " Cr";
-  if (n >= 100000) return (n / 100000).toFixed(1).replace(/\.0$/, "") + " L";
-  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + " K";
-  return n.toLocaleString("en-IN");
 }
 
 export default function OverviewView({ wedding, onUpdate, userRole = "owner", onToast }: { wedding: any; onUpdate?: () => void; userRole?: string; onToast?: (msg: string, type?: "success" | "error") => void }) {
@@ -237,7 +223,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
           <ScrollReveal>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-5 mb-7">
               {[
-                { label: "Total Budget", numVal: totalBudget, prefix: totalBudget > 0 ? "\u20B9" : "", suffix: "", formatFn: totalBudget > 0 ? formatBudgetShort : undefined, sub: totalSpent > 0 ? `\u20B9${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
+                { label: "Total Budget", numVal: totalBudget, prefix: totalBudget > 0 ? "\u20B9" : "", suffix: "", formatFn: totalBudget > 0 ? formatINRAbbrev : undefined, sub: totalSpent > 0 ? `\u20B9${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
                 { label: "Guests", numVal: totalGuests, prefix: "", suffix: "", formatFn: undefined, sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : "No RSVPs yet", icon: "fa-users", gradient: "from-green to-green/80" },
                 { label: "Vendors", numVal: vendorsBooked, prefix: "", suffix: totalVendors > 0 ? ` / ${totalVendors}` : "", formatFn: undefined, sub: totalVendors > 0 ? `${totalVendors - vendorsBooked} remaining` : "No vendors added", icon: "fa-store", gradient: "from-blue to-blue/80" },
                 { label: "Tasks", numVal: tasksDone, prefix: "", suffix: totalTasks > 0 ? ` / ${totalTasks}` : "", formatFn: undefined, sub: totalTasks > 0 ? `${totalTasks - tasksDone} remaining` : "No tasks yet", icon: "fa-tasks", gradient: "from-orange-600 to-red-700" },
@@ -276,23 +262,17 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                     <p className="text-xs text-gray-500 font-medium mb-1">Total Budget</p>
                     {editingBudget ? (
                       <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-500 font-semibold">{"\u20B9"}</span>
-                          <input
-                            type="number"
-                            value={editBudget}
-                            onChange={(e) => setEditBudget(e.target.value)}
-                            placeholder={String(wedding.budget || "")}
-                            className="w-full sm:w-[200px] px-3 py-1.5 border-2 border-gray-200 focus:border-maroon rounded-lg text-sm font-bold focus:outline-none transition-colors"
-                            min={BUDGET_MIN}
-                            max={BUDGET_MAX}
-                          />
-                        </div>
+                        <CurrencyInput
+                          value={parseInt(editBudget) || 0}
+                          onChange={(val) => setEditBudget(String(val))}
+                          placeholder={String(wedding.budget || "")}
+                          className="w-full sm:w-[200px]"
+                        />
                         <p className="text-[0.65rem] text-gray-400 mt-1 ml-7">Min: \u20B910 Lakh, Max: \u20B910 Crore</p>
                       </div>
                     ) : (
                       <p className="text-lg font-extrabold text-gray-900 overflow-hidden text-ellipsis">
-                        {"\u20B9"}{totalBudget > 0 ? formatINR(totalBudget) : "Not set"}
+                        {totalBudget > 0 ? formatINR(totalBudget) : "Not set"}
                       </p>
                     )}
                   </div>
@@ -573,7 +553,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                         <div key={cat}>
                           <div className="flex justify-between text-sm mb-1.5 gap-2">
                             <span className="font-medium truncate min-w-0">{cat}</span>
-                            <span className="text-gray-500 whitespace-nowrap shrink-0">{'\u20B9'}{formatINR(spent)} / {'\u20B9'}{formatINR(budget)}</span>
+                            <span className="text-gray-500 whitespace-nowrap shrink-0">{formatINR(spent)} / {formatINR(budget)}</span>
                           </div>
                           <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
                             <div className={`h-full bg-gradient-to-r ${colors[i % colors.length]} rounded-full transition-all duration-700`} style={{ width: `${pct}%` }} />
