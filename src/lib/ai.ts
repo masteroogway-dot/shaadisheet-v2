@@ -640,7 +640,13 @@ async function callProvider(
         const fnName = tc.function.name;
         let fnArgs;
         try { fnArgs = JSON.parse(tc.function.arguments); } catch { fnArgs = {}; }
-        const result = await executeTool(fnName, fnArgs, weddingId);
+        let result: string;
+        try {
+          result = await executeTool(fnName, fnArgs, weddingId);
+        } catch (toolError: any) {
+          console.error(`[AI] Tool ${fnName} failed:`, toolError?.message || toolError);
+          result = `Tool error: ${toolError?.message || "Unknown error"}`;
+        }
         msgs.push({ role: "tool", tool_call_id: tc.id, content: result });
       }
     }

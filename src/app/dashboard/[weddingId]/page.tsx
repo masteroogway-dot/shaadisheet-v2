@@ -50,10 +50,14 @@ export default function WeddingDashboardPage() {
       setWedding(w);
       setUserRole(w.userRole || "owner");
       if (w.weddingDate) {
-        await seedWeddingEvents(weddingId);
-        const updated = await getWeddingWithRole(weddingId);
-        setWedding(updated);
-        setUserRole(updated.userRole || "owner");
+        try {
+          await seedWeddingEvents(weddingId);
+          const updated = await getWeddingWithRole(weddingId);
+          setWedding(updated);
+          setUserRole(updated.userRole || "owner");
+        } catch {
+          // seedWeddingEvents failed, but wedding data is already set
+        }
       }
     } catch (e) {
       console.error(e);

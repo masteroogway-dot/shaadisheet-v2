@@ -75,6 +75,7 @@ export async function POST(req: NextRequest) {
     if (!usage.allowed) return NextResponse.json({ error: usage.reason }, { status: 429 });
 
     const summary = await getSummary(weddingId);
+    if (!summary) return NextResponse.json({ error: "Wedding not found" }, { status: 404 });
 
     const response = await askAI(question, summary, conversationHistory || [], userId);
     return NextResponse.json({
