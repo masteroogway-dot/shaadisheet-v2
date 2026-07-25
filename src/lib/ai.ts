@@ -559,7 +559,8 @@ You have direct database access via tools:
 - SEARCH real vendors in any city via Google Places
 
 ## TOOL USAGE RULES
-- Use tools IMMEDIATELY when user asks to create/update/delete
+- Use tools IMMEDIATELY when user asks to create/update
+- For DELETE operations: Do NOT call delete tools directly. Instead, describe exactly what will be deleted and ask "Please confirm this deletion."
 - name_contains: Full or partial name (e.g. "Sameer Jain")
 - NEVER combine name_contains and dietary in same filter
 - "Jain" in a person's name is part of their NAME, not dietary
@@ -604,13 +605,16 @@ You have direct database access via tools:
 - Never use horizontal rules (---).`;
 }
 
+// ─── Destructive tool names ────────────────────────────────────────
+const DESTRUCTIVE_TOOLS = new Set(["delete_guests", "delete_vendors", "delete_budget_items", "delete_rooms"]);
+
 // ─── Provider caller with fallback ─────────────────────────────────
 
 async function callProvider(
   provider: ProviderConfig,
   messages: OpenAI.ChatCompletionMessageParam[],
   weddingId: string,
-): Promise<{ response: string; provider: string } | null> {
+): Promise<{ response: string; provider: string; pendingDelete?: { tool: string; args: any } } | null> {
   try {
     const client = new OpenAI({
       apiKey: provider.apiKey,
@@ -644,6 +648,24 @@ async function callProvider(
         const fnName = tc.function.name;
         let fnArgs;
         try { fnArgs = JSON.parse(tc.function.arguments); } catch { fnArgs = {}; }
+
+        // Intercept destructive tools — don't execute, return pending confirmation
+        if (DESTRUCTIVE_TOOLS.has(fnName)) {
+          const validatedArgs = validateAndCoerceArgs(fnName, fnArgs);
+          msgs.push({ role: "tool", tool_call_id: tc.id, content: `CONFIRMATION_REQUIRED: This action will permanently delete data. Describe what will be deleted and ask the user to confirm.` });
+          // Store pending delete and continue the loop so AI generates a confirmation message
+          const pendingDelete = { tool: fnName, args: validatedArgs };
+          // Run one more iteration to get AI's confirmation message
+          const finalCompletion = await client.chat.completions.create({
+            model: provider.model,
+            messages: msgs,
+            temperature: 0.3,
+            max_tokens: provider.maxTokens,
+          });
+          const finalMsg = finalCompletion.choices[0].message;
+          return { response: finalMsg.content || "Please confirm this deletion.", provider: provider.name, pendingDelete };
+        }
+
         let result: string;
         try {
           result = await executeTool(fnName, fnArgs, weddingId);
@@ -668,8 +690,20 @@ export async function askAI(
   question: string,
   summary: any,
   conversationHistory: { role: string; content: string }[] = [],
-  userId?: string
-): Promise<string> {
+  userId?: string,
+  confirmDelete?: { tool: string; args: any },
+): Promise<{ response: string; pendingDelete?: { tool: string; args: any } }> {
+  // If user confirmed a delete, execute it directly
+  if (confirmDelete) {
+    console.log(`[AI] Executing confirmed delete: ${confirmDelete.tool}`);
+    try {
+      const result = await executeTool(confirmDelete.tool, confirmDelete.args, summary?.weddingId || "");
+      return { response: result };
+    } catch (e: any) {
+      return { response: `Delete failed: ${e?.message || "Unknown error"}.` };
+    }
+  }
+
   // ALL queries go through the LLM — it understands natural language variations
   console.log("[AI] Sending to LLM:", question);
 
@@ -694,10 +728,10 @@ export async function askAI(
     const result = await callProvider(provider, messages, summary?.weddingId || "");
     if (result) {
       console.log(`[AI] Success with provider: ${result.provider}`);
-      return result.response;
+      return { response: result.response, pendingDelete: result.pendingDelete };
     }
     console.log(`[AI] Provider ${provider.name} failed, trying next...`);
   }
 
-  return "AI service is temporarily unavailable. Please try again in a moment.";
+  return { response: "AI service is temporarily unavailable. Please try again in a moment." };
 }

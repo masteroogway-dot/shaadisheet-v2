@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     const rl = checkMinuteLimit(`ai:${userId}`);
     if (!rl.allowed) return NextResponse.json({ error: `Too many requests. Wait ${rl.retryAfter}s.`, retryAfter: rl.retryAfter }, { status: 429 });
 
-    const { weddingId, question, conversationHistory } = await req.json();
+    const { weddingId, question, conversationHistory, confirmDelete } = await req.json();
     if (!weddingId || !question) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
     // 2. Conversation length limit
@@ -77,9 +77,10 @@ export async function POST(req: NextRequest) {
     const summary = await getSummary(weddingId);
     if (!summary) return NextResponse.json({ error: "Wedding not found" }, { status: 404 });
 
-    const response = await askAI(question, summary, conversationHistory || [], userId);
+    const result = await askAI(question, summary, conversationHistory || [], userId, confirmDelete);
     return NextResponse.json({
-      response,
+      response: result.response,
+      pendingDelete: result.pendingDelete || null,
       usage: {
         dailyRemaining: usage.dailyRemaining,
         monthlyRemaining: usage.monthlyRemaining,

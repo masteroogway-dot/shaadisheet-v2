@@ -83,6 +83,7 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
   const [correctingId, setCorrectingId] = useState<number | null>(null);
   const [correctionText, setCorrectionText] = useState("");
   const [dailyRemaining, setDailyRemaining] = useState<number | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ tool: string; args: any } | null>(null);
   const messagesEnd = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -119,6 +120,54 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
     ]);
     setCorrectingId(null);
     setCorrectionText("");
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!pendingDelete) return;
+    const deleteInfo = pendingDelete;
+    setPendingDelete(null);
+    setExecuting(true);
+
+    setMessages((prev) => [...prev, { role: "user", content: "Yes, confirm deletion." }]);
+    setMessages((prev) => [...prev, { role: "bot", content: "Thinking...", thinking: true }]);
+
+    try {
+      await addAiMessage(weddingId, "user", "Yes, confirm deletion.");
+
+      const conversationHistory = messages.slice(-12).map((m) => ({ role: m.role, content: m.content }));
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          weddingId,
+          question: "Yes, confirm deletion.",
+          conversationHistory,
+          confirmDelete: deleteInfo,
+        }),
+      });
+      const data = await res.json();
+
+      const response = data.response || "Deletion completed.";
+      setMessages((prev) => {
+        const without = prev.slice(0, -1);
+        return [...without, { role: "bot", content: response }];
+      });
+      await addAiMessage(weddingId, "bot", response);
+      onUpdate();
+    } catch (e) {
+      setMessages((prev) => {
+        const without = prev.slice(0, -1);
+        return [...without, { role: "bot", content: `Delete failed: ${(e as Error).message}` }];
+      });
+    } finally {
+      setExecuting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setPendingDelete(null);
+    setMessages((prev) => [...prev, { role: "bot", content: "Deletion cancelled. Let me know if you need anything else." }]);
+    addAiMessage(weddingId, "bot", "Deletion cancelled.");
   };
 
   const send = async () => {
@@ -167,6 +216,13 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
 
       await addAiMessage(weddingId, "bot", response);
       onUpdate();
+
+      // Store pending delete if AI requested confirmation
+      if (data.pendingDelete) {
+        setPendingDelete(data.pendingDelete);
+      } else {
+        setPendingDelete(null);
+      }
     } catch (e) {
       setMessages((prev) => {
         const without = prev.slice(0, -1);
@@ -246,6 +302,34 @@ export default function AiPanel({ open, onClose, wedding, weddingId, onUpdate }:
 
         <div ref={messagesEnd} />
       </div>
+
+      {/* Delete confirmation bar */}
+      {pendingDelete && (
+        <div className="px-4 py-3 bg-red-50 border-t border-red-200 shrink-0">
+          <p className="text-xs text-red-700 mb-2 font-medium">
+            <i className="fas fa-exclamation-triangle mr-1.5" />
+            Confirm permanent deletion?
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={handleConfirmDelete}
+              disabled={executing}
+              className="flex-1 px-3 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              {executing ? <i className="fas fa-spinner fa-spin mr-1" /> : <i className="fas fa-trash mr-1" />}
+              Yes, Delete
+            </button>
+            <button
+              onClick={handleCancelDelete}
+              disabled={executing}
+              className="flex-1 px-3 py-2 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <i className="fas fa-times mr-1" />
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Usage warning banner */}
       {dailyRemaining !== null && dailyRemaining <= 5 && dailyRemaining > 0 && (
