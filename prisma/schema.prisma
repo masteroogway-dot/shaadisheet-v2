@@ -111,6 +111,7 @@ model Wedding {
   gifts           Gift[]
   outfits         Outfit[]
   inviteDetails   InviteDetail[]
+  checklistItems  ChecklistItem[]
   user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   collaborators   WeddingCollaborator[]
   events          WeddingEvent[]
@@ -301,4 +302,14 @@ model InviteDetail {
   notes        String  @default("")
   order        Int     @default(0)
   wedding      Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+}
+
+model ChecklistItem {
+  id         String  @id @default(cuid())
+  weddingId  String
+  category   String  @default("Emergency Kit")
+  text       String  @default("")
+  done       Boolean @default(false)
+  order      Int     @default(0)
+  wedding    Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 }

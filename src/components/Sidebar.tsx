@@ -35,7 +35,9 @@ const SECTIONS = [
     title: "Checklists",
     icon: "fa-clipboard-check",
     items: [
-      { id: "checklists", icon: "fa-list-check", label: "All Checklists" },
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
+      { id: "vidaai", icon: "fa-heart-crack", label: "Vidaai Essentials" },
     ],
   },
   {

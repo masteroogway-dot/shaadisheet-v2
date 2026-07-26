@@ -433,6 +433,76 @@ const tools: OpenAI.ChatCompletionTool[] = [
   {
     type: "function",
     function: {
+      name: "create_checklist_items",
+      description: "Create checklist items. Use when user mentions adding items to emergency kit, priest requirements, or vidaai essentials.",
+      parameters: {
+        type: "object",
+        properties: {
+          items: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                category: { type: "string", enum: ["Emergency Kit", "Priest Requirements", "Vidaai Essentials"], description: "Which checklist" },
+                text: { type: "string", description: "Item text" },
+              },
+              required: ["category", "text"],
+            },
+            description: "Array of checklist items to create",
+          },
+        },
+        required: ["items"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_checklist_items",
+      description: "Update checklist items by filter. Use for marking items done/undone.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              category: { type: "string", enum: ["Emergency Kit", "Priest Requirements", "Vidaai Essentials"], description: "Filter by category" },
+              done: { type: "boolean", description: "Filter by done status" },
+            },
+          },
+          updates: {
+            type: "object",
+            properties: {
+              done: { type: "boolean", description: "Mark as done or undone" },
+            },
+          },
+        },
+        required: ["updates"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_checklist_items",
+      description: "Delete checklist items by filter.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              category: { type: "string", enum: ["Emergency Kit", "Priest Requirements", "Vidaai Essentials"], description: "Filter by category" },
+              done: { type: "boolean", description: "Filter by done status" },
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "create_vendor",
       description: "Create a new vendor entry.",
       parameters: {
@@ -827,6 +897,39 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
       const result = await prisma.inviteDetail.deleteMany({ where });
       return `Deleted ${result.count} invitation(s).`;
     }
+    case "create_checklist_items": {
+      const items = a.items || [];
+      const maxOrder = await prisma.checklistItem.aggregate({ where: { weddingId }, _max: { order: true } });
+      let order = (maxOrder._max.order ?? -1) + 1;
+      for (const item of items) {
+        await prisma.checklistItem.create({
+          data: {
+            weddingId,
+            order: order++,
+            category: item.category || "Emergency Kit",
+            text: item.text || "",
+            done: false,
+          },
+        });
+      }
+      return `Created ${items.length} checklist item(s).`;
+    }
+    case "update_checklist_items": {
+      const { filter = {}, updates } = a;
+      const where: any = { weddingId };
+      if (filter.category) where.category = filter.category;
+      if (filter.done !== undefined) where.done = filter.done;
+      const result = await prisma.checklistItem.updateMany({ where, data: updates });
+      return `Updated ${result.count} checklist item(s).`;
+    }
+    case "delete_checklist_items": {
+      const { filter = {} } = a;
+      const where: any = { weddingId };
+      if (filter.category) where.category = filter.category;
+      if (filter.done !== undefined) where.done = filter.done;
+      const result = await prisma.checklistItem.deleteMany({ where });
+      return `Deleted ${result.count} checklist item(s).`;
+    }
     case "create_vendor": {
       await prisma.vendor.create({
         data: { weddingId, name: a.name, category: a.category, contact: a.contact, quote: a.quote, notes: a.notes, contract: "Pending" },
@@ -915,6 +1018,7 @@ You have direct database access via tools:
 - Gift Tracker: Use create_gifts when user says "X gave ₹Y" or "received ₹Y from X". Default side to "Paternal" or "Maternal" based on context if mentioned
 - Outfit Planner: Use create_outfits when user mentions outfit, dress, lehenga, sherwani, gown. Map person from context (bride, groom, mother). Ask which event if not specified.
 - Invitations: Use create_invites when user mentions invite, card, save-the-date, printed cards. Default type to "Main Invite". Ask quantity if not provided.
+- Cultural Checklists: Use create_checklist_items for emergency kit, priest requirements, vidaai essentials. Ask which category if not specified. Mark items done with update_checklist_items.
 - After tool runs, confirm in one sentence, then ask if they need anything else
 
 ## WEDDING EXPERTISE

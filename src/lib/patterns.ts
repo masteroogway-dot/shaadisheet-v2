@@ -28,6 +28,7 @@ const TARGET_SYNONYMS: Record<string, string[]> = {
   gifts: ['gift', 'gifts', 'shagun', 'gift tracker', 'who gave', 'thank you', 'given', 'received', 'cash gift', 'gift amount'],
   outfits: ['outfit', 'outfits', 'dress', 'lehenga', 'sherwani', 'gown', 'saree', 'clothes', 'attire', 'look', 'outfit planner', 'jewelry'],
   invites: ['invite', 'invites', 'invitation', 'card', 'save the date', 'printed', 'dispatched', 'invite details', 'invitation card'],
+  checklists: ['checklist', 'checklists', 'emergency kit', 'priest', 'vidaai', 'vidai', 'cultural', 'items', 'supplies', 'requirements', 'essentials'],
 };
 
 const Rsvp_SYNONYMS: Record<string, string> = {

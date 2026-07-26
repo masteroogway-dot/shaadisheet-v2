@@ -56,6 +56,7 @@ async function getCurrentWedding(weddingId?: string) {
         gifts: { orderBy: { order: "asc" } },
         outfits: { orderBy: { order: "asc" } },
         inviteDetails: { orderBy: { order: "asc" } },
+        checklistItems: { orderBy: { order: "asc" } },
         collaborators: { where: { status: "accepted" }, include: { user: { select: { id: true, name: true, email: true, image: true } } } },
       },
     });
@@ -81,6 +82,7 @@ async function getCurrentWedding(weddingId?: string) {
             gifts: { orderBy: { order: "asc" } },
             outfits: { orderBy: { order: "asc" } },
             inviteDetails: { orderBy: { order: "asc" } },
+            checklistItems: { orderBy: { order: "asc" } },
             collaborators: { where: { status: "accepted" }, include: { user: { select: { id: true, name: true, email: true, image: true } } } },
           },
         });
@@ -105,6 +107,7 @@ async function getCurrentWedding(weddingId?: string) {
         gifts: { orderBy: { order: "asc" } },
         outfits: { orderBy: { order: "asc" } },
         inviteDetails: { orderBy: { order: "asc" } },
+        checklistItems: { orderBy: { order: "asc" } },
       },
     });
     if (!wedding) throw new Error("No wedding found");
@@ -1888,6 +1891,75 @@ export async function batchCreateInviteDetails(weddingId: string, items: any[]) 
         rsvpDeadline: sanitize(item.rsvpDeadline || item.deadline),
         status: sanitize(item.status) || "Planning",
         notes: sanitize(item.notes),
+      },
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CHECKLIST ITEMS
+// ═══════════════════════════════════════════════════════════════
+
+export async function createChecklistItem(weddingId: string, data: {
+  category?: string;
+  text?: string;
+  done?: boolean;
+}) {
+  const wedding = await getCurrentWedding(weddingId);
+  const maxOrder = Math.max(...wedding.checklistItems.map((c: any) => c.order), -1);
+  return prisma.checklistItem.create({
+    data: { weddingId: wedding.id, ...data, order: maxOrder + 1 },
+  });
+}
+
+export async function updateChecklistItem(
+  weddingId: string,
+  id: string,
+  data: {
+    category?: string;
+    text?: string;
+    done?: boolean;
+  }
+) {
+  const wedding = await getCurrentWedding(weddingId);
+  const item = await prisma.checklistItem.findUnique({ where: { id } });
+  if (!item || item.weddingId !== wedding.id) throw new Error("Unauthorized");
+  return prisma.checklistItem.update({ where: { id }, data });
+}
+
+export async function deleteChecklistItem(weddingId: string, id: string) {
+  const wedding = await getCurrentWedding(weddingId);
+  const item = await prisma.checklistItem.findUnique({ where: { id } });
+  if (!item || item.weddingId !== wedding.id) throw new Error("Unauthorized");
+  return prisma.checklistItem.delete({ where: { id } });
+}
+
+export async function bulkDeleteChecklistItems(weddingId: string, ids: string[]) {
+  await getCurrentWedding(weddingId);
+  return prisma.checklistItem.deleteMany({ where: { id: { in: ids }, weddingId } });
+}
+
+export async function bulkUpdateChecklistItems(weddingId: string, ids: string[], data: {
+  done?: boolean;
+}) {
+  await getCurrentWedding(weddingId);
+  return prisma.checklistItem.updateMany({ where: { id: { in: ids }, weddingId }, data });
+}
+
+export async function batchCreateChecklistItems(weddingId: string, items: any[]) {
+  const maxOrder = await prisma.checklistItem.aggregate({
+    where: { weddingId },
+    _max: { order: true },
+  });
+  let order = (maxOrder._max.order ?? -1) + 1;
+  for (const item of items) {
+    await prisma.checklistItem.create({
+      data: {
+        weddingId,
+        order: order++,
+        category: sanitize(item.category) || "Emergency Kit",
+        text: sanitize(item.text) || "",
+        done: typeof item.done === "boolean" ? item.done : false,
       },
     });
   }
