@@ -371,7 +371,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
                       </>
                     ) : (
                       <>
-                        {canEdit && <button onClick={() => { setEditing(v.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen sm:mr-1" /> <span className="hidden sm:inline">Edit</span></button>}
+                        {canEdit && <button onClick={() => { setEditing(v.id); setEditData({ name: v.name, contact: v.contact, category: v.category, quote: v.quote || 0, paid: v.paid || 0, rating: v.rating, contract: v.contract, notes: v.notes }); }} className="btn-edit"><i className="fas fa-pen sm:mr-1" /> <span className="hidden sm:inline">Edit</span></button>}
                         {canEdit && <button onClick={() => setPriceAdvisorVendor(v)} className="btn-edit text-amber-600 border-amber-200 hover:bg-amber-50" title="AI Price Check"><i className="fas fa-wand-magic-sparkles sm:mr-1" /> <span className="hidden sm:inline">Price Check</span></button>}
                         {canEdit && <button onClick={() => handleDelete(v.id)} className="btn-delete"><i className="fas fa-trash sm:mr-1" /> <span className="hidden sm:inline">Delete</span></button>}
                       </>
