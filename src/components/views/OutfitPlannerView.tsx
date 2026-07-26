@@ -154,6 +154,11 @@ export default function OutfitPlannerView({ wedding, weddingId, onUpdate, onToas
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h2 className="text-xl font-bold text-gray-900">Outfit Planner</h2>
         <div className="flex gap-2">
+          {canEdit && outfits.length > 0 && (
+            <button onClick={toggleSelectAll} className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">
+              <i className="fas fa-check-double mr-1" /> {selected.size === filtered.length ? "Deselect All" : "Select All"}
+            </button>
+          )}
           {canEdit && (
             <>
               <button onClick={() => setShowImport(true)} className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">

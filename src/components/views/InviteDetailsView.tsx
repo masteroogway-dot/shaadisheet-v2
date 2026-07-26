@@ -108,6 +108,14 @@ export default function InviteDetailsView({ wedding, weddingId, onUpdate, onToas
     });
   };
 
+  const toggleSelectAll = () => {
+    if (selected.size === filtered.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filtered.map((i) => i.id)));
+    }
+  };
+
   const statusColor = (s: string) => {
     if (s === "Delivered") return "bg-green-100 text-green-800 border-green-200";
     if (s === "Dispatched") return "bg-blue-100 text-blue-800 border-blue-200";
@@ -121,6 +129,11 @@ export default function InviteDetailsView({ wedding, weddingId, onUpdate, onToas
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h2 className="text-xl font-bold text-gray-900">Invitation Details</h2>
         <div className="flex gap-2">
+          {canEdit && invites.length > 0 && (
+            <button onClick={toggleSelectAll} className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">
+              <i className="fas fa-check-double mr-1" /> {selected.size === filtered.length ? "Deselect All" : "Select All"}
+            </button>
+          )}
           {canEdit && (
             <>
               <button onClick={() => setShowImport(true)} className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">

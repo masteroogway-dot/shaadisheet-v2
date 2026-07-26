@@ -240,6 +240,14 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
     });
   };
 
+  const toggleSelectAll = () => {
+    if (selected.size === filteredHashtags.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filteredHashtags.map((h) => h.id)));
+    }
+  };
+
   const languageBadge = (lang: string) => {
     if (lang === "Hindi") return "bg-orange-100 text-orange-700 border-orange-200";
     if (lang === "Bilingual") return "bg-purple-100 text-purple-700 border-purple-200";
@@ -261,11 +269,18 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-900">Hashtag Generator</h2>
-        {canEdit && (
-          <button onClick={() => setShowImport(true)} className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">
-            <i className="fas fa-file-import mr-1" /> Import
-          </button>
-        )}
+        <div className="flex gap-2">
+          {canEdit && hashtags.length > 0 && (
+            <button onClick={toggleSelectAll} className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">
+              <i className="fas fa-check-double mr-1" /> {selected.size === filteredHashtags.length ? "Deselect All" : "Select All"}
+            </button>
+          )}
+          {canEdit && (
+            <button onClick={() => setShowImport(true)} className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">
+              <i className="fas fa-file-import mr-1" /> Import
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Name Input */}
