@@ -1,4 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description:
+    "ShaadiSheet privacy policy. Learn how we collect, use, and protect your personal information.",
+  robots: { index: true, follow: true },
+};
 
 export default function PrivacyPage() {
   return (

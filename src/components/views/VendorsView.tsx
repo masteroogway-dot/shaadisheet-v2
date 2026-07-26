@@ -6,6 +6,7 @@ import { formatINR } from "@/lib/format";
 import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
 import CurrencyInput from "@/components/CurrencyInput";
+import VendorPriceAdvisor from "@/components/VendorPriceAdvisor";
 
 function StarRating({ value, onChange, readonly }: { value: string; onChange?: (v: string) => void; readonly?: boolean }) {
   const stars = 5;
@@ -39,6 +40,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
   const [search, setSearch] = useState("");
   const [filterContract, setFilterContract] = useState("All");
   const [showFilters, setShowFilters] = useState(false);
+  const [priceAdvisorVendor, setPriceAdvisorVendor] = useState<any>(null);
 
   const vendors: any[] = wedding.vendors ?? [];
   const filteredVendors = vendors.filter((v: any) => {
@@ -370,6 +372,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
                     ) : (
                       <>
                         {canEdit && <button onClick={() => { setEditing(v.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen sm:mr-1" /> <span className="hidden sm:inline">Edit</span></button>}
+                        {canEdit && <button onClick={() => setPriceAdvisorVendor(v)} className="btn-edit text-amber-600 border-amber-200 hover:bg-amber-50" title="AI Price Check"><i className="fas fa-wand-magic-sparkles sm:mr-1" /> <span className="hidden sm:inline">Price Check</span></button>}
                         {canEdit && <button onClick={() => handleDelete(v.id)} className="btn-delete"><i className="fas fa-trash sm:mr-1" /> <span className="hidden sm:inline">Delete</span></button>}
                       </>
                     )}
@@ -465,6 +468,15 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
           onToast(`Imported ${items.length} vendor(s)`, "success");
         }}
       />
+
+      {priceAdvisorVendor && (
+        <VendorPriceAdvisor
+          vendor={priceAdvisorVendor}
+          wedding={wedding}
+          weddingId={weddingId}
+          onClose={() => setPriceAdvisorVendor(null)}
+        />
+      )}
     </div>
   );
 }

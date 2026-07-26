@@ -185,8 +185,10 @@ export default function WeddingDashboardPage() {
 
       <div className="flex flex-1 overflow-hidden">
         <Sidebar activeView={activeView} onViewChange={setActiveView} mobileOpen={sidebarOpen} onMobileClose={() => setSidebarOpen(false)} />
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          {renderView()}
+        <main className="flex-1 overflow-y-auto p-4 md:p-8" key={activeView}>
+          <div className="animate-[fadeIn_0.2s_ease-out]">
+            {renderView()}
+          </div>
         </main>
       </div>
 

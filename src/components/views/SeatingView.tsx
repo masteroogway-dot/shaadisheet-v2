@@ -245,51 +245,56 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
           const fillPct = table.capacity > 0 ? Math.round((tableGuests.length / table.capacity) * 100) : 0;
 
           return (
-            <div key={table.id} className={`item-card ${isEditing ? "editing" : ""} relative`}>
-              <div className="absolute top-4 left-4 flex items-center gap-2">
-                <span className="text-[0.65rem] font-bold text-gray-400 bg-gray-100 rounded px-1.5 py-0.5 leading-none">{idx + 1}</span>
-                <input
-                  type="checkbox"
-                  checked={selected.has(table.id)}
-                  onChange={() => toggleSelect(table.id)}
-                  className="w-4 h-4 rounded accent-maroon cursor-pointer"
-                />
+            <div key={table.id} className={`item-card ${isEditing ? "editing" : ""}`}>
+              {/* Header row: checkbox, row number, name, count */}
+              <div className="flex items-center gap-2 mb-2">
+                {canEdit && (
+                  <input
+                    type="checkbox"
+                    checked={selected.has(table.id)}
+                    onChange={() => toggleSelect(table.id)}
+                    className="w-4 h-4 shrink-0 rounded accent-maroon cursor-pointer"
+                  />
+                )}
+                <span className="text-[0.6rem] font-bold text-gray-400 bg-gray-100 rounded px-1 py-0.5 leading-none shrink-0">{idx + 1}</span>
+                {isEditing ? (
+                  <input value={editData.name ?? table.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="card-input py-1 font-bold text-sm flex-1 min-w-0" placeholder="Table name" />
+                ) : (
+                  <h4 className="font-bold text-sm truncate min-w-0 flex-1">{table.name}</h4>
+                )}
+                <span className="text-[0.65rem] font-semibold text-gray-400 shrink-0">{tableGuests.length}/{table.capacity}</span>
               </div>
 
-              {isEditing ? (
-                <div className="space-y-2 mb-4 ml-7">
-                  <input value={editData.name ?? table.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="card-input py-1.5 font-bold" placeholder="Table name" />
-                  <input type="number" value={editData.capacity ?? table.capacity} onChange={(e) => setEditData({ ...editData, capacity: parseInt(e.target.value) || 8 })} className="card-input py-1.5" placeholder="Capacity" />
-                </div>
-              ) : (
-                <div className="flex items-center justify-between mb-1 ml-7">
-                  <h4 className="font-bold text-base truncate min-w-0">{table.name}</h4>
-                  <span className="text-xs text-gray-400">{tableGuests.length}/{table.capacity}</span>
+              {isEditing && (
+                <div className="mb-3">
+                  <input type="number" value={editData.capacity ?? table.capacity} onChange={(e) => setEditData({ ...editData, capacity: parseInt(e.target.value) || 8 })} className="card-input py-1.5 text-sm" placeholder="Capacity" />
                 </div>
               )}
 
-              <div className="ml-7 mb-3">
+              {/* Progress bar */}
+              <div className="mb-3">
                 <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                   <div className="h-full bg-gradient-to-r from-maroon to-gold rounded-full transition-all" style={{ width: `${fillPct}%` }} />
                 </div>
-                <span className="text-xs text-gray-400 mt-1 block">{tableGuests.length} / {table.capacity} seats filled</span>
               </div>
 
-              <div className="flex flex-wrap gap-1.5 mb-3 ml-7">
+              {/* Guest tags */}
+              <div className="flex flex-wrap gap-1.5 mb-3">
                 {tableGuests.length > 0 ? (
                   tableGuests.map((g, i) => (
-                    <span key={i} className="px-2.5 py-1 bg-gray-100 rounded-full text-xs font-medium flex items-center gap-1 truncate max-w-[120px]">
+                    <span key={i} className="px-2 py-0.5 bg-gray-100 rounded-full text-xs font-medium flex items-center gap-1 truncate max-w-[130px]">
                       {g}
-                      {canEdit && <button onClick={() => handleRemoveGuestFromTable(table, i)} className="text-gray-400 hover:text-red-500 cursor-pointer ml-0.5"><i className="fas fa-times text-[0.6rem]" /></button>}
+                      {canEdit && <button onClick={() => handleRemoveGuestFromTable(table, i)} className="text-gray-400 hover:text-red-500 cursor-pointer ml-0.5"><i className="fas fa-times text-[0.55rem]" /></button>}
                     </span>
                   ))
                 ) : (
-                  <span className="px-2.5 py-1 bg-gray-50 rounded-full text-xs font-medium text-gray-400">Empty</span>
+                  <span className="px-2 py-0.5 bg-gray-50 rounded-full text-xs font-medium text-gray-400">Empty</span>
                 )}
               </div>
 
-              {addingGuest === table.id ? (
-                <div className="flex flex-col gap-1.5 ml-7">
+              {/* Add guest search */}
+              {addingGuest === table.id && (
+                <div className="flex flex-col gap-1.5 mb-3">
                   <div className="relative">
                     <input
                       value={guestSearch}
@@ -328,26 +333,27 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
                     )}
                   </div>
                   <div className="flex gap-1.5">
-                    <button onClick={() => { handleAddGuestToTable(table); setGuestSearch(""); }} disabled={!newGuestName.trim()} className="btn-save text-xs py-2 px-3 disabled:opacity-40">Add</button>
-                    <button onClick={() => { setAddingGuest(null); setGuestSearch(""); setNewGuestName(""); }} className="btn-cancel text-xs py-2 px-3">X</button>
+                    <button onClick={() => { handleAddGuestToTable(table); setGuestSearch(""); }} disabled={!newGuestName.trim()} className="btn-save text-xs py-1.5 px-3 disabled:opacity-40">Add</button>
+                    <button onClick={() => { setAddingGuest(null); setGuestSearch(""); setNewGuestName(""); }} className="btn-cancel text-xs py-1.5 px-3">Cancel</button>
                   </div>
                 </div>
-              ) : (
-                <div className="flex gap-1.5 mt-2 ml-7">
-                  {isEditing ? (
-                    <>
-                      {canEdit && <button onClick={() => handleSaveTable(table.id)} className="btn-save text-xs py-2 px-4">Save</button>}
-                      <button onClick={() => setEditing(null)} className="btn-cancel text-xs py-2 px-3">Cancel</button>
-                    </>
-                  ) : (
-                    <>
-                      {canEdit && <button onClick={() => setAddingGuest(table.id)} className="btn-edit text-xs py-2 px-3"><i className="fas fa-plus mr-1" />Guest</button>}
-                      {canEdit && <button onClick={() => { setEditing(table.id); setEditData({}); }} className="btn-edit text-xs py-2 px-3">Edit</button>}
-                      {canEdit && <button onClick={() => handleDeleteTable(table.id)} className="btn-delete text-xs py-2 px-3">Del</button>}
-                    </>
-                  )}
-                </div>
               )}
+
+              {/* Action buttons */}
+              <div className="flex gap-1.5">
+                {isEditing ? (
+                  <>
+                    {canEdit && <button onClick={() => handleSaveTable(table.id)} className="btn-save text-xs py-1.5 px-4">Save</button>}
+                    <button onClick={() => setEditing(null)} className="btn-cancel text-xs py-1.5 px-3">Cancel</button>
+                  </>
+                ) : (
+                  <>
+                    {canEdit && <button onClick={() => setAddingGuest(table.id)} className="btn-edit text-xs py-1.5 px-3"><i className="fas fa-plus mr-1" />Guest</button>}
+                    {canEdit && <button onClick={() => { setEditing(table.id); setEditData({}); }} className="btn-edit text-xs py-1.5 px-3">Edit</button>}
+                    {canEdit && <button onClick={() => handleDeleteTable(table.id)} className="btn-delete text-xs py-1.5 px-3">Del</button>}
+                  </>
+                )}
+              </div>
             </div>
           );
         })}

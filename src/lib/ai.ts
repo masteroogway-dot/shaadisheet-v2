@@ -601,7 +601,8 @@ You have direct database access via tools:
 - Never make up vendor names. Use search_vendors for real results.
 - When listing prices, use table format.
 - If ambiguous, ask for clarification with specific options.
-- Never use horizontal rules (---).`;
+- Never use horizontal rules (---).
+- INDIAN CURRENCY MATH: ₹30,00,000 = 30 lakh = 3,000,000 rupees. ₹30,00,000 ÷ 400 guests = ₹7,500 per plate (NOT ₹750). Always count zeros carefully. Lakh = 1,00,000 (5 zeros). Crore = 1,00,00,000 (7 zeros).`;
 }
 
 // ─── Destructive tool names ────────────────────────────────────────

@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import { getAllWeddings, createWedding, updateWedding, deleteWedding } from "@/lib/actions";
 import { formatINR } from "@/lib/format";
 import ProfileMenu from "@/components/ProfileMenu";
+import NoIndex from "@/components/NoIndex";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -145,6 +146,8 @@ export default function DashboardPage() {
   }
 
   return (
+    <>
+    <NoIndex />
     <div className="min-h-screen bg-gray-50">
       {/* Top header */}
       <div className="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 sticky top-0 z-50 shrink-0">
@@ -359,5 +362,6 @@ export default function DashboardPage() {
         )}
       </div>
     </div>
+    </>
   );
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { updateGuest, createGuest, deleteGuest, batchCreateGuests, bulkDeleteGuests, bulkAddGuests, getRsvpToken } from "@/lib/actions";
 import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
+import WhatsAppInvite from "@/components/WhatsAppInvite";
 
 export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canEdit = true }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error", options?: { undoAction?: () => void }) => void; canEdit?: boolean }) {
   const [editing, setEditing] = useState<string | null>(null);
@@ -19,6 +20,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
   const [filterDietary, setFilterDietary] = useState("All");
   const [rsvpLink, setRsvpLink] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [whatsappGuest, setWhatsappGuest] = useState<any>(null);
 
   const guests = wedding.guests || [];
   const filteredGuests = guests.filter((g: any) => {
@@ -358,6 +360,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
                     ) : (
                       <>
                         {canEdit && <button onClick={() => { setEditing(g.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen sm:mr-1" /> <span className="hidden sm:inline">Edit</span></button>}
+                        {!isEditing && <button onClick={() => setWhatsappGuest(g)} className="btn-edit text-green-600 border-green-200 hover:bg-green-50" title="Generate WhatsApp Invite"><i className="fab fa-whatsapp sm:mr-1" /> <span className="hidden sm:inline">Invite</span></button>}
                         {canEdit && (
                           <button onClick={() => handleDelete(g.id)} className="btn-delete"><i className="fas fa-trash sm:mr-1" /> <span className="hidden sm:inline">Delete</span></button>
                         )}
@@ -443,6 +446,15 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
           }
         }}
       />
+
+      {whatsappGuest && (
+        <WhatsAppInvite
+          guest={whatsappGuest}
+          wedding={wedding}
+          weddingId={weddingId}
+          onClose={() => setWhatsappGuest(null)}
+        />
+      )}
     </div>
   );
 }

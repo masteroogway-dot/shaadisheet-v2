@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signup } from "@/lib/actions";
+import NoIndex from "@/components/NoIndex";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -63,6 +64,8 @@ export default function AuthPage() {
   };
 
   return (
+    <>
+    <NoIndex />
     <div className="flex min-h-screen">
       {/* Left Panel */}
       <div className="hidden lg:flex flex-1 bg-maroon text-white p-16 flex-col justify-center relative overflow-hidden">
@@ -185,5 +188,6 @@ export default function AuthPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

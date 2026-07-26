@@ -1,4 +1,17 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Blog",
+  description:
+    "Tips, guides, and stories for Indian wedding planning. Budget advice, vendor reviews, ritual checklists, and more from ShaadiSheet.",
+  openGraph: {
+    title: "Blog | ShaadiSheet",
+    description:
+      "Tips, guides, and stories for Indian wedding planning.",
+    url: "https://www.shaadisheet.com/blog",
+  },
+};
 
 export default function BlogPage() {
   return (

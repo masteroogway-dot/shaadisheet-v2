@@ -1,4 +1,17 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "About",
+  description:
+    "Learn about ShaadiSheet — the modern Indian wedding planning app built for Hindu, Muslim, Sikh, Christian, and Jain weddings. Budget tracking, vendor management, and AI assistance.",
+  openGraph: {
+    title: "About ShaadiSheet",
+    description:
+      "The modern Indian wedding planning app built for Hindu, Muslim, Sikh, Christian, and Jain weddings.",
+    url: "https://www.shaadisheet.com/about",
+  },
+};
 
 export default function AboutPage() {
   return (

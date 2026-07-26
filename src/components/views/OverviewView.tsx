@@ -171,6 +171,18 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
 
   const hasData = totalBudget > 0 || totalGuests > 0 || totalVendors > 0 || totalTasks > 0 || totalRooms > 0;
 
+  // Calculate overall progress
+  const progressItems = [
+    { done: wedding.weddingDate ? 1 : 0, total: 1 },
+    { done: totalBudget > 0 ? 1 : 0, total: 1 },
+    { done: Math.min(totalGuests, 50), total: 50 },
+    { done: vendorsBooked, total: Math.max(totalVendors, 1) },
+    { done: tasksDone, total: Math.max(totalTasks, 1) },
+  ];
+  const progressPct = Math.round(
+    progressItems.reduce((s, p) => s + (p.done / p.total) * 100, 0) / progressItems.length
+  );
+
   const dynamicTips = [];
   if (!wedding.weddingDate) {
     dynamicTips.push({ icon: "fa-calendar-check", color: "#D1FAE5", text: "Set your wedding date to unlock countdown and reminders." });
@@ -203,6 +215,33 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
             {countdown !== null ? (countdown > 0 ? `${countdown} days until your wedding` : countdown === 0 ? "Your wedding day!" : `${Math.abs(countdown)} days since your wedding`) : "Set your wedding date to see countdown"}
           </p>
         </div>
+        {hasData && (
+          <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 shrink-0">
+            <div className="relative w-12 h-12">
+              <svg className="w-12 h-12 -rotate-90" viewBox="0 0 48 48">
+                <circle cx="24" cy="24" r="20" fill="none" stroke="#E5E7EB" strokeWidth="4" />
+                <circle
+                  cx="24" cy="24" r="20" fill="none" stroke="url(#progressGradient)" strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeDasharray={`${2 * Math.PI * 20}`}
+                  strokeDashoffset={`${2 * Math.PI * 20 * (1 - progressPct / 100)}`}
+                  className="transition-all duration-1000 ease-out"
+                />
+                <defs>
+                  <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#722F37" />
+                    <stop offset="100%" stopColor="#D4AF37" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-900">{progressPct}%</span>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 font-medium">Planning</p>
+              <p className="text-sm font-bold text-gray-900">{progressPct >= 80 ? "Almost there!" : progressPct >= 50 ? "Looking good" : "Just started"}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {!hasData ? (
@@ -257,119 +296,110 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Budget */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-lg gap-3 sm:gap-4">
-                  <div className={`min-w-0 ${editingBudget ? "sm:w-[220px]" : "flex-1"}`}>
-                    <p className="text-xs text-gray-500 font-medium mb-1">Total Budget</p>
-                    {editingBudget ? (
-                      <div>
-                        <CurrencyInput
-                          value={parseInt(editBudget) || 0}
-                          onChange={(val) => setEditBudget(String(val))}
-                          placeholder={String(wedding.budget || "")}
-                        />
-                        <p className="text-[0.65rem] text-gray-400 mt-1 ml-7">Min: ₹10 Lakh, Max: ₹10 Crore</p>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-500 font-medium mb-2">Total Budget</p>
+                  {editingBudget ? (
+                    <>
+                      <CurrencyInput
+                        value={parseInt(editBudget) || 0}
+                        onChange={(val) => setEditBudget(String(val))}
+                        placeholder={String(wedding.budget || "")}
+                      />
+                      <p className="text-[0.65rem] text-gray-400 mt-1">Min: ₹10 Lakh, Max: ₹10 Crore</p>
+                      <div className="flex gap-2 mt-3">
+                        <button onClick={handleSaveBudget} disabled={saving} className="px-3 py-1.5 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
+                          {saving ? "Saving..." : "Save"}
+                        </button>
+                        <button onClick={() => setEditingBudget(false)} className="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
+                          Cancel
+                        </button>
                       </div>
-                    ) : (
-                      <p className="text-lg font-extrabold text-gray-900 overflow-hidden text-ellipsis">
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-lg font-extrabold text-gray-900 truncate">
                         {totalBudget > 0 ? formatINR(totalBudget) : "Not set"}
                       </p>
-                    )}
-                  </div>
-                  {editingBudget ? (
-                    <div className="flex gap-2 shrink-0">
-                      <button onClick={handleSaveBudget} disabled={saving} className="px-3 py-2 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
-                        {saving ? "Saving..." : "Save"}
-                      </button>
-                      <button onClick={() => setEditingBudget(false)} className="px-3 py-2 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
-                        Cancel
-                      </button>
+                      {canEditBudget && (
+                        <button onClick={() => { setEditBudget(String(wedding.budget || "")); setEditingBudget(true); }} className="px-2.5 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer shrink-0">
+                          <i className="fas fa-pen" />
+                        </button>
+                      )}
                     </div>
-                  ) : (
-                    canEditBudget && (
-                      <button onClick={() => { setEditBudget(String(wedding.budget || "")); setEditingBudget(true); }} className="px-3 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer shrink-0">
-                        <i className="fas fa-pen mr-1" /> Edit
-                      </button>
-                    )
                   )}
                 </div>
 
                 {/* Guest Count */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-lg gap-3 sm:gap-4">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs text-gray-500 font-medium mb-1">Expected Guests</p>
-                    {editingGuests ? (
-                      <div>
-                        <input
-                          type="number"
-                          value={editGuests}
-                          onChange={(e) => setEditGuests(e.target.value)}
-                          placeholder={String(wedding.guestCount || "")}
-                          className="w-full sm:w-[200px] px-3 py-1.5 border-2 border-gray-200 focus:border-maroon rounded-lg text-sm font-bold focus:outline-none transition-colors"
-                          min={GUEST_MIN}
-                          max={GUEST_MAX}
-                        />
-                        <p className="text-[0.65rem] text-gray-400 mt-1">Min: 50, Max: 5,000</p>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-500 font-medium mb-2">Expected Guests</p>
+                  {editingGuests ? (
+                    <>
+                      <input
+                        type="number"
+                        value={editGuests}
+                        onChange={(e) => setEditGuests(e.target.value)}
+                        placeholder={String(wedding.guestCount || "")}
+                        className="w-full px-3 py-1.5 border-2 border-gray-200 focus:border-maroon rounded-lg text-sm font-bold focus:outline-none transition-colors"
+                        min={GUEST_MIN}
+                        max={GUEST_MAX}
+                      />
+                      <p className="text-[0.65rem] text-gray-400 mt-1">Min: 50, Max: 5,000</p>
+                      <div className="flex gap-2 mt-3">
+                        <button onClick={handleSaveGuests} disabled={saving} className="px-3 py-1.5 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
+                          {saving ? "Saving..." : "Save"}
+                        </button>
+                        <button onClick={() => setEditingGuests(false)} className="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
+                          Cancel
+                        </button>
                       </div>
-                    ) : (
-                      <p className="text-lg font-extrabold text-gray-900 overflow-hidden text-ellipsis">
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-lg font-extrabold text-gray-900 truncate">
                         {(wedding.guestCount || 0) > 0 ? (wedding.guestCount || 0).toLocaleString("en-IN") : "Not set"}
                       </p>
-                    )}
-                  </div>
-                  {editingGuests ? (
-                    <div className="flex gap-2 shrink-0">
-                      <button onClick={handleSaveGuests} disabled={saving} className="px-3 py-2 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
-                        {saving ? "Saving..." : "Save"}
-                      </button>
-                      <button onClick={() => setEditingGuests(false)} className="px-3 py-2 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
-                        Cancel
-                      </button>
+                      {canEditBudget && (
+                        <button onClick={() => { setEditGuests(String(wedding.guestCount || "")); setEditingGuests(true); }} className="px-2.5 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer shrink-0">
+                          <i className="fas fa-pen" />
+                        </button>
+                      )}
                     </div>
-                  ) : (
-                    canEditBudget && (
-                      <button onClick={() => { setEditGuests(String(wedding.guestCount || "")); setEditingGuests(true); }} className="px-3 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer shrink-0">
-                        <i className="fas fa-pen mr-1" /> Edit
-                      </button>
-                    )
                   )}
                 </div>
 
                 {/* Wedding Date */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-lg gap-3 sm:gap-4">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs text-gray-500 font-medium mb-1">Wedding Date</p>
-                    {editingDate ? (
-                      <div>
-                        <input
-                          type="date"
-                          value={editDate}
-                          onChange={(e) => setEditDate(e.target.value)}
-                          className="w-full sm:w-[200px] px-3 py-1.5 border-2 border-gray-200 focus:border-maroon rounded-lg text-sm font-bold focus:outline-none transition-colors"
-                        />
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-500 font-medium mb-2">Wedding Date</p>
+                  {editingDate ? (
+                    <>
+                      <input
+                        type="date"
+                        value={editDate}
+                        onChange={(e) => setEditDate(e.target.value)}
+                        className="w-full px-3 py-1.5 border-2 border-gray-200 focus:border-maroon rounded-lg text-sm font-bold focus:outline-none transition-colors"
+                      />
+                      <div className="flex gap-2 mt-3">
+                        <button onClick={handleSaveDate} disabled={saving} className="px-3 py-1.5 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
+                          {saving ? "Saving..." : "Save"}
+                        </button>
+                        <button onClick={() => setEditingDate(false)} className="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
+                          Cancel
+                        </button>
                       </div>
-                    ) : (
-                      <p className="text-lg font-extrabold text-gray-900 overflow-hidden text-ellipsis">
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-lg font-extrabold text-gray-900 truncate">
                         {wedding.weddingDate
                           ? new Date(wedding.weddingDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
                           : "Not set"}
                       </p>
-                    )}
-                  </div>
-                  {editingDate ? (
-                    <div className="flex gap-2 shrink-0">
-                      <button onClick={handleSaveDate} disabled={saving} className="px-3 py-2 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
-                        {saving ? "Saving..." : "Save"}
-                      </button>
-                      <button onClick={() => setEditingDate(false)} className="px-3 py-2 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
-                        Cancel
-                      </button>
+                      {canEditBudget && (
+                        <button onClick={() => { setEditDate(wedding.weddingDate ? new Date(wedding.weddingDate).toISOString().split("T")[0] : ""); setEditingDate(true); }} className="px-2.5 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer shrink-0">
+                          <i className="fas fa-pen" />
+                        </button>
+                      )}
                     </div>
-                  ) : (
-                    canEditBudget && (
-                      <button onClick={() => { setEditDate(wedding.weddingDate ? new Date(wedding.weddingDate).toISOString().split("T")[0] : ""); setEditingDate(true); }} className="px-3 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer shrink-0">
-                        <i className="fas fa-pen mr-1" /> Edit
-                      </button>
-                    )
                   )}
                 </div>
               </div>

@@ -1,4 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Security",
+  description:
+    "How ShaadiSheet protects your data. Learn about our security practices, encryption, and authentication.",
+  robots: { index: true, follow: true },
+};
 
 export default function SecurityPage() {
   return (
