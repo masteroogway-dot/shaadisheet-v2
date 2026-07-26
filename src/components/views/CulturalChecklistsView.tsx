@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { createChecklistItem, updateChecklistItem, deleteChecklistItem, bulkDeleteChecklistItems, bulkUpdateChecklistItems, batchCreateChecklistItems } from "@/lib/actions";
+import { createChecklistItem, updateChecklistItem, deleteChecklistItem, bulkDeleteChecklistItems, bulkUpdateChecklistItems, batchCreateChecklistItems, bulkAddChecklistItems } from "@/lib/actions";
 import ImportModal from "@/components/ImportModal";
 
 const TABS = [
@@ -71,6 +71,8 @@ export default function CulturalChecklistsView({ wedding, weddingId, onUpdate, o
   const [newItemText, setNewItemText] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showImport, setShowImport] = useState(false);
+  const [showBulkAdd, setShowBulkAdd] = useState(false);
+  const [bulkAddCount, setBulkAddCount] = useState(5);
 
   const items = useMemo(() => allItems.filter((i) => i.category === activeTab), [allItems, activeTab]);
 
@@ -96,6 +98,19 @@ export default function CulturalChecklistsView({ wedding, weddingId, onUpdate, o
       onToast("Item added");
     } catch (e) {
       onToast("Failed to add item", "error");
+    }
+  };
+
+  const handleBulkAdd = async () => {
+    if (bulkAddCount <= 0) return;
+    try {
+      await bulkAddChecklistItems(weddingId, bulkAddCount, activeTab);
+      setShowBulkAdd(false);
+      setBulkAddCount(5);
+      onUpdate();
+      onToast(`${bulkAddCount} row${bulkAddCount > 1 ? "s" : ""} created`);
+    } catch {
+      onToast("Failed to add rows", "error");
     }
   };
 
@@ -291,11 +306,26 @@ export default function CulturalChecklistsView({ wedding, weddingId, onUpdate, o
 
           {/* Load Defaults Button */}
           {canEdit && (
-            <button onClick={handleLoadDefaults} className="w-full py-2 border border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-rose-400 hover:text-rose-500 text-sm font-medium transition-colors">
-              <i className="fas fa-download mr-1" /> Load Missing Defaults
-            </button>
+            <>
+              <button onClick={handleLoadDefaults} className="w-full py-2 border border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-rose-400 hover:text-rose-500 text-sm font-medium transition-colors">
+                <i className="fas fa-download mr-1" /> Load Missing Defaults
+              </button>
+              <button onClick={() => setShowBulkAdd(true)} className="w-full py-2 border border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-rose-400 hover:text-rose-500 text-sm font-medium transition-colors">
+                <i className="fas fa-plus mr-1" /> Add Blank Items
+              </button>
+            </>
           )}
         </>
+      )}
+
+      {/* Bulk Add */}
+      {showBulkAdd && canEdit && (
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 bg-rose-50 border border-rose-200 rounded-lg">
+          <span className="text-sm font-medium">Add how many items?</span>
+          <input type="number" min={1} max={500} value={bulkAddCount} onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 1)} className="w-20 px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-center" />
+          <button onClick={handleBulkAdd} className="px-4 py-1.5 bg-rose-500 text-white rounded-lg text-sm font-medium hover:bg-rose-600">Add</button>
+          <button onClick={() => { setShowBulkAdd(false); setBulkAddCount(5); }} className="px-4 py-1.5 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300">Cancel</button>
+        </div>
       )}
 
       {/* Add Item */}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createGift, updateGift, deleteGift, bulkDeleteGifts, bulkUpdateGifts, batchCreateGifts } from "@/lib/actions";
+import { createGift, updateGift, deleteGift, bulkDeleteGifts, bulkUpdateGifts, batchCreateGifts, bulkAddGifts } from "@/lib/actions";
 import { formatINR } from "@/lib/format";
 import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
@@ -22,6 +22,8 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
   const [filterThankYou, setFilterThankYou] = useState("All");
   const [search, setSearch] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [showBulkAdd, setShowBulkAdd] = useState(false);
+  const [bulkAddCount, setBulkAddCount] = useState(5);
   const [rangeInput, setRangeInput] = useState("");
 
   const filtered = gifts.filter((g: any) => {
@@ -102,6 +104,19 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
       onToast("Gift added", "success");
     } catch {
       onToast("Failed to add gift", "error");
+    }
+  };
+
+  const handleBulkAdd = async () => {
+    if (bulkAddCount <= 0) return;
+    try {
+      await bulkAddGifts(weddingId, bulkAddCount);
+      setShowBulkAdd(false);
+      setBulkAddCount(5);
+      onUpdate();
+      onToast(`${bulkAddCount} row${bulkAddCount > 1 ? "s" : ""} created`);
+    } catch {
+      onToast("Failed to add rows", "error");
     }
   };
 
@@ -381,10 +396,19 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
           })}
 
           {canEdit && (
-            <button onClick={handleAdd} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm font-semibold text-gray-500 hover:border-maroon hover:text-maroon transition-colors cursor-pointer">
+            <button onClick={() => setShowBulkAdd(true)} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm font-semibold text-gray-500 hover:border-rose-400 hover:text-rose-500 transition-colors cursor-pointer">
               <i className="fas fa-plus mr-1.5" /> Add More Gifts
             </button>
           )}
+        </div>
+      )}
+
+      {showBulkAdd && canEdit && (
+        <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 bg-rose-50 border border-rose-200 rounded-lg">
+          <span className="text-sm font-medium">Add how many gifts?</span>
+          <input type="number" min={1} max={500} value={bulkAddCount} onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 1)} className="w-20 px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-center" />
+          <button onClick={handleBulkAdd} className="px-4 py-1.5 bg-rose-500 text-white rounded-lg text-sm font-medium hover:bg-rose-600">Add</button>
+          <button onClick={() => { setShowBulkAdd(false); setBulkAddCount(5); }} className="px-4 py-1.5 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300">Cancel</button>
         </div>
       )}
 

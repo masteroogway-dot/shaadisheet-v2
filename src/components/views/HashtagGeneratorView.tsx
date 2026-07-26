@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { createHashtag, updateHashtag, deleteHashtag, bulkDeleteHashtags, batchCreateHashtags } from "@/lib/actions";
+import { createHashtag, updateHashtag, deleteHashtag, bulkDeleteHashtags, batchCreateHashtags, bulkAddHashtags } from "@/lib/actions";
 import ImportModal from "@/components/ImportModal";
 
 const STYLES = ["All", "Romantic", "Funny", "Pun", "Traditional", "Modern"];
@@ -101,6 +101,8 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showSaved, setShowSaved] = useState(true);
   const [showImport, setShowImport] = useState(false);
+  const [showBulkAdd, setShowBulkAdd] = useState(false);
+  const [bulkAddCount, setBulkAddCount] = useState(5);
 
   const filteredHashtags = useMemo(() => {
     let list = [...hashtags];
@@ -135,6 +137,19 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
       onToast(`Generated ${newHashtags.length} hashtags`);
     } catch (e) {
       onToast("Failed to generate hashtags", "error");
+    }
+  };
+
+  const handleBulkAdd = async () => {
+    if (bulkAddCount <= 0) return;
+    try {
+      await bulkAddHashtags(weddingId, bulkAddCount);
+      setShowBulkAdd(false);
+      setBulkAddCount(5);
+      onUpdate();
+      onToast(`${bulkAddCount} row${bulkAddCount > 1 ? "s" : ""} created`);
+    } catch {
+      onToast("Failed to add rows", "error");
     }
   };
 
@@ -401,6 +416,22 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
           >
             <i className="fas fa-download mr-1" /> Export CSV
           </button>
+        </div>
+      )}
+
+      {/* Add More */}
+      {canEdit && (
+        <button onClick={() => setShowBulkAdd(true)} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-rose-400 hover:text-rose-500 text-sm font-medium transition-colors">
+          <i className="fas fa-plus mr-1" /> Add Blank Hashtags
+        </button>
+      )}
+
+      {showBulkAdd && canEdit && (
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 bg-rose-50 border border-rose-200 rounded-lg">
+          <span className="text-sm font-medium">Add how many hashtags?</span>
+          <input type="number" min={1} max={500} value={bulkAddCount} onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 1)} className="w-20 px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-center" />
+          <button onClick={handleBulkAdd} className="px-4 py-1.5 bg-rose-500 text-white rounded-lg text-sm font-medium hover:bg-rose-600">Add</button>
+          <button onClick={() => { setShowBulkAdd(false); setBulkAddCount(5); }} className="px-4 py-1.5 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300">Cancel</button>
         </div>
       )}
 

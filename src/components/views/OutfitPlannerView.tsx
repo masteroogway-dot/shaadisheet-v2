@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createOutfit, updateOutfit, deleteOutfit, bulkDeleteOutfits, batchCreateOutfits } from "@/lib/actions";
+import { createOutfit, updateOutfit, deleteOutfit, bulkDeleteOutfits, batchCreateOutfits, bulkAddOutfits } from "@/lib/actions";
 import { formatINR } from "@/lib/format";
 import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
@@ -22,6 +22,8 @@ export default function OutfitPlannerView({ wedding, weddingId, onUpdate, onToas
   const [filterStatus, setFilterStatus] = useState("All");
   const [search, setSearch] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [showBulkAdd, setShowBulkAdd] = useState(false);
+  const [bulkAddCount, setBulkAddCount] = useState(5);
   const [view, setView] = useState<"list" | "matrix">("list");
 
   const eventNames = [...new Set(outfits.map((o) => o.event).filter(Boolean))];
@@ -69,6 +71,19 @@ export default function OutfitPlannerView({ wedding, weddingId, onUpdate, onToas
       onToast("Outfit added");
     } catch (e) {
       onToast("Failed to add outfit", "error");
+    }
+  };
+
+  const handleBulkAdd = async () => {
+    if (bulkAddCount <= 0) return;
+    try {
+      await bulkAddOutfits(weddingId, bulkAddCount);
+      setShowBulkAdd(false);
+      setBulkAddCount(5);
+      onUpdate();
+      onToast(`${bulkAddCount} row${bulkAddCount > 1 ? "s" : ""} created`);
+    } catch {
+      onToast("Failed to add rows", "error");
     }
   };
 
@@ -331,9 +346,18 @@ export default function OutfitPlannerView({ wedding, weddingId, onUpdate, onToas
 
       {/* Add More */}
       {canEdit && outfits.length > 0 && (
-        <button onClick={handleAdd} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-rose-400 hover:text-rose-500 text-sm font-medium transition-colors">
+        <button onClick={() => setShowBulkAdd(true)} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-rose-400 hover:text-rose-500 text-sm font-medium transition-colors">
           <i className="fas fa-plus mr-1" /> Add Outfit
         </button>
+      )}
+
+      {showBulkAdd && canEdit && (
+        <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 bg-rose-50 border border-rose-200 rounded-lg">
+          <span className="text-sm font-medium">Add how many outfits?</span>
+          <input type="number" min={1} max={500} value={bulkAddCount} onChange={(e) => setBulkAddCount(parseInt(e.target.value) || 1)} className="w-20 px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-center" />
+          <button onClick={handleBulkAdd} className="px-4 py-1.5 bg-rose-500 text-white rounded-lg text-sm font-medium hover:bg-rose-600">Add</button>
+          <button onClick={() => { setShowBulkAdd(false); setBulkAddCount(5); }} className="px-4 py-1.5 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300">Cancel</button>
+        </div>
       )}
 
       <ImportModal

@@ -2032,3 +2032,62 @@ export async function batchCreateHashtags(weddingId: string, items: any[]) {
     });
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// BULK ADD (mass create blank rows)
+// ═══════════════════════════════════════════════════════════════
+
+export async function bulkAddGifts(weddingId: string, count: number) {
+  await getCurrentWedding(weddingId);
+  const maxOrder = await prisma.gift.aggregate({ where: { weddingId }, _max: { order: true } });
+  let order = (maxOrder._max.order ?? -1) + 1;
+  for (let i = 0; i < count; i++) {
+    await prisma.gift.create({
+      data: { weddingId, order: order++, fromName: "", fromSide: "Both", amount: 0, giftType: "Cash", received: "Yes", thankYou: "Pending", notes: "" },
+    });
+  }
+}
+
+export async function bulkAddOutfits(weddingId: string, count: number) {
+  await getCurrentWedding(weddingId);
+  const maxOrder = await prisma.outfit.aggregate({ where: { weddingId }, _max: { order: true } });
+  let order = (maxOrder._max.order ?? -1) + 1;
+  for (let i = 0; i < count; i++) {
+    await prisma.outfit.create({
+      data: { weddingId, order: order++, event: "", person: "Bride", description: "", designer: "", status: "Shopping", cost: 0, jewelryPairing: "", notes: "" },
+    });
+  }
+}
+
+export async function bulkAddInviteDetails(weddingId: string, count: number) {
+  await getCurrentWedding(weddingId);
+  const maxOrder = await prisma.inviteDetail.aggregate({ where: { weddingId }, _max: { order: true } });
+  let order = (maxOrder._max.order ?? -1) + 1;
+  for (let i = 0; i < count; i++) {
+    await prisma.inviteDetail.create({
+      data: { weddingId, order: order++, type: "Main Invite", description: "", designer: "", printer: "", quantity: 0, cost: 0, sentDate: "", rsvpDeadline: "", status: "Planning", notes: "" },
+    });
+  }
+}
+
+export async function bulkAddChecklistItems(weddingId: string, count: number, category: string) {
+  await getCurrentWedding(weddingId);
+  const maxOrder = await prisma.checklistItem.aggregate({ where: { weddingId }, _max: { order: true } });
+  let order = (maxOrder._max.order ?? -1) + 1;
+  for (let i = 0; i < count; i++) {
+    await prisma.checklistItem.create({
+      data: { weddingId, order: order++, category: category || "Emergency Kit", text: "", done: false },
+    });
+  }
+}
+
+export async function bulkAddHashtags(weddingId: string, count: number) {
+  await getCurrentWedding(weddingId);
+  const maxOrder = await prisma.hashtag.aggregate({ where: { weddingId }, _max: { order: true } });
+  let order = (maxOrder._max.order ?? -1) + 1;
+  for (let i = 0; i < count; i++) {
+    await prisma.hashtag.create({
+      data: { weddingId, order: order++, text: "", language: "English", style: "Romantic", favorite: false },
+    });
+  }
+}
