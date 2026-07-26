@@ -20,6 +20,7 @@ import GiftTrackerView from "@/components/views/GiftTrackerView";
 import OutfitPlannerView from "@/components/views/OutfitPlannerView";
 import InviteDetailsView from "@/components/views/InviteDetailsView";
 import CulturalChecklistsView from "@/components/views/CulturalChecklistsView";
+import HashtagGeneratorView from "@/components/views/HashtagGeneratorView";
 import AiPanel from "@/components/AiPanel";
 import ProfileMenu from "@/components/ProfileMenu";
 import ToastContainer, { Toast } from "@/components/Toast";
@@ -137,6 +138,7 @@ export default function WeddingDashboardPage() {
       case "emergency-kit": return <CulturalChecklistsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} initialTab="Emergency Kit" />;
       case "priest-req": return <CulturalChecklistsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} initialTab="Priest Requirements" />;
       case "vidaai": return <CulturalChecklistsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} initialTab="Vidaai Essentials" />;
+      case "hashtags": return <HashtagGeneratorView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       default: return <OverviewView wedding={wedding} onUpdate={refreshWedding} userRole={userRole} onToast={addToast} />;
     }
   };

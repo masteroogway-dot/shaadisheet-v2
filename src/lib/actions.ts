@@ -57,6 +57,7 @@ async function getCurrentWedding(weddingId?: string) {
         outfits: { orderBy: { order: "asc" } },
         inviteDetails: { orderBy: { order: "asc" } },
         checklistItems: { orderBy: { order: "asc" } },
+        hashtags: { orderBy: { order: "asc" } },
         collaborators: { where: { status: "accepted" }, include: { user: { select: { id: true, name: true, email: true, image: true } } } },
       },
     });
@@ -83,6 +84,7 @@ async function getCurrentWedding(weddingId?: string) {
             outfits: { orderBy: { order: "asc" } },
             inviteDetails: { orderBy: { order: "asc" } },
             checklistItems: { orderBy: { order: "asc" } },
+            hashtags: { orderBy: { order: "asc" } },
             collaborators: { where: { status: "accepted" }, include: { user: { select: { id: true, name: true, email: true, image: true } } } },
           },
         });
@@ -108,6 +110,7 @@ async function getCurrentWedding(weddingId?: string) {
         outfits: { orderBy: { order: "asc" } },
         inviteDetails: { orderBy: { order: "asc" } },
         checklistItems: { orderBy: { order: "asc" } },
+        hashtags: { orderBy: { order: "asc" } },
       },
     });
     if (!wedding) throw new Error("No wedding found");
@@ -1960,6 +1963,71 @@ export async function batchCreateChecklistItems(weddingId: string, items: any[])
         category: sanitize(item.category) || "Emergency Kit",
         text: sanitize(item.text) || "",
         done: typeof item.done === "boolean" ? item.done : false,
+      },
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HASHTAGS
+// ═══════════════════════════════════════════════════════════════
+
+export async function createHashtag(weddingId: string, data: {
+  text?: string;
+  language?: string;
+  style?: string;
+  favorite?: boolean;
+}) {
+  const wedding = await getCurrentWedding(weddingId);
+  const maxOrder = Math.max(...wedding.hashtags.map((h: any) => h.order), -1);
+  return prisma.hashtag.create({
+    data: { weddingId: wedding.id, ...data, order: maxOrder + 1 },
+  });
+}
+
+export async function updateHashtag(
+  weddingId: string,
+  id: string,
+  data: {
+    text?: string;
+    language?: string;
+    style?: string;
+    favorite?: boolean;
+  }
+) {
+  const wedding = await getCurrentWedding(weddingId);
+  const hashtag = await prisma.hashtag.findUnique({ where: { id } });
+  if (!hashtag || hashtag.weddingId !== wedding.id) throw new Error("Unauthorized");
+  return prisma.hashtag.update({ where: { id }, data });
+}
+
+export async function deleteHashtag(weddingId: string, id: string) {
+  const wedding = await getCurrentWedding(weddingId);
+  const hashtag = await prisma.hashtag.findUnique({ where: { id } });
+  if (!hashtag || hashtag.weddingId !== wedding.id) throw new Error("Unauthorized");
+  return prisma.hashtag.delete({ where: { id } });
+}
+
+export async function bulkDeleteHashtags(weddingId: string, ids: string[]) {
+  await getCurrentWedding(weddingId);
+  return prisma.hashtag.deleteMany({ where: { id: { in: ids }, weddingId } });
+}
+
+export async function batchCreateHashtags(weddingId: string, items: any[]) {
+  const maxOrder = await prisma.hashtag.aggregate({
+    where: { weddingId },
+    _max: { order: true },
+  });
+  let order = (maxOrder._max.order ?? -1) + 1;
+  for (const item of items) {
+    await prisma.hashtag.create({
+      data: {
+        weddingId,
+        order: order++,
+        text: sanitize(item.text) || "",
+        language: sanitize(item.language) || "English",
+        style: sanitize(item.style) || "Romantic",
+        favorite: typeof item.favorite === "boolean" ? item.favorite : false,
       },
     });
   }

@@ -112,6 +112,7 @@ model Wedding {
   outfits         Outfit[]
   inviteDetails   InviteDetail[]
   checklistItems  ChecklistItem[]
+  hashtags        Hashtag[]
   user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   collaborators   WeddingCollaborator[]
   events          WeddingEvent[]
@@ -310,6 +311,17 @@ model ChecklistItem {
   category   String  @default("Emergency Kit")
   text       String  @default("")
   done       Boolean @default(false)
+  order      Int     @default(0)
+  wedding    Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+}
+
+model Hashtag {
+  id         String  @id @default(cuid())
+  weddingId  String
+  text       String  @default("")
+  language   String  @default("English")
+  style      String  @default("Romantic")
+  favorite   Boolean @default(false)
   order      Int     @default(0)
   wedding    Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 }
