@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { createChecklistItem, updateChecklistItem, deleteChecklistItem, bulkDeleteChecklistItems, bulkUpdateChecklistItems, batchCreateChecklistItems } from "@/lib/actions";
+import ImportModal from "@/components/ImportModal";
 
 const TABS = [
   { id: "Emergency Kit", icon: "fa-kit-medical", label: "Emergency Kit" },
@@ -69,6 +70,7 @@ export default function CulturalChecklistsView({ wedding, weddingId, onUpdate, o
   const [activeTab, setActiveTab] = useState(initialTab || "Emergency Kit");
   const [newItemText, setNewItemText] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [showImport, setShowImport] = useState(false);
 
   const items = useMemo(() => allItems.filter((i) => i.category === activeTab), [allItems, activeTab]);
 
@@ -166,7 +168,14 @@ export default function CulturalChecklistsView({ wedding, weddingId, onUpdate, o
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-gray-900">Cultural Checklists</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900">Cultural Checklists</h2>
+        {canEdit && (
+          <button onClick={() => setShowImport(true)} className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">
+            <i className="fas fa-file-import mr-1" /> Import
+          </button>
+        )}
+      </div>
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-2">
@@ -309,6 +318,17 @@ export default function CulturalChecklistsView({ wedding, weddingId, onUpdate, o
           </button>
         </div>
       )}
+
+      <ImportModal
+        open={showImport}
+        onClose={() => setShowImport(false)}
+        type="checklists"
+        onImport={async (items: any[]) => {
+          const withCategory = items.map((item) => ({ ...item, category: item.category || activeTab }));
+          await batchCreateChecklistItems(weddingId, withCategory);
+          onUpdate();
+        }}
+      />
     </div>
   );
 }

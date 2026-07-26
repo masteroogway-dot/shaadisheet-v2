@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { createHashtag, updateHashtag, deleteHashtag, bulkDeleteHashtags, batchCreateHashtags } from "@/lib/actions";
+import ImportModal from "@/components/ImportModal";
 
 const STYLES = ["All", "Romantic", "Funny", "Pun", "Traditional", "Modern"];
 
@@ -99,6 +100,7 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showSaved, setShowSaved] = useState(true);
+  const [showImport, setShowImport] = useState(false);
 
   const filteredHashtags = useMemo(() => {
     let list = [...hashtags];
@@ -242,7 +244,14 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-gray-900">Hashtag Generator</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900">Hashtag Generator</h2>
+        {canEdit && (
+          <button onClick={() => setShowImport(true)} className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">
+            <i className="fas fa-file-import mr-1" /> Import
+          </button>
+        )}
+      </div>
 
       {/* Name Input */}
       <div className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl border border-rose-200 p-4">
@@ -394,6 +403,16 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
           </button>
         </div>
       )}
+
+      <ImportModal
+        open={showImport}
+        onClose={() => setShowImport(false)}
+        type="hashtags"
+        onImport={async (items: any[]) => {
+          await batchCreateHashtags(weddingId, items);
+          onUpdate();
+        }}
+      />
     </div>
   );
 }

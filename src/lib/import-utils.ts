@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
 
-export type ImportType = "budget" | "vendors" | "guests" | "rooms" | "gifts" | "outfits" | "invites";
+export type ImportType = "budget" | "vendors" | "guests" | "rooms" | "gifts" | "outfits" | "invites" | "checklists" | "hashtags";
 
 export interface FieldMapping {
   sourceColumn: string;
@@ -93,6 +93,17 @@ const FIELD_KEYWORDS: Record<ImportType, Record<string, string[]>> = {
     rsvpDeadline: ["rsvp", "deadline", "reply by", "respond by", "rsvp date"],
     status: ["status", "state", "condition", "planning", "printed", "dispatched", "delivered"],
     notes: ["notes", "note", "remark", "comment", "memo", "info"],
+  },
+  checklists: {
+    text: ["item", "text", "task", "what", "description", "checklist item", "thing to do"],
+    category: ["category", "type", "list", "which list", "emergency", "priest", "vidaai"],
+    done: ["done", "completed", "status", "finished", "checked"],
+  },
+  hashtags: {
+    text: ["hashtag", "text", "tag", "what", "content", "#"],
+    language: ["language", "lang", "english", "hindi", "bilingual"],
+    style: ["style", "type", "romantic", "funny", "pun", "traditional", "modern"],
+    favorite: ["favorite", "favourite", "fav", "starred", "saved", "heart"],
   },
 };
 
@@ -387,6 +398,15 @@ export function applyMappings(
         if (!result.rsvpDeadline) result.rsvpDeadline = "";
         if (!result.status) result.status = "Planning";
         if (!result.notes) result.notes = "";
+      } else if (type === "checklists") {
+        if (!result.text) result.text = "";
+        if (!result.category) result.category = "Emergency Kit";
+        if (typeof result.done !== "boolean") result.done = false;
+      } else if (type === "hashtags") {
+        if (!result.text) result.text = "";
+        if (!result.language) result.language = "English";
+        if (!result.style) result.style = "Romantic";
+        if (typeof result.favorite !== "boolean") result.favorite = false;
       }
 
       return result;

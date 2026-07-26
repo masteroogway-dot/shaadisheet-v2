@@ -90,6 +90,17 @@ const FIELD_LABELS: Record<ImportType, Record<string, string>> = {
     status: "Status",
     notes: "Notes",
   },
+  checklists: {
+    text: "Item Text",
+    category: "Category",
+    done: "Done",
+  },
+  hashtags: {
+    text: "Hashtag",
+    language: "Language",
+    style: "Style",
+    favorite: "Favorite",
+  },
 };
 
 type Step = "upload" | "mapping" | "preview" | "importing" | "done";
