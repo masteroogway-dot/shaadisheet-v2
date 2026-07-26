@@ -194,19 +194,20 @@ model Vendor {
 }
 
 model Guest {
-  id        String  @id @default(cuid())
-  weddingId String
-  name      String  @default("")
-  relation  String  @default("")
-  side      String  @default("")
-  rsvp      String  @default("Pending")
-  dietary   String  @default("Veg")
-  tableNum  Int     @default(0)
-  giftGiven String  @default("No")
-  thankYou  String  @default("No")
-  notes     String  @default("")
-  order     Int     @default(0)
-  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  id             String  @id @default(cuid())
+  weddingId      String
+  name           String  @default("")
+  relation       String  @default("")
+  side           String  @default("")
+  rsvp           String  @default("Pending")
+  dietary        String  @default("Veg")
+  tableNum       Int     @default(0)
+  giftGiven      String  @default("No")
+  thankYou       String  @default("No")
+  accommodation  String  @default("--")
+  notes          String  @default("")
+  order          Int     @default(0)
+  wedding        Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 }
 
 model Task {

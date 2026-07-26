@@ -149,6 +149,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
                 relation: { type: "string", description: "Relation like Father, Mother, Friend" },
                 dietary: { type: "string", enum: ["Veg", "Non-Veg", "Jain", "Vegan"], description: "Dietary preference" },
                 rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"], description: "RSVP status" },
+                accommodation: { type: "string", enum: ["Room Needed", "Local / Floating"], description: "Whether guest needs hotel room or is local" },
               },
               required: ["name", "side"],
             },
@@ -174,6 +175,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
               name_contains: { type: "string", description: "Full or partial guest name to match" },
               rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"], description: "Filter by RSVP status" },
               dietary: { type: "string", enum: ["Veg", "Non-Veg", "Jain", "Vegan"], description: "Filter by dietary preference" },
+              accommodation: { type: "string", enum: ["Room Needed", "Local / Floating"], description: "Filter by accommodation type" },
             },
           },
           updates: {
@@ -182,6 +184,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
               rsvp: { type: "string", enum: ["Pending", "Yes", "No", "Declined"], description: "New RSVP status" },
               dietary: { type: "string", enum: ["Veg", "Non-Veg", "Jain", "Vegan"], description: "New dietary preference" },
               side: { type: "string", enum: ["Bride", "Groom"], description: "New side" },
+              accommodation: { type: "string", enum: ["Room Needed", "Local / Floating"], description: "New accommodation status" },
             },
           },
         },
@@ -464,7 +467,7 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
     case "create_guests": {
       const data = a.guests.map((g: any) => ({
         weddingId, name: g.name, side: g.side, relation: g.relation,
-        dietary: g.dietary, rsvp: g.rsvp,
+        dietary: g.dietary, rsvp: g.rsvp, accommodation: g.accommodation || "--",
       }));
       await prisma.guest.createMany({ data });
       return `Created ${a.guests.length} guest(s): ${a.guests.map((g: any) => g.name).join(", ")}.`;
@@ -476,6 +479,7 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
       if (filter.name_contains) where.name = { contains: filter.name_contains, mode: "insensitive" };
       if (filter.rsvp) where.rsvp = filter.rsvp;
       if (filter.dietary) where.dietary = filter.dietary;
+      if (filter.accommodation) where.accommodation = filter.accommodation;
       const result = await prisma.guest.updateMany({ where, data: updates });
       return `Updated ${result.count} guest(s).`;
     }
@@ -563,6 +567,7 @@ You have direct database access via tools:
 - name_contains: Full or partial name (e.g. "Sameer Jain")
 - NEVER combine name_contains and dietary in same filter
 - "Jain" in a person's name is part of their NAME, not dietary
+- Guest accommodation: "Room Needed" = outstation guest needing hotel, "Local / Floating" = local guest not needing room
 - After tool runs, confirm in one sentence, then ask if they need anything else
 
 ## WEDDING EXPERTISE

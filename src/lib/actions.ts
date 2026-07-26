@@ -346,6 +346,7 @@ export async function createGuest(weddingId: string, data: {
   tableNum?: number;
   giftGiven?: string;
   thankYou?: string;
+  accommodation?: string;
   notes?: string;
 }) {
   const wedding = await getCurrentWedding(weddingId);
@@ -367,6 +368,7 @@ export async function updateGuest(
     tableNum?: number;
     giftGiven?: string;
     thankYou?: string;
+    accommodation?: string;
     notes?: string;
   }
 ) {
@@ -714,6 +716,7 @@ export async function batchCreateGuests(weddingId: string, items: any[]) {
         side: sanitize(item.side) || "Both",
         rsvp: sanitize(item.rsvp) || "Pending",
         dietary: sanitize(item.dietary) || "Veg",
+        accommodation: sanitize(item.accommodation) || "--",
         tableNum: 0,
         giftGiven: "No",
         thankYou: "No",

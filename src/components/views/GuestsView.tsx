@@ -18,6 +18,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
   const [filterSide, setFilterSide] = useState("All");
   const [filterRsvp, setFilterRsvp] = useState("All");
   const [filterDietary, setFilterDietary] = useState("All");
+  const [filterAccommodation, setFilterAccommodation] = useState("All");
   const [rsvpLink, setRsvpLink] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [whatsappGuest, setWhatsappGuest] = useState<any>(null);
@@ -28,12 +29,15 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
     if (filterSide !== "All" && g.side !== filterSide) return false;
     if (filterRsvp !== "All" && g.rsvp !== filterRsvp) return false;
     if (filterDietary !== "All" && g.dietary !== filterDietary) return false;
+    if (filterAccommodation !== "All" && g.accommodation !== filterAccommodation) return false;
     return true;
   });
   const totalGuests = guests.length;
   const rsvpYes = guests.filter((g: any) => g.rsvp === "Yes").length;
   const pending = guests.filter((g: any) => g.rsvp === "Pending").length;
   const declined = guests.filter((g: any) => g.rsvp === "Declined").length;
+  const needsRoom = guests.filter((g: any) => g.accommodation === "Room Needed").length;
+  const floating = guests.filter((g: any) => g.accommodation === "Local / Floating").length;
 
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
@@ -107,7 +111,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
       onToast("Guest deleted", "success", guest ? {
         undoAction: async () => {
           try {
-            await createGuest(weddingId, { name: guest.name, relation: guest.relation, side: guest.side, rsvp: guest.rsvp, dietary: guest.dietary, tableNum: guest.tableNum || 0, giftGiven: guest.giftGiven || "No", thankYou: guest.thankYou || "No", notes: guest.notes || "" });
+            await createGuest(weddingId, { name: guest.name, relation: guest.relation, side: guest.side, rsvp: guest.rsvp, dietary: guest.dietary, tableNum: guest.tableNum || 0, giftGiven: guest.giftGiven || "No", thankYou: guest.thankYou || "No", accommodation: guest.accommodation || "--", notes: guest.notes || "" });
             onUpdate();
             onToast("Guest restored", "success");
           } catch {
@@ -130,7 +134,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
       onToast(`${toDelete.length} guest(s) deleted`, "success", {
         undoAction: async () => {
           try {
-            await batchCreateGuests(weddingId, toDelete.map((g: any) => ({ name: g.name, relation: g.relation, side: g.side, rsvp: g.rsvp, dietary: g.dietary, tableNum: g.tableNum || 0, giftGiven: g.giftGiven || "No", thankYou: g.thankYou || "No", notes: g.notes || "" })));
+            await batchCreateGuests(weddingId, toDelete.map((g: any) => ({ name: g.name, relation: g.relation, side: g.side, rsvp: g.rsvp, dietary: g.dietary, tableNum: g.tableNum || 0, giftGiven: g.giftGiven || "No", thankYou: g.thankYou || "No", accommodation: g.accommodation || "--", notes: g.notes || "" })));
             onUpdate();
             onToast("Guests restored", "success");
           } catch {
@@ -153,6 +157,20 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
       onToast(`${bulkAddCount} row${bulkAddCount > 1 ? "s" : ""} created`, "success");
     } catch {
       onToast("Failed to add rows", "error");
+    }
+  };
+
+  const handleBulkMarkAccommodation = async (value: string) => {
+    if (selected.size === 0) return;
+    try {
+      for (const id of selected) {
+        await updateGuest(weddingId, id, { accommodation: value });
+      }
+      setSelected(new Set());
+      onUpdate();
+      onToast(`${selected.size} guest(s) marked as ${value}`, "success");
+    } catch {
+      onToast("Failed to update guests", "error");
     }
   };
 
@@ -198,7 +216,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
               <button onClick={handleShareRsvp} className="btn-edit text-xs py-2 px-3">
                 <i className="fas fa-share-nodes mr-1.5" /> Share RSVP Link
               </button>
-              <button onClick={() => exportToCSV(filteredGuests.map((g: any, i: number) => ({ "#": i + 1, Name: g.name, Relation: g.relation, Side: g.side, RSVP: g.rsvp, Dietary: g.dietary, Notes: g.notes || "" })), "guests")} className="btn-edit text-xs py-2 px-3">
+              <button onClick={() => exportToCSV(filteredGuests.map((g: any, i: number) => ({ "#": i + 1, Name: g.name, Relation: g.relation, Side: g.side, RSVP: g.rsvp, Dietary: g.dietary, Accommodation: g.accommodation || "--", Notes: g.notes || "" })), "guests")} className="btn-edit text-xs py-2 px-3">
                 <i className="fas fa-download mr-1.5" /> Export
               </button>
               <button onClick={() => setShowImport(true)} className="btn-maroon">
@@ -213,7 +231,8 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
       </div>
 
       {totalGuests > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           {[
             { num: totalGuests, label: "Total Invited", color: "" },
             { num: rsvpYes, label: "RSVP'd Yes", color: "text-green" },
@@ -226,6 +245,19 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
             </div>
           ))}
         </div>
+        {(needsRoom > 0 || floating > 0) && (
+          <div className="grid grid-cols-2 gap-4 mb-5">
+            <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+              <span className="text-2xl font-extrabold block mb-1 text-purple-600">{needsRoom}</span>
+              <span className="text-xs text-gray-500">Room Needed</span>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+              <span className="text-2xl font-extrabold block mb-1 text-blue-600">{floating}</span>
+              <span className="text-xs text-gray-500">Local / Floating</span>
+            </div>
+          </div>
+        )}
+        </>
       )}
 
       {totalGuests > 0 && (
@@ -248,19 +280,19 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-colors cursor-pointer shrink-0 ${
-                showFilters || filterSide !== "All" || filterRsvp !== "All" || filterDietary !== "All"
+                showFilters || filterSide !== "All" || filterRsvp !== "All" || filterDietary !== "All" || filterAccommodation !== "All"
                   ? "bg-maroon text-white border-maroon"
                   : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
               }`}
             >
               <i className="fas fa-filter text-xs" />
               Filters
-              {(filterSide !== "All" || filterRsvp !== "All" || filterDietary !== "All") && (
+              {(filterSide !== "All" || filterRsvp !== "All" || filterDietary !== "All" || filterAccommodation !== "All") && (
                 <span className="w-1.5 h-1.5 bg-gold rounded-full" />
               )}
             </button>
-            {(search || filterSide !== "All" || filterRsvp !== "All" || filterDietary !== "All") && (
-              <button onClick={() => { setSearch(""); setFilterSide("All"); setFilterRsvp("All"); setFilterDietary("All"); }} className="px-3 py-2 text-xs text-gray-500 hover:text-gray-700 cursor-pointer">
+            {(search || filterSide !== "All" || filterRsvp !== "All" || filterDietary !== "All" || filterAccommodation !== "All") && (
+              <button onClick={() => { setSearch(""); setFilterSide("All"); setFilterRsvp("All"); setFilterDietary("All"); setFilterAccommodation("All"); }} className="px-3 py-2 text-xs text-gray-500 hover:text-gray-700 cursor-pointer">
                 <i className="fas fa-times mr-1" /> Clear
               </button>
             )}
@@ -286,16 +318,28 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
                 <option value="Vegan">Vegan</option>
                 <option value="Jain">Jain</option>
               </select>
+              <select value={filterAccommodation} onChange={(e) => setFilterAccommodation(e.target.value)} className="py-2 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-maroon">
+                <option value="All">All Accommodation</option>
+                <option value="Room Needed">Room Needed</option>
+                <option value="Local / Floating">Local / Floating</option>
+                <option value="--">Not Set</option>
+              </select>
             </div>
           )}
         </div>
       )}
 
       {selected.size > 0 && canEdit && (
-        <div className="mb-4 flex items-center gap-3 px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
+        <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">{selected.size} selected</span>
           <button onClick={handleBulkDelete} className="btn-delete text-xs py-2 px-3">
-            <i className="fas fa-trash mr-1" /> Delete Selected
+            <i className="fas fa-trash mr-1" /> Delete
+          </button>
+          <button onClick={() => handleBulkMarkAccommodation("Room Needed")} className="btn-edit text-xs py-2 px-3">
+            <i className="fas fa-bed mr-1" /> Mark Room Needed
+          </button>
+          <button onClick={() => handleBulkMarkAccommodation("Local / Floating")} className="btn-edit text-xs py-2 px-3">
+            <i className="fas fa-home mr-1" /> Mark Local/Floating
           </button>
           <button onClick={() => setSelected(new Set())} className="text-xs text-gray-500 hover:text-gray-700 cursor-pointer">Clear</button>
         </div>
@@ -369,7 +413,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Relation</label>
                     {isEditing ? (
@@ -406,6 +450,18 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
                       </select>
                     ) : (
                       <p className="text-sm">{g.dietary}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Accommodation</label>
+                    {isEditing ? (
+                      <select value={editData.accommodation ?? g.accommodation ?? "--"} onChange={(e) => setEditData({ ...editData, accommodation: e.target.value })} className="card-select">
+                        <option value="--">Not Set</option><option value="Room Needed">Room Needed</option><option value="Local / Floating">Local / Floating</option>
+                      </select>
+                    ) : (
+                      <p className={`text-sm font-medium ${g.accommodation === "Local / Floating" ? "text-blue-600" : g.accommodation === "Room Needed" ? "text-purple-600" : "text-gray-400"}`}>
+                        {g.accommodation === "Local / Floating" ? "Local" : g.accommodation === "Room Needed" ? "Room Needed" : "--"}
+                      </p>
                     )}
                   </div>
                 </div>

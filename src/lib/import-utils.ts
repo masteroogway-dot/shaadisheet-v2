@@ -50,6 +50,7 @@ const FIELD_KEYWORDS: Record<ImportType, Record<string, string[]>> = {
     side: ["side", "bride", "groom", "family", "whose side"],
     rsvp: ["rsvp", "status", "response", "attending", "confirmed", "reply"],
     dietary: ["dietary", "food", "diet", "veg", "non-veg", "preference", "meal"],
+    accommodation: ["accommodation", "needs room", "room needed", "local", "floating", "hotel", "stay", "outstation"],
     notes: ["notes", "note", "remark", "comment", "memo", "info"],
   },
   rooms: {
@@ -316,6 +317,7 @@ export function applyMappings(
         if (!result.side) result.side = "Both";
         if (!result.rsvp) result.rsvp = "Pending";
         if (!result.dietary) result.dietary = "Veg";
+        if (!result.accommodation) result.accommodation = "--";
         if (!result.notes) result.notes = "";
       } else if (type === "rooms") {
         if (!result.guestName) result.guestName = "";

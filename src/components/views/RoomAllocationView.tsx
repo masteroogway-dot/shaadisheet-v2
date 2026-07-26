@@ -23,10 +23,15 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
   const [rangeInput, setRangeInput] = useState("");
 
   const allocations = wedding.roomAllocations || [];
+  const guests = wedding.guests || [];
   const totalRooms = allocations.length;
   const reserved = allocations.filter((a: any) => a.status === "Reserved").length;
   const checkedIn = allocations.filter((a: any) => a.status === "Checked In").length;
   const cancelled = allocations.filter((a: any) => a.status === "Cancelled").length;
+  const needsRoom = guests.filter((g: any) => g.accommodation === "Room Needed").length;
+  const floating = guests.filter((g: any) => g.accommodation === "Local / Floating").length;
+  const allocatedNames = new Set(allocations.map((a: any) => a.guestName).filter(Boolean));
+  const unallocatedRoomNeeded = guests.filter((g: any) => g.accommodation === "Room Needed" && !allocatedNames.has(g.name));
 
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
@@ -168,7 +173,7 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
       </div>
 
       {totalRooms > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           {[
             { num: totalRooms, label: "Total Rooms", color: "" },
             { num: reserved, label: "Reserved", color: "text-blue-600" },
@@ -180,6 +185,45 @@ export default function RoomAllocationView({ wedding, weddingId, onUpdate, onToa
               <span className="text-xs text-gray-500">{s.label}</span>
             </div>
           ))}
+        </div>
+      )}
+
+      {(needsRoom > 0 || floating > 0 || unallocatedRoomNeeded.length > 0) && (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-5">
+          {needsRoom > 0 && (
+            <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+              <span className="text-2xl font-extrabold block mb-1 text-purple-600">{needsRoom}</span>
+              <span className="text-xs text-gray-500">Guests Needing Rooms</span>
+            </div>
+          )}
+          {floating > 0 && (
+            <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+              <span className="text-2xl font-extrabold block mb-1 text-blue-600">{floating}</span>
+              <span className="text-xs text-gray-500">Local / Floating</span>
+            </div>
+          )}
+          {unallocatedRoomNeeded.length > 0 && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-center">
+              <span className="text-2xl font-extrabold block mb-1 text-yellow-600">{unallocatedRoomNeeded.length}</span>
+              <span className="text-xs text-yellow-700">Need Room (Unassigned)</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {unallocatedRoomNeeded.length > 0 && canEdit && (
+        <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-5">
+          <h4 className="font-bold text-sm mb-2 text-purple-800">
+            <i className="fas fa-bed mr-1.5" />
+            Guests who need rooms but aren't assigned yet ({unallocatedRoomNeeded.length})
+          </h4>
+          <div className="flex flex-wrap gap-1.5">
+            {unallocatedRoomNeeded.map((g: any) => (
+              <span key={g.id} className="px-2.5 py-1 bg-white border border-purple-200 rounded-full text-xs font-medium text-purple-800">
+                {g.name}
+              </span>
+            ))}
+          </div>
         </div>
       )}
 

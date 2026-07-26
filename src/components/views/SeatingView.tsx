@@ -154,6 +154,8 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
     }
     return true;
   });
+  const unassignedLocal = unassignedGuests.filter((g: any) => g.accommodation === "Local / Floating");
+  const unassignedOutstation = unassignedGuests.filter((g: any) => g.accommodation !== "Local / Floating");
 
   const totalSeats = tables.reduce((s: number, t: any) => s + (t.capacity || 0), 0);
   const filledSeats = tables.reduce((s: number, t: any) => {
@@ -227,13 +229,33 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
       )}
 
       {unassignedGuests.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-xl p-5 mb-5">
-          <h4 className="font-bold text-sm mb-3">Unassigned Guests ({unassignedGuests.length})</h4>
-          <div className="flex flex-wrap gap-1.5">
-            {unassignedGuests.map((g: any) => (
-                    <span key={g.id} className="px-2.5 py-1 bg-yellow-50 border border-yellow-200 rounded-full text-xs font-medium text-yellow-800 truncate max-w-[150px]">{g.name}</span>
-            ))}
-          </div>
+        <div className="space-y-3 mb-5">
+          {unassignedOutstation.length > 0 && (
+            <div className="bg-white border border-gray-200 rounded-xl p-5">
+              <h4 className="font-bold text-sm mb-3">
+                <i className="fas fa-plane mr-1.5 text-purple-500" />
+                Unassigned Guests — Outstation ({unassignedOutstation.length})
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {unassignedOutstation.map((g: any) => (
+                  <span key={g.id} className="px-2.5 py-1 bg-purple-50 border border-purple-200 rounded-full text-xs font-medium text-purple-800 truncate max-w-[150px]">{g.name}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          {unassignedLocal.length > 0 && (
+            <div className="bg-white border border-gray-200 rounded-xl p-5">
+              <h4 className="font-bold text-sm mb-3">
+                <i className="fas fa-home mr-1.5 text-blue-500" />
+                Local / Floating Guests — Unassigned ({unassignedLocal.length})
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {unassignedLocal.map((g: any) => (
+                  <span key={g.id} className="px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-full text-xs font-medium text-blue-800 truncate max-w-[150px]">{g.name}</span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

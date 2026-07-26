@@ -148,6 +148,8 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
   const totalTasks = wedding.tasks?.length || 0;
   const totalRooms = wedding.roomAllocations?.length || 0;
   const roomsOccupied = wedding.roomAllocations?.filter((r: any) => r.status === "Checked In").length || 0;
+  const needsRoom = wedding.guests?.filter((g: any) => g.accommodation === "Room Needed").length || 0;
+  const floating = wedding.guests?.filter((g: any) => g.accommodation === "Local / Floating").length || 0;
 
   const countdown = wedding.weddingDate
     ? Math.ceil((new Date(wedding.weddingDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
@@ -263,10 +265,10 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-5 mb-7">
               {[
                 { label: "Total Budget", numVal: totalBudget, prefix: totalBudget > 0 ? "₹" : "", suffix: "", formatFn: totalBudget > 0 ? formatINRAbbrev : undefined, sub: totalSpent > 0 ? `₹${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
-                { label: "Guests", numVal: totalGuests, prefix: "", suffix: "", formatFn: undefined, sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : "No RSVPs yet", icon: "fa-users", gradient: "from-green to-green/80" },
+                { label: "Guests", numVal: totalGuests, prefix: "", suffix: "", formatFn: undefined, sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : floating > 0 ? `${floating} local/floating` : "No RSVPs yet", icon: "fa-users", gradient: "from-green to-green/80" },
                 { label: "Vendors", numVal: vendorsBooked, prefix: "", suffix: totalVendors > 0 ? ` / ${totalVendors}` : "", formatFn: undefined, sub: totalVendors > 0 ? `${totalVendors - vendorsBooked} remaining` : "No vendors added", icon: "fa-store", gradient: "from-blue to-blue/80" },
                 { label: "Tasks", numVal: tasksDone, prefix: "", suffix: totalTasks > 0 ? ` / ${totalTasks}` : "", formatFn: undefined, sub: totalTasks > 0 ? `${totalTasks - tasksDone} remaining` : "No tasks yet", icon: "fa-tasks", gradient: "from-orange-600 to-red-700" },
-                { label: "Rooms", numVal: totalRooms, prefix: "", suffix: "", formatFn: undefined, sub: roomsOccupied > 0 ? `${roomsOccupied} checked in` : totalRooms > 0 ? "None checked in" : "No rooms allocated", icon: "fa-bed", gradient: "from-purple-600 to-purple-800" },
+                { label: "Rooms", numVal: totalRooms, prefix: "", suffix: "", formatFn: undefined, sub: roomsOccupied > 0 ? `${roomsOccupied} checked in` : needsRoom > 0 ? `${needsRoom} guests need rooms` : totalRooms > 0 ? "None checked in" : "No rooms allocated", icon: "fa-bed", gradient: "from-purple-600 to-purple-800" },
               ].map((s, i) => (
                 <div key={i} className={`bg-white rounded-xl p-4 md:p-5 border border-gray-200 flex items-center gap-3 md:gap-4 hover:shadow-md transition-shadow ${i === 4 ? "col-span-2 lg:col-span-1" : ""}`}>
                   <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${s.gradient} flex items-center justify-center text-white shrink-0`}>
