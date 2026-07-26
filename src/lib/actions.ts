@@ -54,6 +54,8 @@ async function getCurrentWedding(weddingId?: string) {
         events: { orderBy: { order: "asc" } },
         timelineItems: { orderBy: { order: "asc" } },
         gifts: { orderBy: { order: "asc" } },
+        outfits: { orderBy: { order: "asc" } },
+        inviteDetails: { orderBy: { order: "asc" } },
         collaborators: { where: { status: "accepted" }, include: { user: { select: { id: true, name: true, email: true, image: true } } } },
       },
     });
@@ -77,6 +79,8 @@ async function getCurrentWedding(weddingId?: string) {
             events: { orderBy: { order: "asc" } },
             timelineItems: { orderBy: { order: "asc" } },
             gifts: { orderBy: { order: "asc" } },
+            outfits: { orderBy: { order: "asc" } },
+            inviteDetails: { orderBy: { order: "asc" } },
             collaborators: { where: { status: "accepted" }, include: { user: { select: { id: true, name: true, email: true, image: true } } } },
           },
         });
@@ -99,6 +103,8 @@ async function getCurrentWedding(weddingId?: string) {
         events: { orderBy: { order: "asc" } },
         timelineItems: { orderBy: { order: "asc" } },
         gifts: { orderBy: { order: "asc" } },
+        outfits: { orderBy: { order: "asc" } },
+        inviteDetails: { orderBy: { order: "asc" } },
       },
     });
     if (!wedding) throw new Error("No wedding found");
@@ -1724,5 +1730,165 @@ export async function getSuccessfulPatterns(weddingId: string) {
   } catch (e) {
     console.error("Failed to get successful patterns:", e);
     return [];
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// OUTFITS
+// ═══════════════════════════════════════════════════════════════
+
+export async function createOutfit(weddingId: string, data: {
+  event?: string;
+  person?: string;
+  description?: string;
+  designer?: string;
+  status?: string;
+  cost?: number;
+  jewelryPairing?: string;
+  notes?: string;
+}) {
+  const wedding = await getCurrentWedding(weddingId);
+  const maxOrder = Math.max(...wedding.outfits.map((o: any) => o.order), -1);
+  return prisma.outfit.create({
+    data: { weddingId: wedding.id, ...data, order: maxOrder + 1 },
+  });
+}
+
+export async function updateOutfit(
+  weddingId: string,
+  id: string,
+  data: {
+    event?: string;
+    person?: string;
+    description?: string;
+    designer?: string;
+    status?: string;
+    cost?: number;
+    jewelryPairing?: string;
+    notes?: string;
+  }
+) {
+  const wedding = await getCurrentWedding(weddingId);
+  const outfit = await prisma.outfit.findUnique({ where: { id } });
+  if (!outfit || outfit.weddingId !== wedding.id) throw new Error("Unauthorized");
+  return prisma.outfit.update({ where: { id }, data });
+}
+
+export async function deleteOutfit(weddingId: string, id: string) {
+  const wedding = await getCurrentWedding(weddingId);
+  const outfit = await prisma.outfit.findUnique({ where: { id } });
+  if (!outfit || outfit.weddingId !== wedding.id) throw new Error("Unauthorized");
+  return prisma.outfit.delete({ where: { id } });
+}
+
+export async function bulkDeleteOutfits(weddingId: string, ids: string[]) {
+  await getCurrentWedding(weddingId);
+  return prisma.outfit.deleteMany({ where: { id: { in: ids }, weddingId } });
+}
+
+export async function batchCreateOutfits(weddingId: string, items: any[]) {
+  const maxOrder = await prisma.outfit.aggregate({
+    where: { weddingId },
+    _max: { order: true },
+  });
+  let order = (maxOrder._max.order ?? -1) + 1;
+  for (const item of items) {
+    await prisma.outfit.create({
+      data: {
+        weddingId,
+        order: order++,
+        event: sanitize(item.event) || "",
+        person: sanitize(item.person) || "Bride",
+        description: sanitize(item.description || item.desc),
+        designer: sanitize(item.designer),
+        status: sanitize(item.status) || "Shopping",
+        cost: typeof item.cost === "number" ? item.cost : parseInt(String(item.cost).replace(/[^\d]/g, "")) || 0,
+        jewelryPairing: sanitize(item.jewelryPairing || item.jewelry),
+        notes: sanitize(item.notes),
+      },
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INVITE DETAILS
+// ═══════════════════════════════════════════════════════════════
+
+export async function createInviteDetail(weddingId: string, data: {
+  type?: string;
+  description?: string;
+  designer?: string;
+  printer?: string;
+  quantity?: number;
+  cost?: number;
+  sentDate?: string;
+  rsvpDeadline?: string;
+  status?: string;
+  notes?: string;
+}) {
+  const wedding = await getCurrentWedding(weddingId);
+  const maxOrder = Math.max(...wedding.inviteDetails.map((i: any) => i.order), -1);
+  return prisma.inviteDetail.create({
+    data: { weddingId: wedding.id, ...data, order: maxOrder + 1 },
+  });
+}
+
+export async function updateInviteDetail(
+  weddingId: string,
+  id: string,
+  data: {
+    type?: string;
+    description?: string;
+    designer?: string;
+    printer?: string;
+    quantity?: number;
+    cost?: number;
+    sentDate?: string;
+    rsvpDeadline?: string;
+    status?: string;
+    notes?: string;
+  }
+) {
+  const wedding = await getCurrentWedding(weddingId);
+  const invite = await prisma.inviteDetail.findUnique({ where: { id } });
+  if (!invite || invite.weddingId !== wedding.id) throw new Error("Unauthorized");
+  return prisma.inviteDetail.update({ where: { id }, data });
+}
+
+export async function deleteInviteDetail(weddingId: string, id: string) {
+  const wedding = await getCurrentWedding(weddingId);
+  const invite = await prisma.inviteDetail.findUnique({ where: { id } });
+  if (!invite || invite.weddingId !== wedding.id) throw new Error("Unauthorized");
+  return prisma.inviteDetail.delete({ where: { id } });
+}
+
+export async function bulkDeleteInviteDetails(weddingId: string, ids: string[]) {
+  await getCurrentWedding(weddingId);
+  return prisma.inviteDetail.deleteMany({ where: { id: { in: ids }, weddingId } });
+}
+
+export async function batchCreateInviteDetails(weddingId: string, items: any[]) {
+  const maxOrder = await prisma.inviteDetail.aggregate({
+    where: { weddingId },
+    _max: { order: true },
+  });
+  let order = (maxOrder._max.order ?? -1) + 1;
+  for (const item of items) {
+    await prisma.inviteDetail.create({
+      data: {
+        weddingId,
+        order: order++,
+        type: sanitize(item.type) || "Main Invite",
+        description: sanitize(item.description || item.desc),
+        designer: sanitize(item.designer),
+        printer: sanitize(item.printer),
+        quantity: typeof item.quantity === "number" ? item.quantity : parseInt(String(item.quantity).replace(/[^\d]/g, "")) || 0,
+        cost: typeof item.cost === "number" ? item.cost : parseInt(String(item.cost).replace(/[^\d]/g, "")) || 0,
+        sentDate: sanitize(item.sentDate || item.sent),
+        rsvpDeadline: sanitize(item.rsvpDeadline || item.deadline),
+        status: sanitize(item.status) || "Planning",
+        notes: sanitize(item.notes),
+      },
+    });
   }
 }

@@ -109,6 +109,8 @@ model Wedding {
   tasks           Task[]
   vendors         Vendor[]
   gifts           Gift[]
+  outfits         Outfit[]
+  inviteDetails   InviteDetail[]
   user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   collaborators   WeddingCollaborator[]
   events          WeddingEvent[]
@@ -267,4 +269,36 @@ model Gift {
   notes     String  @default("")
   order     Int     @default(0)
   wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+}
+
+model Outfit {
+  id             String  @id @default(cuid())
+  weddingId      String
+  event          String  @default("")
+  person         String  @default("Bride")
+  description    String  @default("")
+  designer       String  @default("")
+  status         String  @default("Shopping")
+  cost           Int     @default(0)
+  jewelryPairing String  @default("")
+  notes          String  @default("")
+  order          Int     @default(0)
+  wedding        Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+}
+
+model InviteDetail {
+  id           String  @id @default(cuid())
+  weddingId    String
+  type         String  @default("Main Invite")
+  description  String  @default("")
+  designer     String  @default("")
+  printer      String  @default("")
+  quantity     Int     @default(0)
+  cost         Int     @default(0)
+  sentDate     String  @default("")
+  rsvpDeadline String  @default("")
+  status       String  @default("Planning")
+  notes        String  @default("")
+  order        Int     @default(0)
+  wedding      Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 }

@@ -273,6 +273,166 @@ const tools: OpenAI.ChatCompletionTool[] = [
   {
     type: "function",
     function: {
+      name: "create_outfits",
+      description: "Create outfit records. Use when user mentions outfit, dress, lehenga, sherwani, gown, saree, jewelry pairing.",
+      parameters: {
+        type: "object",
+        properties: {
+          outfits: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                event: { type: "string", description: "Event name like Sangeet, Wedding, Reception, Mehendi" },
+                person: { type: "string", enum: ["Bride", "Groom", "Bride's Mother", "Groom's Mother", "Bride's Father", "Groom's Father", "Bridesmaid", "Groomsman", "Other"], description: "Who will wear this outfit" },
+                description: { type: "string", description: "Outfit description like 'Red lehenga with gold embroidery'" },
+                designer: { type: "string", description: "Designer or boutique name" },
+                cost: { type: "number", description: "Cost in INR" },
+                status: { type: "string", enum: ["Shopping", "Tailored", "Ready"], description: "Current status" },
+                jewelryPairing: { type: "string", description: "Which jewelry to pair with this outfit" },
+              },
+              required: ["event", "person"],
+            },
+            description: "Array of outfit objects to create",
+          },
+        },
+        required: ["outfits"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_outfits",
+      description: "Update outfits by filter. Use for marking outfit ready, updating cost.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              event: { type: "string", description: "Filter by event name" },
+              person: { type: "string", description: "Filter by person" },
+              status: { type: "string", enum: ["Shopping", "Tailored", "Ready"], description: "Filter by status" },
+            },
+          },
+          updates: {
+            type: "object",
+            properties: {
+              status: { type: "string", enum: ["Shopping", "Tailored", "Ready"], description: "Update status" },
+              cost: { type: "number", description: "Update cost in INR" },
+              designer: { type: "string", description: "Update designer" },
+              jewelryPairing: { type: "string", description: "Update jewelry pairing" },
+            },
+          },
+        },
+        required: ["updates"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_outfits",
+      description: "Delete outfits by filter.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              event: { type: "string", description: "Filter by event name" },
+              person: { type: "string", description: "Filter by person" },
+              status: { type: "string", enum: ["Shopping", "Tailored", "Ready"], description: "Filter by status" },
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_invites",
+      description: "Create invitation records. Use when user mentions invite, invitation card, save-the-date, printed, dispatched.",
+      parameters: {
+        type: "object",
+        properties: {
+          invites: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                type: { type: "string", enum: ["Save-the-Date", "Main Invite", "Digital Invite", "Follow-up", "Wedding Website", "WhatsApp"], description: "Type of invitation" },
+                description: { type: "string", description: "Description like 'Gold foil printed card'" },
+                designer: { type: "string", description: "Designer name" },
+                printer: { type: "string", description: "Printer name" },
+                quantity: { type: "number", description: "Number of cards" },
+                cost: { type: "number", description: "Total cost in INR" },
+                sentDate: { type: "string", description: "Date when sent (YYYY-MM-DD)" },
+                rsvpDeadline: { type: "string", description: "RSVP deadline date" },
+                status: { type: "string", enum: ["Planning", "Designed", "Printed", "Dispatched", "Delivered"], description: "Current status" },
+              },
+              required: ["type"],
+            },
+            description: "Array of invite objects to create",
+          },
+        },
+        required: ["invites"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_invites",
+      description: "Update invitations by filter. Use for marking as sent, dispatched.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              type: { type: "string", enum: ["Save-the-Date", "Main Invite", "Digital Invite", "Follow-up", "Wedding Website", "WhatsApp"], description: "Filter by invite type" },
+              status: { type: "string", enum: ["Planning", "Designed", "Printed", "Dispatched", "Delivered"], description: "Filter by status" },
+            },
+          },
+          updates: {
+            type: "object",
+            properties: {
+              status: { type: "string", enum: ["Planning", "Designed", "Printed", "Dispatched", "Delivered"], description: "Update status" },
+              sentDate: { type: "string", description: "Update sent date" },
+              quantity: { type: "number", description: "Update quantity" },
+              cost: { type: "number", description: "Update cost in INR" },
+            },
+          },
+        },
+        required: ["updates"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_invites",
+      description: "Delete invitations by filter.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              type: { type: "string", enum: ["Save-the-Date", "Main Invite", "Digital Invite", "Follow-up", "Wedding Website", "WhatsApp"], description: "Filter by invite type" },
+              status: { type: "string", enum: ["Planning", "Designed", "Printed", "Dispatched", "Delivered"], description: "Filter by status" },
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "create_vendor",
       description: "Create a new vendor entry.",
       parameters: {
@@ -589,6 +749,84 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
       const result = await prisma.gift.deleteMany({ where });
       return `Deleted ${result.count} gift(s).`;
     }
+    case "create_outfits": {
+      const items = a.outfits || [];
+      const maxOrder = await prisma.outfit.aggregate({ where: { weddingId }, _max: { order: true } });
+      let order = (maxOrder._max.order ?? -1) + 1;
+      for (const item of items) {
+        await prisma.outfit.create({
+          data: {
+            weddingId,
+            order: order++,
+            event: item.event || "",
+            person: item.person || "Bride",
+            description: item.description || "",
+            designer: item.designer || "",
+            cost: typeof item.cost === "number" ? item.cost : 0,
+            status: item.status || "Shopping",
+            jewelryPairing: item.jewelryPairing || "",
+          },
+        });
+      }
+      return `Created ${items.length} outfit(s).`;
+    }
+    case "update_outfits": {
+      const { filter = {}, updates } = a;
+      const where: any = { weddingId };
+      if (filter.event) where.event = { contains: filter.event, mode: "insensitive" };
+      if (filter.person) where.person = { contains: filter.person, mode: "insensitive" };
+      if (filter.status) where.status = filter.status;
+      const result = await prisma.outfit.updateMany({ where, data: updates });
+      return `Updated ${result.count} outfit(s).`;
+    }
+    case "delete_outfits": {
+      const { filter = {} } = a;
+      const where: any = { weddingId };
+      if (filter.event) where.event = { contains: filter.event, mode: "insensitive" };
+      if (filter.person) where.person = { contains: filter.person, mode: "insensitive" };
+      if (filter.status) where.status = filter.status;
+      const result = await prisma.outfit.deleteMany({ where });
+      return `Deleted ${result.count} outfit(s).`;
+    }
+    case "create_invites": {
+      const items = a.invites || [];
+      const maxOrder = await prisma.inviteDetail.aggregate({ where: { weddingId }, _max: { order: true } });
+      let order = (maxOrder._max.order ?? -1) + 1;
+      for (const item of items) {
+        await prisma.inviteDetail.create({
+          data: {
+            weddingId,
+            order: order++,
+            type: item.type || "Main Invite",
+            description: item.description || "",
+            designer: item.designer || "",
+            printer: item.printer || "",
+            quantity: typeof item.quantity === "number" ? item.quantity : 0,
+            cost: typeof item.cost === "number" ? item.cost : 0,
+            sentDate: item.sentDate || "",
+            rsvpDeadline: item.rsvpDeadline || "",
+            status: item.status || "Planning",
+          },
+        });
+      }
+      return `Created ${items.length} invitation(s).`;
+    }
+    case "update_invites": {
+      const { filter = {}, updates } = a;
+      const where: any = { weddingId };
+      if (filter.type) where.type = filter.type;
+      if (filter.status) where.status = filter.status;
+      const result = await prisma.inviteDetail.updateMany({ where, data: updates });
+      return `Updated ${result.count} invitation(s).`;
+    }
+    case "delete_invites": {
+      const { filter = {} } = a;
+      const where: any = { weddingId };
+      if (filter.type) where.type = filter.type;
+      if (filter.status) where.status = filter.status;
+      const result = await prisma.inviteDetail.deleteMany({ where });
+      return `Deleted ${result.count} invitation(s).`;
+    }
     case "create_vendor": {
       await prisma.vendor.create({
         data: { weddingId, name: a.name, category: a.category, contact: a.contact, quote: a.quote, notes: a.notes, contract: "Pending" },
@@ -675,6 +913,8 @@ You have direct database access via tools:
 - "Jain" in a person's name is part of their NAME, not dietary
 - Guest accommodation: "Room Needed" = outstation guest needing hotel, "Local / Floating" = local guest not needing room
 - Gift Tracker: Use create_gifts when user says "X gave ₹Y" or "received ₹Y from X". Default side to "Paternal" or "Maternal" based on context if mentioned
+- Outfit Planner: Use create_outfits when user mentions outfit, dress, lehenga, sherwani, gown. Map person from context (bride, groom, mother). Ask which event if not specified.
+- Invitations: Use create_invites when user mentions invite, card, save-the-date, printed cards. Default type to "Main Invite". Ask quantity if not provided.
 - After tool runs, confirm in one sentence, then ask if they need anything else
 
 ## WEDDING EXPERTISE

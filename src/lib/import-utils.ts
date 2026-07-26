@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
 
-export type ImportType = "budget" | "vendors" | "guests" | "rooms" | "gifts";
+export type ImportType = "budget" | "vendors" | "guests" | "rooms" | "gifts" | "outfits" | "invites";
 
 export interface FieldMapping {
   sourceColumn: string;
@@ -70,6 +70,28 @@ const FIELD_KEYWORDS: Record<ImportType, Record<string, string[]>> = {
     giftType: ["type", "gift type", "kind", "cash", "gold", "gift", "other"],
     received: ["received", "got", "collected"],
     thankYou: ["thank you", "thankyou", "thanks", "sent", "status"],
+    notes: ["notes", "note", "remark", "comment", "memo", "info"],
+  },
+  outfits: {
+    event: ["event", "occasion", "function", "ceremony", "day", "when"],
+    person: ["person", "who", "wearer", "bride", "groom", "wearing"],
+    description: ["description", "outfit", "dress", "lehenga", "sherwani", "gown", "saree", "what", "look"],
+    designer: ["designer", "boutique", "studio", "shop", "where"],
+    status: ["status", "state", "condition", "ready", "tailored", "shopping"],
+    cost: ["cost", "price", "amount", "budget", "estimate", "₹", "inr", "rupees"],
+    jewelryPairing: ["jewelry", "jewellery", "pairing", "accessories", "gems", "set"],
+    notes: ["notes", "note", "remark", "comment", "memo", "info"],
+  },
+  invites: {
+    type: ["type", "kind", "invite type", "card type", "save the date", "main invite", "digital"],
+    description: ["description", "what", "card", "design", "style", "theme"],
+    designer: ["designer", "design studio", "creative"],
+    printer: ["printer", "printing", "print shop", "vendor"],
+    quantity: ["quantity", "qty", "count", "number", "how many", "cards", "pieces"],
+    cost: ["cost", "price", "amount", "budget", "total", "₹", "inr", "rupees"],
+    sentDate: ["sent", "sent date", "dispatched", "mailed", "when sent"],
+    rsvpDeadline: ["rsvp", "deadline", "reply by", "respond by", "rsvp date"],
+    status: ["status", "state", "condition", "planning", "printed", "dispatched", "delivered"],
     notes: ["notes", "note", "remark", "comment", "memo", "info"],
   },
 };
@@ -344,6 +366,26 @@ export function applyMappings(
         if (!result.giftType) result.giftType = "Cash";
         if (!result.received) result.received = "Yes";
         if (!result.thankYou) result.thankYou = "Pending";
+        if (!result.notes) result.notes = "";
+      } else if (type === "outfits") {
+        if (!result.event) result.event = "";
+        if (!result.person) result.person = "Bride";
+        if (!result.description) result.description = "";
+        if (!result.designer) result.designer = "";
+        if (!result.status) result.status = "Shopping";
+        if (result.cost === undefined) result.cost = 0;
+        if (!result.jewelryPairing) result.jewelryPairing = "";
+        if (!result.notes) result.notes = "";
+      } else if (type === "invites") {
+        if (!result.type) result.type = "Main Invite";
+        if (!result.description) result.description = "";
+        if (!result.designer) result.designer = "";
+        if (!result.printer) result.printer = "";
+        if (result.quantity === undefined) result.quantity = 0;
+        if (result.cost === undefined) result.cost = 0;
+        if (!result.sentDate) result.sentDate = "";
+        if (!result.rsvpDeadline) result.rsvpDeadline = "";
+        if (!result.status) result.status = "Planning";
         if (!result.notes) result.notes = "";
       }
 

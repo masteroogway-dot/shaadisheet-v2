@@ -26,6 +26,8 @@ const SECTIONS = [
       { id: "rooms", icon: "fa-bed", label: "Rooms" },
       { id: "timeline", icon: "fa-clock", label: "Timeline" },
       { id: "gifts", icon: "fa-gift", label: "Gift Tracker" },
+      { id: "outfits", icon: "fa-shirt", label: "Outfit Planner" },
+      { id: "invites", icon: "fa-envelope-open-text", label: "Invites" },
     ],
   },
   {

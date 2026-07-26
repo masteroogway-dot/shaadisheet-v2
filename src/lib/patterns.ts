@@ -26,6 +26,8 @@ const TARGET_SYNONYMS: Record<string, string[]> = {
   rooms: ['room', 'rooms', 'allocation', 'hotel', 'accommodation', 'stay', 'lodging', 'room allocation', 'hotel room', 'room booking'],
   events: ['event', 'events', 'function', 'ceremony', 'ritual', 'day', 'programme', 'program'],
   gifts: ['gift', 'gifts', 'shagun', 'gift tracker', 'who gave', 'thank you', 'given', 'received', 'cash gift', 'gift amount'],
+  outfits: ['outfit', 'outfits', 'dress', 'lehenga', 'sherwani', 'gown', 'saree', 'clothes', 'attire', 'look', 'outfit planner', 'jewelry'],
+  invites: ['invite', 'invites', 'invitation', 'card', 'save the date', 'printed', 'dispatched', 'invite details', 'invitation card'],
 };
 
 const Rsvp_SYNONYMS: Record<string, string> = {
