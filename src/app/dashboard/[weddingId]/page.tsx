@@ -16,6 +16,7 @@ import TasksView from "@/components/views/TasksView";
 import SeatingView from "@/components/views/SeatingView";
 import TimelineView from "@/components/views/TimelineView";
 import RoomAllocationView from "@/components/views/RoomAllocationView";
+import GiftTrackerView from "@/components/views/GiftTrackerView";
 import AiPanel from "@/components/AiPanel";
 import ProfileMenu from "@/components/ProfileMenu";
 import ToastContainer, { Toast } from "@/components/Toast";
@@ -127,6 +128,7 @@ export default function WeddingDashboardPage() {
       case "seating": return <SeatingView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "rooms": return <RoomAllocationView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "timeline": return <TimelineView wedding={wedding} weddingId={weddingId} canEdit={canEdit} />;
+      case "gifts": return <GiftTrackerView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       default: return <OverviewView wedding={wedding} onUpdate={refreshWedding} userRole={userRole} onToast={addToast} />;
     }
   };

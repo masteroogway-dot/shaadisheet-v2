@@ -59,6 +59,15 @@ const FIELD_LABELS: Record<ImportType, Record<string, string>> = {
     status: "Status",
     notes: "Notes",
   },
+  gifts: {
+    fromName: "Gift Giver Name",
+    fromSide: "Side",
+    amount: "Amount",
+    giftType: "Gift Type",
+    received: "Received",
+    thankYou: "Thank You",
+    notes: "Notes",
+  },
 };
 
 type Step = "upload" | "mapping" | "preview" | "importing" | "done";

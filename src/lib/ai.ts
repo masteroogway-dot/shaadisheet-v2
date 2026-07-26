@@ -195,6 +195,84 @@ const tools: OpenAI.ChatCompletionTool[] = [
   {
     type: "function",
     function: {
+      name: "create_gifts",
+      description: "Create gift records. Use when user mentions receiving shagun, gift, cash from someone.",
+      parameters: {
+        type: "object",
+        properties: {
+          gifts: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                fromName: { type: "string", description: "Name of person/family who gave the gift" },
+                fromSide: { type: "string", enum: ["Paternal", "Maternal", "Groom", "Friends", "Colleagues", "Both"], description: "Which side of the family" },
+                amount: { type: "number", description: "Amount in INR (for cash gifts)" },
+                giftType: { type: "string", enum: ["Cash", "Gold", "Gift", "Other"], description: "Type of gift" },
+                thankYou: { type: "string", enum: ["Sent", "Pending"], description: "Thank you status" },
+              },
+              required: ["fromName"],
+            },
+            description: "Array of gift objects to create",
+          },
+        },
+        required: ["gifts"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_gifts",
+      description: "Update gifts by filter. Use for marking thank-yous sent, updating amounts.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              fromName: { type: "string", description: "Gift giver name to match" },
+              fromSide: { type: "string", enum: ["Paternal", "Maternal", "Groom", "Friends", "Colleagues", "Both"], description: "Filter by side" },
+              thankYou: { type: "string", enum: ["Sent", "Pending"], description: "Filter by thank you status" },
+              giftType: { type: "string", enum: ["Cash", "Gold", "Gift", "Other"], description: "Filter by gift type" },
+            },
+          },
+          updates: {
+            type: "object",
+            properties: {
+              thankYou: { type: "string", enum: ["Sent", "Pending"], description: "Update thank you status" },
+              received: { type: "string", enum: ["Yes", "Pending"], description: "Update received status" },
+              amount: { type: "number", description: "Update amount in INR" },
+            },
+          },
+        },
+        required: ["updates"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_gifts",
+      description: "Delete gifts by filter.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              fromName: { type: "string", description: "Gift giver name to match" },
+              fromSide: { type: "string", enum: ["Paternal", "Maternal", "Groom", "Friends", "Colleagues", "Both"], description: "Filter by side" },
+              thankYou: { type: "string", enum: ["Sent", "Pending"], description: "Filter by thank you status" },
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "create_vendor",
       description: "Create a new vendor entry.",
       parameters: {
@@ -483,6 +561,34 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
       const result = await prisma.guest.updateMany({ where, data: updates });
       return `Updated ${result.count} guest(s).`;
     }
+    case "create_gifts": {
+      const data = a.gifts.map((g: any) => ({
+        weddingId, fromName: g.fromName, fromSide: g.fromSide || "Both",
+        amount: g.amount || 0, giftType: g.giftType || "Cash",
+        received: "Yes", thankYou: g.thankYou || "Pending",
+      }));
+      await prisma.gift.createMany({ data });
+      return `Created ${a.gifts.length} gift(s): ${a.gifts.map((g: any) => `${g.fromName}${g.amount ? ` - ₹${formatINR(g.amount)}` : ""}`).join(", ")}.`;
+    }
+    case "update_gifts": {
+      const { filter = {}, updates } = a;
+      const where: any = { weddingId };
+      if (filter.fromName) where.fromName = { contains: filter.fromName, mode: "insensitive" };
+      if (filter.fromSide) where.fromSide = filter.fromSide;
+      if (filter.thankYou) where.thankYou = filter.thankYou;
+      if (filter.giftType) where.giftType = filter.giftType;
+      const result = await prisma.gift.updateMany({ where, data: updates });
+      return `Updated ${result.count} gift(s).`;
+    }
+    case "delete_gifts": {
+      const { filter = {} } = a;
+      const where: any = { weddingId };
+      if (filter.fromName) where.fromName = { contains: filter.fromName, mode: "insensitive" };
+      if (filter.fromSide) where.fromSide = filter.fromSide;
+      if (filter.thankYou) where.thankYou = filter.thankYou;
+      const result = await prisma.gift.deleteMany({ where });
+      return `Deleted ${result.count} gift(s).`;
+    }
     case "create_vendor": {
       await prisma.vendor.create({
         data: { weddingId, name: a.name, category: a.category, contact: a.contact, quote: a.quote, notes: a.notes, contract: "Pending" },
@@ -568,6 +674,7 @@ You have direct database access via tools:
 - NEVER combine name_contains and dietary in same filter
 - "Jain" in a person's name is part of their NAME, not dietary
 - Guest accommodation: "Room Needed" = outstation guest needing hotel, "Local / Floating" = local guest not needing room
+- Gift Tracker: Use create_gifts when user says "X gave ₹Y" or "received ₹Y from X". Default side to "Paternal" or "Maternal" based on context if mentioned
 - After tool runs, confirm in one sentence, then ask if they need anything else
 
 ## WEDDING EXPERTISE
@@ -611,7 +718,7 @@ You have direct database access via tools:
 }
 
 // ─── Destructive tool names ────────────────────────────────────────
-const DESTRUCTIVE_TOOLS = new Set(["delete_guests", "delete_vendors", "delete_budget_items", "delete_rooms"]);
+const DESTRUCTIVE_TOOLS = new Set(["delete_guests", "delete_vendors", "delete_budget_items", "delete_rooms", "delete_gifts"]);
 
 // ─── Provider caller with fallback ─────────────────────────────────
 

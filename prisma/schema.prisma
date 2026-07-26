@@ -108,6 +108,7 @@ model Wedding {
   seatingTables   SeatingTable[]
   tasks           Task[]
   vendors         Vendor[]
+  gifts           Gift[]
   user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   collaborators   WeddingCollaborator[]
   events          WeddingEvent[]
@@ -252,4 +253,18 @@ model AiUsage {
   createdAt DateTime @default(now())
 
   @@index([userId, date])
+}
+
+model Gift {
+  id        String  @id @default(cuid())
+  weddingId String
+  fromName  String  @default("")
+  fromSide  String  @default("Both")
+  amount    Int     @default(0)
+  giftType  String  @default("Cash")
+  received  String  @default("Yes")
+  thankYou  String  @default("Pending")
+  notes     String  @default("")
+  order     Int     @default(0)
+  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 }

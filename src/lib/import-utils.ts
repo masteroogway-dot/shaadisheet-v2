@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
 
-export type ImportType = "budget" | "vendors" | "guests" | "rooms";
+export type ImportType = "budget" | "vendors" | "guests" | "rooms" | "gifts";
 
 export interface FieldMapping {
   sourceColumn: string;
@@ -61,6 +61,15 @@ const FIELD_KEYWORDS: Record<ImportType, Record<string, string[]>> = {
     checkIn: ["check in", "checkin", "arrival", "arrive", "from", "start date"],
     checkOut: ["check out", "checkout", "departure", "depart", "to", "end date"],
     status: ["status", "state", "condition"],
+    notes: ["notes", "note", "remark", "comment", "memo", "info"],
+  },
+  gifts: {
+    fromName: ["name", "guest", "from", "giver", "who gave", "person", "gift from", "shagun from"],
+    fromSide: ["side", "bride", "groom", "family", "paternal", "maternal", "friends", "colleagues"],
+    amount: ["amount", "cash", "gift", "shagun", "rupees", "inr", "₹", "value", "gift amount"],
+    giftType: ["type", "gift type", "kind", "cash", "gold", "gift", "other"],
+    received: ["received", "got", "collected"],
+    thankYou: ["thank you", "thankyou", "thanks", "sent", "status"],
     notes: ["notes", "note", "remark", "comment", "memo", "info"],
   },
 };
@@ -327,6 +336,14 @@ export function applyMappings(
         if (!result.checkIn) result.checkIn = "";
         if (!result.checkOut) result.checkOut = "";
         if (!result.status) result.status = "Reserved";
+        if (!result.notes) result.notes = "";
+      } else if (type === "gifts") {
+        if (!result.fromName) result.fromName = "";
+        if (!result.fromSide) result.fromSide = "Both";
+        if (result.amount === undefined) result.amount = 0;
+        if (!result.giftType) result.giftType = "Cash";
+        if (!result.received) result.received = "Yes";
+        if (!result.thankYou) result.thankYou = "Pending";
         if (!result.notes) result.notes = "";
       }
 

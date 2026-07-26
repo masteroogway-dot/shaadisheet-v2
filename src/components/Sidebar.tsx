@@ -1,18 +1,52 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
-const NAV_ITEMS = [
-  { id: "overview", icon: "fa-home", label: "Overview" },
-  { id: "budget", icon: "fa-rupee-sign", label: "Budget" },
-  { id: "vendors", icon: "fa-store", label: "Vendors" },
-  { id: "guests", icon: "fa-users", label: "Guests" },
-  { id: "events", icon: "fa-calendar-alt", label: "Events" },
-  { id: "tasks", icon: "fa-tasks", label: "Tasks" },
-  { id: "seating", icon: "fa-th-large", label: "Seating" },
-  { id: "rooms", icon: "fa-bed", label: "Room Allocation" },
-  { id: "timeline", icon: "fa-clock", label: "Day Timeline" },
+const SECTIONS = [
+  {
+    id: "planning",
+    title: "Planning",
+    icon: "fa-clipboard-list",
+    items: [
+      { id: "overview", icon: "fa-home", label: "Overview" },
+      { id: "budget", icon: "fa-rupee-sign", label: "Budget" },
+      { id: "vendors", icon: "fa-store", label: "Vendors" },
+      { id: "guests", icon: "fa-users", label: "Guests" },
+      { id: "events", icon: "fa-calendar-alt", label: "Events" },
+      { id: "tasks", icon: "fa-tasks", label: "Tasks" },
+    ],
+  },
+  {
+    id: "logistics",
+    title: "Logistics",
+    icon: "fa-hotel",
+    items: [
+      { id: "seating", icon: "fa-th-large", label: "Seating" },
+      { id: "rooms", icon: "fa-bed", label: "Rooms" },
+      { id: "timeline", icon: "fa-clock", label: "Timeline" },
+      { id: "gifts", icon: "fa-gift", label: "Gift Tracker" },
+    ],
+  },
+  {
+    id: "checklists",
+    title: "Checklists",
+    icon: "fa-clipboard-check",
+    items: [
+      { id: "checklists", icon: "fa-list-check", label: "All Checklists" },
+    ],
+  },
+  {
+    id: "fun",
+    title: "Fun",
+    icon: "fa-wand-magic-sparkles",
+    items: [
+      { id: "hashtags", icon: "fa-hashtag", label: "Hashtag Generator" },
+    ],
+  },
 ];
+
+const STORAGE_KEY = "shaadisheet-sidebar-sections";
 
 interface Props {
   activeView: string;
@@ -22,22 +56,40 @@ interface Props {
 }
 
 export default function Sidebar({ activeView, onViewChange, mobileOpen, onMobileClose }: Props) {
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) setCollapsed(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  const toggleSection = (sectionId: string) => {
+    setCollapsed((prev) => {
+      const next = { ...prev, [sectionId]: !prev[sectionId] };
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+
   const handleNav = (id: string) => {
     onViewChange(id);
     onMobileClose();
   };
 
+  const findSectionForView = (viewId: string) => {
+    return SECTIONS.find((s) => s.items.some((i) => i.id === viewId));
+  };
+
+  const activeSection = findSectionForView(activeView);
+
   return (
     <>
-      {/* Mobile backdrop */}
       {mobileOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
-          onClick={onMobileClose}
-        />
+        <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={onMobileClose} />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`
           fixed top-0 left-0 h-full w-[260px] bg-white border-r border-gray-200 flex flex-col shrink-0 overflow-y-auto z-50
@@ -55,21 +107,46 @@ export default function Sidebar({ activeView, onViewChange, mobileOpen, onMobile
             <i className="fas fa-times" />
           </button>
         </div>
-        <nav className="flex-1 p-3">
-          {NAV_ITEMS.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => handleNav(item.id)}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 min-h-[44px] rounded-lg text-[0.9rem] font-medium transition-all mb-0.5 cursor-pointer ${
-                activeView === item.id
-                  ? "bg-gradient-to-br from-maroon to-maroon-light text-white"
-                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-              }`}
-            >
-              <i className={`fas ${item.icon} w-5 text-center`} />
-              <span>{item.label}</span>
-            </button>
-          ))}
+
+        <nav className="flex-1 py-2">
+          {SECTIONS.map((section) => {
+            const isCollapsed = collapsed[section.id];
+            const isActive = activeSection?.id === section.id;
+
+            return (
+              <div key={section.id} className="mb-1">
+                <button
+                  onClick={() => toggleSection(section.id)}
+                  className={`w-full flex items-center gap-2 px-4 py-2 text-[0.65rem] font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+                    isActive ? "text-maroon" : "text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  <i className={`fas ${section.icon} w-4 text-center text-[0.7rem]`} />
+                  <span className="flex-1 text-left">{section.title}</span>
+                  <i className={`fas fa-chevron-down text-[0.55rem] transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
+                </button>
+
+                {!isCollapsed && (
+                  <div className="mt-0.5">
+                    {section.items.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => handleNav(item.id)}
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 ml-2 mr-2 min-h-[40px] rounded-lg text-[0.85rem] font-medium transition-all mb-0.5 cursor-pointer ${
+                          activeView === item.id
+                            ? "bg-gradient-to-br from-maroon to-maroon-light text-white shadow-sm"
+                            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                        }`}
+                      >
+                        <i className={`fas ${item.icon} w-5 text-center text-sm`} />
+                        <span>{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
       </aside>
     </>

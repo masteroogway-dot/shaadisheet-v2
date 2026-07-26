@@ -53,6 +53,7 @@ async function getCurrentWedding(weddingId?: string) {
         roomAllocations: { orderBy: { order: "asc" } },
         events: { orderBy: { order: "asc" } },
         timelineItems: { orderBy: { order: "asc" } },
+        gifts: { orderBy: { order: "asc" } },
         collaborators: { where: { status: "accepted" }, include: { user: { select: { id: true, name: true, email: true, image: true } } } },
       },
     });
@@ -75,6 +76,7 @@ async function getCurrentWedding(weddingId?: string) {
             roomAllocations: { orderBy: { order: "asc" } },
             events: { orderBy: { order: "asc" } },
             timelineItems: { orderBy: { order: "asc" } },
+            gifts: { orderBy: { order: "asc" } },
             collaborators: { where: { status: "accepted" }, include: { user: { select: { id: true, name: true, email: true, image: true } } } },
           },
         });
@@ -96,6 +98,7 @@ async function getCurrentWedding(weddingId?: string) {
         roomAllocations: { orderBy: { order: "asc" } },
         events: { orderBy: { order: "asc" } },
         timelineItems: { orderBy: { order: "asc" } },
+        gifts: { orderBy: { order: "asc" } },
       },
     });
     if (!wedding) throw new Error("No wedding found");
@@ -720,6 +723,94 @@ export async function batchCreateGuests(weddingId: string, items: any[]) {
         tableNum: 0,
         giftGiven: "No",
         thankYou: "No",
+        notes: sanitize(item.notes),
+      },
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GIFT TRACKER
+// ═══════════════════════════════════════════════════════════════
+
+export async function createGift(weddingId: string, data: {
+  fromName?: string;
+  fromSide?: string;
+  amount?: number;
+  giftType?: string;
+  received?: string;
+  thankYou?: string;
+  notes?: string;
+}) {
+  const wedding = await getCurrentWedding(weddingId);
+  const maxOrder = Math.max(...wedding.gifts.map((g: any) => g.order), -1);
+  return prisma.gift.create({
+    data: { weddingId: wedding.id, ...data, order: maxOrder + 1 },
+  });
+}
+
+export async function updateGift(
+  weddingId: string,
+  id: string,
+  data: {
+    fromName?: string;
+    fromSide?: string;
+    amount?: number;
+    giftType?: string;
+    received?: string;
+    thankYou?: string;
+    notes?: string;
+  }
+) {
+  const wedding = await getCurrentWedding(weddingId);
+  const gift = await prisma.gift.findUnique({ where: { id } });
+  if (!gift || gift.weddingId !== wedding.id) throw new Error("Unauthorized");
+  return prisma.gift.update({ where: { id }, data });
+}
+
+export async function deleteGift(weddingId: string, id: string) {
+  const wedding = await getCurrentWedding(weddingId);
+  const gift = await prisma.gift.findUnique({ where: { id } });
+  if (!gift || gift.weddingId !== wedding.id) throw new Error("Unauthorized");
+  return prisma.gift.delete({ where: { id } });
+}
+
+export async function bulkDeleteGifts(weddingId: string, ids: string[]) {
+  await getCurrentWedding(weddingId);
+  return prisma.gift.deleteMany({ where: { id: { in: ids }, weddingId } });
+}
+
+export async function bulkUpdateGifts(weddingId: string, ids: string[], data: {
+  thankYou?: string;
+  received?: string;
+  fromSide?: string;
+}) {
+  await getCurrentWedding(weddingId);
+  return prisma.gift.updateMany({ where: { id: { in: ids }, weddingId }, data });
+}
+
+export async function batchCreateGifts(weddingId: string, items: any[]) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const maxOrder = await prisma.gift.aggregate({
+    where: { weddingId },
+    _max: { order: true },
+  });
+
+  let order = (maxOrder._max.order ?? -1) + 1;
+
+  for (const item of items) {
+    await prisma.gift.create({
+      data: {
+        weddingId,
+        order: order++,
+        fromName: sanitize(item.fromName || item.name),
+        fromSide: sanitize(item.fromSide || item.side) || "Both",
+        amount: typeof item.amount === "number" ? item.amount : parseInt(String(item.amount).replace(/[^\d]/g, "")) || 0,
+        giftType: sanitize(item.giftType || item.type) || "Cash",
+        received: sanitize(item.received) || "Yes",
+        thankYou: sanitize(item.thankYou) || "Pending",
         notes: sanitize(item.notes),
       },
     });
