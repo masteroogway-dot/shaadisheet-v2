@@ -86,6 +86,31 @@ export default function WeddingWebsiteModal({
     window.open(`/w/${websiteData.websiteSlug}`, "_blank");
   }, [websiteData.websiteSlug]);
 
+  const handleFileUpload = useCallback((file: File) => {
+    if (!file.type.startsWith("image/")) return;
+    if (file.size > 5 * 1024 * 1024) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX = 800;
+        let w = img.width;
+        let h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round((h / w) * MAX); w = MAX; }
+          else { w = Math.round((w / h) * MAX); h = MAX; }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext("2d")?.drawImage(img, 0, 0, w, h);
+        setPhotoUrl(canvas.toDataURL("image/jpeg", 0.8));
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }, []);
+
   const handleRegenerate = useCallback(async () => {
     setLoading(true);
     try {
@@ -310,20 +335,56 @@ export default function WeddingWebsiteModal({
                   />
                 </div>
                 <div>
-                  <label
-                    htmlFor="photoUrl"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Photo URL
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Couple Photo
                   </label>
-                  <input
-                    id="photoUrl"
-                    type="text"
-                    value={photoUrl}
-                    onChange={(e) => setPhotoUrl(e.target.value)}
-                    placeholder="https://..."
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#6b2737]/30 focus:border-[#6b2737] transition-colors"
-                  />
+                  {photoUrl ? (
+                    <div className="relative">
+                      <img
+                        src={photoUrl}
+                        alt="Preview"
+                        className="w-full h-40 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        onClick={() => setPhotoUrl("")}
+                        className="absolute top-2 right-2 w-7 h-7 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center text-xs transition-colors"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const file = e.dataTransfer.files?.[0];
+                        if (file) handleFileUpload(file);
+                      }}
+                      className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#6b2737]/50 hover:bg-[#6b2737]/[0.02] transition-colors cursor-pointer"
+                      onClick={() => document.getElementById("photo-upload")?.click()}
+                    >
+                      <input
+                        id="photo-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file);
+                        }}
+                      />
+                      <div className="w-10 h-10 mx-auto mb-2 bg-gray-100 rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+                        </svg>
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        <span className="font-medium text-[#6b2737]">Click to upload</span> or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">JPG, PNG up to 5MB</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
