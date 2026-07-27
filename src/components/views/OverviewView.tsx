@@ -211,6 +211,80 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
     dynamicTips.push({ icon: "fa-check-circle", color: "#D1FAE5", text: "Everything looks great! Your wedding is well organized." });
   }
 
+  // ── Phase Tracker ──
+  const PHASES = [
+    { name: "Dream Phase", emoji: "\u{1F48C}", description: "Set your vision, budget, and guest count", threshold: 365 },
+    { name: "Booking Phase", emoji: "\u{1F4E6}", description: "Lock in your key vendors", threshold: 270 },
+    { name: "Detail Phase", emoji: "\u{1F380}", description: "Finalize outfits, invites, and menus", threshold: 180 },
+    { name: "Coordination Phase", emoji: "\u{1F4CB}", description: "Seating, rooms, and timeline", threshold: 90 },
+    { name: "Final Countdown", emoji: "\u{23F0}", description: "Confirm everything and delegate", threshold: 30 },
+    { name: "Wedding Week", emoji: "\u{1F492}", description: "Execute, enjoy, and celebrate!", threshold: 0 },
+  ];
+  let currentPhase = PHASES[0];
+  if (countdown !== null) {
+    for (const phase of PHASES) {
+      if (countdown <= phase.threshold) currentPhase = phase;
+    }
+  }
+  const phaseIndex = PHASES.indexOf(currentPhase);
+  const phaseProgress = Math.round(((phaseIndex + 1) / PHASES.length) * 100);
+
+  // ── Smart Recommendations (Next 3 Steps) ──
+  type Rec = { id: string; icon: string; text: string; urgency: "critical" | "high" | "medium"; color: string; score: number };
+  const recommendations: Rec[] = [];
+  const overdueTasksList = wedding.tasks?.filter((t: any) => !t.done && t.dueDate && new Date(t.dueDate) < today) || [];
+  for (const t of overdueTasksList.slice(0, 2)) {
+    recommendations.push({ id: `to-${t.id}`, icon: "fa-exclamation-circle", text: `"${t.text}" is overdue`, urgency: "critical", color: "text-red-600 bg-red-50 border-red-200", score: 10 });
+  }
+  const unsignedVendors = wedding.vendors?.filter((v: any) => v.contract === "Pending") || [];
+  for (const v of unsignedVendors.slice(0, 2)) {
+    const daysToVendorDeadline = v.deadline ? Math.ceil((new Date(v.deadline).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : null;
+    const isOverdue = daysToVendorDeadline !== null && daysToVendorDeadline < 0;
+    const isUrgent = daysToVendorDeadline !== null && daysToVendorDeadline <= 30;
+    recommendations.push({
+      id: `v-${v.id}`,
+      icon: "fa-store",
+      text: isOverdue ? `${v.category || "Vendor"} contract overdue` : isUrgent ? `Book ${v.category || "Vendor"} \u2014 ${daysToVendorDeadline} days left` : `${v.category || "Vendor"} needs contract`,
+      urgency: isOverdue ? "critical" : isUrgent ? "high" : "medium",
+      color: isOverdue ? "text-red-600 bg-red-50 border-red-200" : isUrgent ? "text-orange-600 bg-orange-50 border-orange-200" : "text-amber-600 bg-amber-50 border-amber-200",
+      score: isOverdue ? 9 : isUrgent ? 7 : 4,
+    });
+  }
+  if (countdown !== null && countdown <= 60) {
+    const pendingRsvps = wedding.guests?.filter((g: any) => g.rsvp === "Pending").length || 0;
+    if (pendingRsvps > 0) {
+      recommendations.push({ id: "rsvp", icon: "fa-envelope", text: `${pendingRsvps} guest${pendingRsvps > 1 ? "s" : ""} haven\u2019t responded`, urgency: "high", color: "text-blue-600 bg-blue-50 border-blue-200", score: 8 });
+    }
+  }
+  const overdueCount = overdueTasksList.length;
+  if (overdueCount === 0 && unsignedVendors.length === 0 && recommendations.length === 0) {
+    recommendations.push({ id: "all-good", icon: "fa-check-circle", text: "Everything looks on track! Keep it up.", urgency: "medium", color: "text-green bg-green/10 border-green/20", score: 0 });
+  }
+  recommendations.sort((a, b) => b.score - a.score);
+  const topRecs = recommendations.slice(0, 3);
+
+  // ── This Month's Focus ──
+  const thisMonth = today.getMonth();
+  const thisYear = today.getFullYear();
+  const tasksThisMonth = (wedding.tasks || []).filter((t: any) => {
+    if (!t.dueDate) return false;
+    const d = new Date(t.dueDate);
+    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+  });
+  const overdueMonth = tasksThisMonth.filter((t: any) => !t.done && new Date(t.dueDate) < today);
+  const upcomingMonth = tasksThisMonth.filter((t: any) => !t.done && new Date(t.dueDate) >= today);
+
+  // ── Wedding Week at a Glance ──
+  const weddingWeekEvents = (wedding.events || [])
+    .filter((e: any) => {
+      if (!e.date || !wedding.weddingDate) return false;
+      const eventDate = new Date(e.date + "T00:00:00");
+      const diff = Math.abs(Math.ceil((eventDate.getTime() - new Date(wedding.weddingDate).getTime()) / (1000 * 60 * 60 * 24)));
+      return diff <= 3;
+    })
+    .sort((a: any, b: any) => a.date.localeCompare(b.date))
+    .slice(0, 5);
+
   return (
     <div>
       <div className="flex justify-between items-start mb-7">
@@ -222,28 +296,11 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
         </div>
         {hasData && (
           <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 shrink-0">
-            <div className="relative w-12 h-12">
-              <svg className="w-12 h-12 -rotate-90" viewBox="0 0 48 48">
-                <circle cx="24" cy="24" r="20" fill="none" stroke="#E5E7EB" strokeWidth="4" />
-                <circle
-                  cx="24" cy="24" r="20" fill="none" stroke="url(#progressGradient)" strokeWidth="4"
-                  strokeLinecap="round"
-                  strokeDasharray={`${2 * Math.PI * 20}`}
-                  strokeDashoffset={`${2 * Math.PI * 20 * (1 - progressPct / 100)}`}
-                  className="transition-all duration-1000 ease-out"
-                />
-                <defs>
-                  <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#722F37" />
-                    <stop offset="100%" stopColor="#D4AF37" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-900">{progressPct}%</span>
-            </div>
+            <div className="text-2xl">{currentPhase.emoji}</div>
             <div>
-              <p className="text-xs text-gray-500 font-medium">Planning</p>
-              <p className="text-sm font-bold text-gray-900">{progressPct >= 80 ? "Almost there!" : progressPct >= 50 ? "Looking good" : "Just started"}</p>
+              <p className="text-xs text-gray-500 font-medium">Current Phase</p>
+              <p className="text-sm font-bold text-gray-900">{currentPhase.name}</p>
+              <p className="text-[0.65rem] text-gray-400">{currentPhase.description}</p>
             </div>
           </div>
         )}
@@ -289,6 +346,31 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                   </div>
                 </div>
               ))}
+            </div>
+          </ScrollReveal>
+
+          {/* Phase Progress Bar */}
+          <ScrollReveal>
+            <div className="bg-white rounded-xl border border-gray-200 p-5 md:p-6 mb-6 md:mb-8">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-sm">
+                  {currentPhase.emoji} {currentPhase.name}
+                </h3>
+                <span className="text-xs text-gray-500">{phaseProgress}% complete</span>
+              </div>
+              <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden mb-3">
+                <div className="h-full bg-gradient-to-r from-maroon to-gold rounded-full transition-all duration-1000" style={{ width: `${phaseProgress}%` }} />
+              </div>
+              <div className="flex justify-between">
+                {PHASES.map((phase, i) => (
+                  <div key={i} className="flex flex-col items-center" style={{ flex: 1 }}>
+                    <div className={`w-3 h-3 rounded-full mb-1 ${i <= phaseIndex ? "bg-maroon" : "bg-gray-300"} ${i === phaseIndex ? "ring-2 ring-maroon/30" : ""}`} />
+                    <span className={`text-[0.6rem] text-center leading-tight hidden md:block ${i <= phaseIndex ? "text-maroon font-semibold" : "text-gray-400"}`}>
+                      {phase.name.split(" ")[0]}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </ScrollReveal>
 
@@ -539,21 +621,116 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
             <ScrollReveal delay={0.2}>
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div className="px-6 pt-5 pb-0">
-                  <h3 className="font-bold">Quick Tips</h3>
+                  <h3 className="font-bold">Your Next 3 Steps</h3>
                 </div>
                 <div className="p-6">
-                  {dynamicTips.map((tip, i) => (
-                    <div key={i} className="flex items-start gap-3 py-3.5 border-b border-gray-100 last:border-0">
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: tip.color }}><i className={`fas ${tip.icon} text-sm`} /></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm">{tip.text}</p>
+                  {topRecs.map((rec) => (
+                    <div key={rec.id} className={`flex items-start gap-3 py-3.5 border-b border-gray-100 last:border-0`}>
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 border ${rec.color}`}>
+                        <i className={`fas ${rec.icon} text-sm`} />
                       </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm">{rec.text}</p>
+                      </div>
+                      {rec.urgency === "critical" && (
+                        <span className="text-[0.65rem] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full shrink-0">Urgent</span>
+                      )}
+                      {rec.urgency === "high" && (
+                        <span className="text-[0.65rem] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full shrink-0">Soon</span>
+                      )}
                     </div>
                   ))}
                 </div>
               </div>
             </ScrollReveal>
           </div>
+
+          {/* This Month's Focus */}
+          {tasksThisMonth.length > 0 && (
+            <ScrollReveal>
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
+                <div className="flex items-center justify-between px-6 pt-5 pb-0">
+                  <h3 className="font-bold">
+                    <i className="fas fa-calendar-day text-gray-400 mr-2" />
+                    This Month
+                  </h3>
+                  <span className="text-xs text-gray-500">{tasksThisMonth.length} task{tasksThisMonth.length !== 1 ? "s" : ""} due</span>
+                </div>
+                <div className="p-6">
+                  {overdueMonth.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-xs font-semibold text-red-500 mb-2 uppercase tracking-wide">{overdueMonth.length} Overdue</p>
+                      {overdueMonth.slice(0, 3).map((t: any) => (
+                        <div key={t.id} className="flex items-center gap-3 py-2">
+                          <div className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+                          <span className="text-sm truncate">{t.text}</span>
+                          <span className="text-xs text-red-500 shrink-0">Overdue</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div>
+                    {upcomingMonth.length > 0 && <p className="text-xs font-semibold text-amber-600 mb-2 uppercase tracking-wide">{upcomingMonth.length} Upcoming</p>}
+                    {upcomingMonth.slice(0, 4).map((t: any) => {
+                      const d = new Date(t.dueDate);
+                      const daysLeft = Math.ceil((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                      return (
+                        <div key={t.id} className="flex items-center gap-3 py-2">
+                          <div className={`w-2 h-2 rounded-full shrink-0 ${daysLeft <= 3 ? "bg-orange-500" : "bg-green"}`} />
+                          <span className="text-sm truncate">{t.text}</span>
+                          <span className="text-xs text-gray-400 shrink-0">{daysLeft}d</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </ScrollReveal>
+          )}
+
+          {/* Wedding Week at a Glance */}
+          {weddingWeekEvents.length > 0 && (
+            <ScrollReveal>
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
+                <div className="px-6 pt-5 pb-0">
+                  <h3 className="font-bold">
+                    <i className="fas fa-rings-wedding text-gray-400 mr-2" />
+                    Wedding Week
+                  </h3>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-3">
+                    {weddingWeekEvents.map((event: any) => {
+                      const d = new Date(event.date + "T00:00:00");
+                      const day = d.getDate();
+                      const month = d.toLocaleString("en-US", { month: "short" });
+                      const weekday = d.toLocaleString("en-US", { weekday: "short" });
+                      const isWedding = event.name?.includes("Wedding") || event.name?.includes("Nikah") || event.name?.includes("Anand Karaj");
+                      const daysUntil = Math.ceil((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                      return (
+                        <div key={event.id} className={`flex items-center gap-4 p-3 rounded-lg ${isWedding ? "bg-maroon/5 border border-maroon/10" : "bg-gray-50"}`}>
+                          <div className={`w-12 h-12 rounded-lg flex flex-col items-center justify-center shrink-0 ${isWedding ? "bg-gradient-to-br from-maroon to-maroon-light text-white" : "bg-white"}`}>
+                            <span className="text-[0.6rem] font-semibold uppercase opacity-70">{weekday}</span>
+                            <span className="text-lg font-extrabold leading-none">{day}</span>
+                            <span className="text-[0.6rem] font-semibold uppercase opacity-70">{month}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <strong className="text-sm">{event.name}</strong>
+                            <span className="block text-xs text-gray-500">
+                              {event.startTime ? formatTime(event.startTime) : "Time TBD"} {'\u2022'} {event.location || "Venue TBD"}
+                            </span>
+                          </div>
+                          <span className={`status-badge text-xs shrink-0 ${daysUntil <= 1 ? "planning" : daysUntil <= 3 ? "pending" : ""}`}>
+                            {daysUntil === 0 ? "Today" : daysUntil === 1 ? "Tomorrow" : `${daysUntil}d`}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </ScrollReveal>
+          )}
 
           {wedding.budgetItems && wedding.budgetItems.length > 0 && (
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">

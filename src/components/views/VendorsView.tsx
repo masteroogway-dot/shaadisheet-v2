@@ -43,6 +43,42 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
   const [priceAdvisorVendor, setPriceAdvisorVendor] = useState<any>(null);
 
   const vendors: any[] = wedding.vendors ?? [];
+  const weddingDate = wedding.weddingDate ? new Date(wedding.weddingDate) : null;
+
+  const VENDOR_BOOKING_WINDOWS: Record<string, number> = {
+    "venue": 365, "photographer": 180, "videographer": 180,
+    "caterer": 180, "catering": 180, "makeup": 120, "makeup artist": 120,
+    "mehndi": 120, "dj": 90, "entertainment": 90, "decorator": 90,
+    "decoration": 90, "florist": 90, "clothing": 150, "outfit": 150,
+    "lehenga": 150, "sherwani": 150,
+  };
+
+  const getUrgency = (v: any) => {
+    if (v.contract === "Signed") return { level: "booked", label: "Booked", color: "text-green bg-green/10 border-green/20", dot: "bg-green" };
+    if (!weddingDate) return { level: "none", label: "", color: "", dot: "" };
+    const now = new Date();
+    if (v.deadline) {
+      const daysLeft = Math.ceil((new Date(v.deadline).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysLeft < 0) return { level: "overdue", label: "Overdue", color: "text-red-600 bg-red-50 border-red-200", dot: "bg-red-500 animate-pulse" };
+      if (daysLeft <= 14) return { level: "urgent", label: `${daysLeft}d left`, color: "text-orange-600 bg-orange-50 border-orange-200", dot: "bg-orange-500" };
+      if (daysLeft <= 30) return { level: "soon", label: `${daysLeft}d left`, color: "text-amber-600 bg-amber-50 border-amber-200", dot: "bg-amber-500" };
+      return { level: "ok", label: `${daysLeft}d`, color: "text-gray-500 bg-gray-50 border-gray-200", dot: "bg-gray-400" };
+    }
+    const cat = (v.category || "").toLowerCase();
+    let bookingWindow = 90;
+    for (const [key, days] of Object.entries(VENDOR_BOOKING_WINDOWS)) {
+      if (cat.includes(key)) { bookingWindow = days; break; }
+    }
+    const daysUntilWedding = Math.ceil((weddingDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const daysUntilBookBy = daysUntilWedding - bookingWindow;
+    if (daysUntilBookBy < 0) {
+      const overdueBy = Math.abs(daysUntilBookBy);
+      if (overdueBy > 30) return { level: "overdue", label: "Overdue", color: "text-red-600 bg-red-50 border-red-200", dot: "bg-red-500 animate-pulse" };
+      return { level: "urgent", label: "Book now", color: "text-orange-600 bg-orange-50 border-orange-200", dot: "bg-orange-500" };
+    }
+    if (daysUntilBookBy <= 30) return { level: "soon", label: "Book soon", color: "text-amber-600 bg-amber-50 border-amber-200", dot: "bg-amber-500" };
+    return { level: "ok", label: "", color: "", dot: "" };
+  };
   const filteredVendors = vendors.filter((v: any) => {
     if (search) {
       const q = search.toLowerCase();
@@ -73,7 +109,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
 
   const handleAdd = async () => {
     try {
-      await createVendor(weddingId, { category: "New Vendor", name: "", contact: "", quote: 0, paid: 0, balance: 0, rating: "\u2605\u2605\u2605\u2605\u2606", contract: "Pending", notes: "" });
+      await createVendor(weddingId, { category: "New Vendor", name: "", contact: "", quote: 0, paid: 0, balance: 0, rating: "\u2605\u2605\u2605\u2605\u2606", contract: "Pending", deadline: "", notes: "" });
       onUpdate();
       onToast("Vendor added", "success");
     } catch {
@@ -90,7 +126,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
       onToast("Vendor deleted", "success", vendor ? {
         undoAction: async () => {
           try {
-            await createVendor(weddingId, { category: vendor.category, name: vendor.name, contact: vendor.contact, quote: vendor.quote || 0, paid: vendor.paid || 0, balance: vendor.balance || 0, rating: vendor.rating || "\u2605\u2605\u2605\u2605\u2606", contract: vendor.contract || "Pending", notes: vendor.notes || "" });
+            await createVendor(weddingId, { category: vendor.category, name: vendor.name, contact: vendor.contact, quote: vendor.quote || 0, paid: vendor.paid || 0, balance: vendor.balance || 0, rating: vendor.rating || "\u2605\u2605\u2605\u2605\u2606", contract: vendor.contract || "Pending", deadline: vendor.deadline || "", notes: vendor.notes || "" });
             onUpdate();
             onToast("Vendor restored", "success");
           } catch {
@@ -362,6 +398,16 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
                     {v.contract === "Signed" && !isEditing && (
                       <span className="status-badge paid text-[0.7rem] hidden sm:inline-block">Booked</span>
                     )}
+                    {!isEditing && (() => {
+                      const urg = getUrgency(v);
+                      if (urg.level === "ok") return null;
+                      return (
+                        <span className={`inline-flex items-center gap-1 text-[0.65rem] font-semibold px-2 py-0.5 rounded-full border ${urg.color} shrink-0`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${urg.dot}`} />
+                          {urg.label}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     {isEditing ? (
@@ -371,7 +417,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
                       </>
                     ) : (
                       <>
-                        {canEdit && <button onClick={() => { setEditing(v.id); setEditData({ name: v.name, contact: v.contact, category: v.category, quote: v.quote || 0, paid: v.paid || 0, rating: v.rating, contract: v.contract, notes: v.notes }); }} className="btn-edit"><i className="fas fa-pen sm:mr-1" /> <span className="hidden sm:inline">Edit</span></button>}
+                        {canEdit && <button onClick={() => { setEditing(v.id); setEditData({ name: v.name, contact: v.contact, category: v.category, quote: v.quote || 0, paid: v.paid || 0, rating: v.rating, contract: v.contract, deadline: v.deadline || "", notes: v.notes }); }} className="btn-edit"><i className="fas fa-pen sm:mr-1" /> <span className="hidden sm:inline">Edit</span></button>}
                         {canEdit && <button onClick={() => setPriceAdvisorVendor(v)} className="btn-edit text-amber-600 border-amber-200 hover:bg-amber-50" title="AI Price Check"><i className="fas fa-wand-magic-sparkles sm:mr-1" /> <span className="hidden sm:inline">Price Check</span></button>}
                         {canEdit && <button onClick={() => handleDelete(v.id)} className="btn-delete"><i className="fas fa-trash sm:mr-1" /> <span className="hidden sm:inline">Delete</span></button>}
                       </>
@@ -435,6 +481,14 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
                       </select>
                     ) : (
                       <span className={`status-badge ${v.contract === "Signed" ? "paid" : "pending"}`}>{v.contract}</span>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Deadline</label>
+                    {isEditing ? (
+                      <input type="date" value={editData.deadline ?? v.deadline} onChange={(e) => setEditData({ ...editData, deadline: e.target.value })} className="card-input" />
+                    ) : (
+                      <p className="text-sm text-gray-500">{v.deadline ? new Date(v.deadline).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : '\u2014'}</p>
                     )}
                   </div>
                   <div>

@@ -287,6 +287,7 @@ export async function createVendor(weddingId: string, data: {
   balance?: number;
   rating?: string;
   contract?: string;
+  deadline?: string;
   notes?: string;
 }) {
   const wedding = await getCurrentWedding(weddingId);
@@ -308,6 +309,7 @@ export async function updateVendor(
     balance?: number;
     rating?: string;
     contract?: string;
+    deadline?: string;
     notes?: string;
   }
 ) {
@@ -433,6 +435,8 @@ export async function createTask(weddingId: string, data: {
   text: string;
   done?: boolean;
   dueDate?: string;
+  priority?: string;
+  category?: string;
 }) {
   const wedding = await getCurrentWedding(weddingId);
   const maxOrder = Math.max(
@@ -444,7 +448,7 @@ export async function createTask(weddingId: string, data: {
   });
 }
 
-export async function updateTask(weddingId: string, id: string, data: { done?: boolean; text?: string; dueDate?: string }) {
+export async function updateTask(weddingId: string, id: string, data: { done?: boolean; text?: string; dueDate?: string; priority?: string; category?: string }) {
   const wedding = await getCurrentWedding(weddingId);
   const task = await prisma.task.findUnique({ where: { id } });
   if (!task || task.weddingId !== wedding.id) throw new Error("Unauthorized");
@@ -2090,4 +2094,289 @@ export async function bulkAddHashtags(weddingId: string, count: number) {
       data: { weddingId, order: order++, text: "", language: "English", style: "Romantic", favorite: false },
     });
   }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PLANNING PHASE TRACKER
+// ═══════════════════════════════════════════════════════════════
+
+const PHASES = [
+  { name: "Dream Phase", emoji: "\u{1F48C}", description: "Set your vision, budget, and guest count", threshold: 365 },
+  { name: "Booking Phase", emoji: "\u{1F4E6}", description: "Lock in your key vendors", threshold: 270 },
+  { name: "Detail Phase", emoji: "\u{1F380}", description: "Finalize outfits, invites, and menus", threshold: 180 },
+  { name: "Coordination Phase", emoji: "\u{1F4CB}", description: "Seating, rooms, and timeline", threshold: 90 },
+  { name: "Final Countdown", emoji: "\u{23F0}", description: "Confirm everything and delegate", threshold: 30 },
+  { name: "Wedding Week", emoji: "\u{1F492}", description: "Execute, enjoy, and celebrate!", threshold: 0 },
+];
+
+export async function getPlanningPhase(weddingId: string) {
+  const w = await getCurrentWedding(weddingId);
+  const now = new Date();
+  const weddingDate = w.weddingDate ? new Date(w.weddingDate) : null;
+  const daysUntil = weddingDate ? Math.ceil((weddingDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
+
+  let currentPhase = PHASES[0];
+  if (daysUntil !== null) {
+    for (const phase of PHASES) {
+      if (daysUntil <= phase.threshold) {
+        currentPhase = phase;
+      }
+    }
+  }
+
+  const totalTasks = (w.tasks || []).length;
+  const tasksDone = (w.tasks || []).filter((t: any) => t.done).length;
+  const totalVendors = (w.vendors || []).length;
+  const vendorsBooked = (w.vendors || []).filter((v: any) => v.contract === "Signed").length;
+  const totalGuests = (w.guests || []).length;
+  const rsvpYes = (w.guests || []).filter((g: any) => g.rsvp === "Yes").length;
+
+  const progressItems = [
+    { done: w.weddingDate ? 1 : 0, total: 1 },
+    { done: (w.budget || 0) > 0 ? 1 : 0, total: 1 },
+    { done: Math.min(totalGuests, 50), total: 50 },
+    { done: vendorsBooked, total: Math.max(totalVendors, 1) },
+    { done: tasksDone, total: Math.max(totalTasks, 1) },
+  ];
+  const progressPct = Math.round(
+    progressItems.reduce((s, p) => s + (p.done / p.total) * 100, 0) / progressItems.length
+  );
+
+  const overdueTasks = (w.tasks || []).filter((t: any) => {
+    if (t.done || !t.dueDate) return false;
+    return new Date(t.dueDate) < now;
+  }).length;
+
+  return {
+    phase: currentPhase,
+    daysUntil,
+    progressPct,
+    overdueTasks,
+    summary: {
+      tasksDone,
+      totalTasks,
+      vendorsBooked,
+      totalVendors,
+      rsvpYes,
+      totalGuests,
+    },
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SMART RECOMMENDATIONS (Next 3 Steps)
+// ═══════════════════════════════════════════════════════════════
+
+export async function getSmartRecommendations(weddingId: string) {
+  const w = await getCurrentWedding(weddingId);
+  const now = new Date();
+  const weddingDate = w.weddingDate ? new Date(w.weddingDate) : null;
+  const daysUntil = weddingDate ? Math.ceil((weddingDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
+
+  type Rec = { id: string; icon: string; text: string; urgency: "critical" | "high" | "medium" | "low"; score: number; link: string };
+  const recommendations: Rec[] = [];
+
+  // 1. Overdue tasks
+  const overdueTasks = (w.tasks || []).filter((t: any) => {
+    if (t.done || !t.dueDate) return false;
+    return new Date(t.dueDate) < now;
+  });
+  for (const t of overdueTasks.slice(0, 3)) {
+    recommendations.push({
+      id: `task-overdue-${t.id}`,
+      icon: "fa-exclamation-circle",
+      text: `"${t.text}" is overdue`,
+      urgency: "critical",
+      score: 10,
+      link: "tasks",
+    });
+  }
+
+  // 2. Unsigned vendors with approaching deadlines
+  const unsignedVendors = (w.vendors || []).filter((v: any) => v.contract === "Pending");
+  for (const v of unsignedVendors.slice(0, 3)) {
+    const vendorDeadline = v.deadline ? new Date(v.deadline) : null;
+    const daysToDeadline = vendorDeadline ? Math.ceil((vendorDeadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
+    const isUrgent = daysToDeadline !== null && daysToDeadline <= 30;
+    const isOverdue = daysToDeadline !== null && daysToDeadline < 0;
+    recommendations.push({
+      id: `vendor-${v.id}`,
+      icon: "fa-store",
+      text: isOverdue
+        ? `${v.category || "Vendor"} contract overdue`
+        : isUrgent
+          ? `Book ${v.category || "Vendor"} \u2014 deadline in ${daysToDeadline} days`
+          : `${v.category || "Vendor"} needs contract signing`,
+      urgency: isOverdue ? "critical" : isUrgent ? "high" : "medium",
+      score: isOverdue ? 9 : isUrgent ? 7 : 4,
+      link: "vendors",
+    });
+  }
+
+  // 3. Tasks due this month
+  const thisMonth = now.getMonth();
+  const thisYear = now.getFullYear();
+  const tasksThisMonth = (w.tasks || []).filter((t: any) => {
+    if (t.done || !t.dueDate) return false;
+    const d = new Date(t.dueDate);
+    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+  });
+  for (const t of tasksThisMonth.slice(0, 3)) {
+    recommendations.push({
+      id: `task-month-${t.id}`,
+      icon: "fa-calendar",
+      text: `"${t.text}" is due this month`,
+      urgency: "high",
+      score: 6,
+      link: "tasks",
+    });
+  }
+
+  // 4. Pending RSVPs if wedding is approaching
+  if (daysUntil !== null && daysUntil <= 60) {
+    const pendingRsvps = (w.guests || []).filter((g: any) => g.rsvp === "Pending").length;
+    if (pendingRsvps > 0) {
+      recommendations.push({
+        id: "rsvp-pending",
+        icon: "fa-envelope",
+        text: `${pendingRsvps} guest${pendingRsvps > 1 ? "s" : ""} haven\u2019t responded \u2014 wedding in ${daysUntil} days`,
+        urgency: "high",
+        score: 8,
+        link: "guests",
+      });
+    }
+  }
+
+  // 5. No budget set
+  if ((w.budget || 0) === 0 && totalGuests(w) > 0) {
+    recommendations.push({
+      id: "no-budget",
+      icon: "fa-rupee-sign",
+      text: "Set your budget to start tracking expenses",
+      urgency: "medium",
+      score: 3,
+      link: "budget",
+    });
+  }
+
+  // 6. Events without details
+  const eventsNoLocation = (w.events || []).filter((e: any) => !e.location);
+  if (eventsNoLocation.length > 0) {
+    recommendations.push({
+      id: "events-no-location",
+      icon: "fa-map-marker-alt",
+      text: `${eventsNoLocation.length} event${eventsNoLocation.length > 1 ? "s" : ""} missing venue details`,
+      urgency: "medium",
+      score: 3,
+      link: "events",
+    });
+  }
+
+  // Sort by score and return top 3
+  recommendations.sort((a, b) => b.score - a.score);
+  return recommendations.slice(0, 3);
+}
+
+function totalGuests(w: any) {
+  return (w.guests || []).length;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TASKS DUE THIS MONTH
+// ═══════════════════════════════════════════════════════════════
+
+export async function getTasksDueThisMonth(weddingId: string) {
+  const w = await getCurrentWedding(weddingId);
+  const now = new Date();
+  const thisMonth = now.getMonth();
+  const thisYear = now.getFullYear();
+
+  const tasksThisMonth = (w.tasks || []).filter((t: any) => {
+    if (!t.dueDate) return false;
+    const d = new Date(t.dueDate);
+    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+  });
+
+  const overdue = tasksThisMonth.filter((t: any) => !t.done && new Date(t.dueDate) < now);
+  const upcoming = tasksThisMonth.filter((t: any) => !t.done && new Date(t.dueDate) >= now);
+  const completed = tasksThisMonth.filter((t: any) => t.done);
+
+  return {
+    total: tasksThisMonth.length,
+    overdue: overdue.length,
+    upcoming: upcoming.length,
+    completed: completed.length,
+    tasks: tasksThisMonth.sort((a: any, b: any) => {
+      if (a.done !== b.done) return a.done ? 1 : -1;
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+    }),
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// VENDOR URGENCY
+// ═══════════════════════════════════════════════════════════════
+
+const VENDOR_BOOKING_WINDOWS: Record<string, number> = {
+  "venue": 365,
+  "photographer": 180,
+  "videographer": 180,
+  "caterer": 180,
+  "catering": 180,
+  "makeup": 120,
+  "makeup artist": 120,
+  "mehndi": 120,
+  "dj": 90,
+  "entertainment": 90,
+  "decorator": 90,
+  "decoration": 90,
+  "florist": 90,
+  "clothing": 150,
+  "outfit": 150,
+  "lehenga": 150,
+  "sherwani": 150,
+};
+
+export async function getVendorUrgency(vendor: any, weddingDate: Date | null): Promise<{ level: "overdue" | "urgent" | "soon" | "on-track" | "no-rush"; label: string; color: string; daysLeft?: number }> {
+  if (vendor.contract === "Signed") {
+    return { level: "on-track", label: "Booked", color: "text-green bg-green/10" };
+  }
+
+  if (!weddingDate) {
+    return { level: "no-rush", label: "Set wedding date", color: "text-gray-500 bg-gray-100" };
+  }
+
+  const now = new Date();
+  const daysUntilWedding = Math.ceil((weddingDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+  // Check if vendor has an explicit deadline
+  if (vendor.deadline) {
+    const deadline = new Date(vendor.deadline);
+    const daysLeft = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysLeft < 0) return { level: "overdue", label: "Overdue", color: "text-red-600 bg-red-50", daysLeft: Math.abs(daysLeft) };
+    if (daysLeft <= 14) return { level: "urgent", label: `${daysLeft}d left`, color: "text-orange-600 bg-orange-50", daysLeft };
+    if (daysLeft <= 30) return { level: "soon", label: `${daysLeft}d left`, color: "text-amber-600 bg-amber-50", daysLeft };
+    return { level: "on-track", label: `${daysLeft}d left`, color: "text-green bg-green/10", daysLeft };
+  }
+
+  // Compute urgency from category + wedding proximity
+  const cat = (vendor.category || "").toLowerCase();
+  let bookingWindow = 90; // default
+  for (const [key, days] of Object.entries(VENDOR_BOOKING_WINDOWS)) {
+    if (cat.includes(key)) {
+      bookingWindow = days;
+      break;
+    }
+  }
+
+  const daysUntilBookBy = daysUntilWedding - bookingWindow;
+
+  if (daysUntilBookBy < 0) {
+    // Should have been booked by now
+    const overdueBy = Math.abs(daysUntilBookBy);
+    if (overdueBy > 30) return { level: "overdue", label: "Overdue", color: "text-red-600 bg-red-50" };
+    return { level: "urgent", label: "Book now", color: "text-orange-600 bg-orange-50" };
+  }
+  if (daysUntilBookBy <= 30) return { level: "soon", label: "Book soon", color: "text-amber-600 bg-amber-50" };
+  return { level: "no-rush", label: "No rush", color: "text-gray-500 bg-gray-100" };
 }

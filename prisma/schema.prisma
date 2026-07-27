@@ -193,6 +193,7 @@ model Vendor {
   balance   Int     @default(0)
   rating    String  @default("")
   contract  String  @default("Pending")
+  deadline  String  @default("")
   notes     String  @default("")
   order     Int     @default(0)
   wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
@@ -223,6 +224,8 @@ model Task {
   done      Boolean @default(false)
   order     Int     @default(0)
   dueDate   String  @default("")
+  priority  String  @default("Medium")
+  category  String  @default("")
   wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 }
 
