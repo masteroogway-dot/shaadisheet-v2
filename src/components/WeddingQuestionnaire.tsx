@@ -260,10 +260,19 @@ export default function WeddingQuestionnaire({ open, onClose, wedding, websiteDa
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Template</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {["classic", "modern", "minimal"].map((t) => (
-                    <button key={t} onClick={() => update("template", t)} className={`p-3 rounded-lg border-2 text-center cursor-pointer transition-all ${config.template === t ? "border-[#722F37] bg-[#722F37]/5" : "border-gray-200 hover:border-gray-300"}`}>
-                      <div className="text-lg mb-1">{t === "classic" ? "🏛️" : t === "modern" ? "✨" : "🤍"}</div>
-                      <div className="text-xs font-semibold capitalize">{t}</div>
+                  {[
+                    { id: "classic", name: "Classic", icon: "🏛️", desc: "Timeless elegance" },
+                    { id: "floral", name: "Romantic Floral", icon: "🌸", desc: "Soft & dreamy" },
+                    { id: "royal", name: "Royal Indian", icon: "🪷", desc: "Rich & ornate" },
+                    { id: "editorial", name: "Modern", icon: "✨", desc: "Bold & editorial" },
+                    { id: "boho", name: "Boho Natural", icon: "🌿", desc: "Earthy & organic" },
+                    { id: "monogram", name: "Monogram", icon: "💍", desc: "Classic crest" },
+                    { id: "tropical", name: "Tropical", icon: "🌴", desc: "Beach vibes" },
+                  ].map((t) => (
+                    <button key={t.id} onClick={() => update("template", t.id)} className={`p-3 rounded-lg border-2 text-center cursor-pointer transition-all ${config.template === t.id ? "border-[#722F37] bg-[#722F37]/5" : "border-gray-200 hover:border-gray-300"}`}>
+                      <div className="text-lg mb-0.5">{t.icon}</div>
+                      <div className="text-xs font-semibold">{t.name}</div>
+                      <div className="text-[0.6rem] text-gray-400 mt-0.5">{t.desc}</div>
                     </button>
                   ))}
                 </div>

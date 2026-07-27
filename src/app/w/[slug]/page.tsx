@@ -5,6 +5,12 @@ import { useParams } from "next/navigation";
 import ClassicTemplate from "./ClassicTemplate";
 import ModernTemplate from "./ModernTemplate";
 import MinimalTemplate from "./MinimalTemplate";
+import FloralTemplate from "./FloralTemplate";
+import RoyalIndianTemplate from "./RoyalIndianTemplate";
+import EditorialTemplate from "./EditorialTemplate";
+import BohoTemplate from "./BohoTemplate";
+import MonogramTemplate from "./MonogramTemplate";
+import TropicalTemplate from "./TropicalTemplate";
 
 export default function WeddingWebsitePage() {
   const params = useParams();
@@ -141,5 +147,11 @@ export default function WeddingWebsitePage() {
 
   if (template === "modern") return <ModernTemplate {...templateProps} />;
   if (template === "minimal") return <MinimalTemplate {...templateProps} />;
+  if (template === "floral") return <FloralTemplate {...templateProps} />;
+  if (template === "royal") return <RoyalIndianTemplate {...templateProps} />;
+  if (template === "editorial") return <EditorialTemplate {...templateProps} />;
+  if (template === "boho") return <BohoTemplate {...templateProps} />;
+  if (template === "monogram") return <MonogramTemplate {...templateProps} />;
+  if (template === "tropical") return <TropicalTemplate {...templateProps} />;
   return <ClassicTemplate {...templateProps} />;
 }
