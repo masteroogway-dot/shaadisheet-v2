@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 interface TemplateProps {
   wedding: { name: string; weddingDate: string; weddingCity: string; config: any };
@@ -90,7 +90,6 @@ export default function FloralTemplate({
   const theme = config.theme || {};
   const primary = theme.primary || "#C75B7A";
   const accent = theme.accent || "#BA94D1";
-  // Floral always uses soft pink — theme can't override
   const background = "#FFF5F7";
   const textColor = theme.text || "#4A3B3B";
   const story = config.story || {};
@@ -100,59 +99,125 @@ export default function FloralTemplate({
   const faq = config.faq || [];
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [animCountdown, setAnimCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   const filteredGuests = rsvpGuests.filter((g: any) =>
     g.name?.toLowerCase().includes(guestSearch.toLowerCase())
   );
 
+  useEffect(() => {
+    const duration = 2000;
+    const fps = 60;
+    const steps = duration / (1000 / fps);
+    let frame = 0;
+    const timer = setInterval(() => {
+      frame++;
+      const p = Math.min(frame / steps, 1);
+      const ease = 1 - Math.pow(1 - p, 3);
+      setAnimCountdown({
+        days: Math.round(countdown.days * ease),
+        hours: Math.round(countdown.hours * ease),
+        minutes: Math.round(countdown.minutes * ease),
+        seconds: Math.round(countdown.seconds * ease),
+      });
+      if (p >= 1) clearInterval(timer);
+    }, 1000 / fps);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.setAttribute("style", e.target.getAttribute("style") + "opacity:1 !important;transform:translateY(0) !important;");
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+    const timer2 = setTimeout(() => {
+      document.querySelectorAll("[data-animate]").forEach((el) => observer.observe(el));
+    }, 100);
+
+    const onScroll = () => {
+      const bg = document.querySelector("[data-parallax]");
+      if (bg) (bg as HTMLElement).style.transform = `translateY(${window.scrollY * 0.2}px) scale(1.05)`;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => { clearInterval(timer); clearTimeout(timer2); observer.disconnect(); window.removeEventListener("scroll", onScroll); };
+  }, [countdown]);
+
   return (
     <html lang="en" style={{ scrollBehavior: "smooth" }}>
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Dancing+Script:wght@400;600&display=swap" rel="stylesheet" />
+        <style>{`
+          @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
+          @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+          @keyframes petal-fall { 0%{transform:translateY(-20px) rotate(0deg);opacity:0} 10%{opacity:0.6} 90%{opacity:0.6} 100%{transform:translateY(100vh) rotate(360deg);opacity:0} }
+          @keyframes shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
+          @keyframes fade-in-up { from{opacity:0;transform:translateY(35px)} to{opacity:1;transform:translateY(0)} }
+          @keyframes scale-in { from{opacity:0;transform:scale(0.92)} to{opacity:1;transform:scale(1)} }
+          @keyframes glow-pulse { 0%,100%{box-shadow:0 0 15px rgba(199,91,122,0.08)} 50%{box-shadow:0 0 35px rgba(199,91,122,0.2)} }
+          @keyframes success-pop { 0%{transform:scale(0.5);opacity:0} 60%{transform:scale(1.08)} 100%{transform:scale(1);opacity:1} }
+          @keyframes slide-in-left { from{opacity:0;transform:translateX(-35px)} to{opacity:1;transform:translateX(0)} }
+          @keyframes slide-in-right { from{opacity:0;transform:translateX(35px)} to{opacity:1;transform:translateX(0)} }
+          .anim-section { opacity:0; transform:translateY(35px); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1); }
+          .anim-section.vis { opacity:1; transform:translateY(0); }
+          .hover-card { transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s ease; }
+          .hover-card:hover { transform: translateY(-5px); box-shadow: 0 10px 35px rgba(199,91,122,0.12); }
+          .rsvp-success { animation: success-pop 0.6s cubic-bezier(0.16,1,0.3,1) forwards; }
+          html { scroll-behavior: smooth; }
+        `}</style>
       </head>
       <body style={{ margin: 0, padding: 0, fontFamily: "'Playfair Display', Georgia, serif", color: textColor, backgroundColor: background, lineHeight: 1.7 }}>
 
         {/* HERO */}
         <section id="hero" style={{ position: "relative", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, backgroundImage: config.photo ? `url(${config.photo})` : "none", backgroundSize: "cover", backgroundPosition: "center", filter: "brightness(0.35) saturate(1.2)" }} />
-          <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${primary}33 0%, ${accent}55 50%, ${primary}77 100%)` }} />
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 20% 80%, rgba(255,255,255,0.08) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 50%)" }} />
+          <div data-parallax style={{ position: "absolute", inset: "-10%", backgroundImage: config.photo ? `url(${config.photo})` : "none", backgroundSize: "cover", backgroundPosition: "center", filter: "brightness(0.3) saturate(1.2)", transition: "transform 0.1s linear" }} />
+          <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${primary}44 0%, ${accent}55 50%, ${primary}77 100%)` }} />
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.06) 0%, transparent 50%)" }} />
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={`petal-${i}`} style={{ position: "absolute", width: `${6 + (i % 3) * 3}px`, height: `${6 + (i % 3) * 3}px`, backgroundColor: i % 2 === 0 ? accent : primary, borderRadius: "50% 0 50% 0", left: `${(i * 31) % 100}%`, top: `-${5 + (i % 4) * 3}%`, opacity: 0, animation: `petal-fall ${6 + (i % 4) * 2}s linear infinite`, animationDelay: `${(i * 1.3) % 7}s`, pointerEvents: "none", transform: "rotate(45deg)" }} />
+          ))}
+          <div style={{ position: "absolute", width: "250px", height: "250px", borderRadius: "50%", background: `radial-gradient(circle, ${accent}18, transparent 70%)`, top: "15%", right: "10%", animation: "float 8s ease-in-out infinite", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", width: "200px", height: "200px", borderRadius: "50%", background: `radial-gradient(circle, ${primary}12, transparent 70%)`, bottom: "20%", left: "5%", animation: "float 6s ease-in-out infinite 2s", pointerEvents: "none" }} />
           <div style={{ position: "relative", zIndex: 1, padding: "2rem" }}>
-            <FlowerCrown color={accent} />
-            <p style={{ fontSize: "1rem", fontFamily: "'Dancing Script', cursive", color: accent, marginBottom: "0.5rem", letterSpacing: "1px" }}>
+            <div style={{ animation: "fade-in-up 1s ease-out" }}>
+              <FlowerCrown color={accent} />
+            </div>
+            <p style={{ fontSize: "1.1rem", fontFamily: "'Dancing Script', cursive", color: accent, marginBottom: "0.5rem", letterSpacing: "1px", animation: "fade-in-up 1s ease-out 0.2s both" }}>
               {config.tagline || "Together Forever"}
             </p>
-            <h1 style={{ fontSize: "clamp(2.5rem, 7vw, 5rem)", fontWeight: 400, margin: "0.5rem 0", color: "#fff", lineHeight: 1.2, letterSpacing: "2px" }}>
+            <h1 style={{ fontSize: "clamp(2.5rem, 7vw, 5rem)", fontWeight: 400, margin: "0.5rem 0", color: "#fff", lineHeight: 1.2, letterSpacing: "2px", textShadow: `0 2px 25px ${primary}66`, animation: "fade-in-up 1s ease-out 0.3s both" }}>
               {wedding.name || "Our Wedding"}
             </h1>
-            <div style={{ width: "80px", height: "1px", background: `linear-gradient(90deg, transparent, ${accent}, transparent)`, margin: "1.5rem auto" }} />
-            <p style={{ fontSize: "1.1rem", color: "rgba(255,255,255,0.85)", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "2.5rem" }}>
+            <div style={{ width: "100px", height: "1px", background: `linear-gradient(90deg, transparent, ${accent}, transparent)`, margin: "1.5rem auto", animation: "fade-in-up 1s ease-out 0.4s both" }} />
+            <p style={{ fontSize: "1.1rem", color: "rgba(255,255,255,0.85)", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "2.5rem", animation: "fade-in-up 1s ease-out 0.5s both" }}>
               {formatDate(wedding.weddingDate)}{wedding.weddingCity ? ` · ${wedding.weddingCity}` : ""}
             </p>
-            <div style={{ display: "flex", gap: "1.5rem", justifyContent: "center", flexWrap: "wrap", marginBottom: "3rem" }}>
+            <div style={{ display: "flex", gap: "1.5rem", justifyContent: "center", flexWrap: "wrap", marginBottom: "3rem", animation: "fade-in-up 1s ease-out 0.6s both" }}>
               {[
-                { val: countdown.days, label: "Days" },
-                { val: countdown.hours, label: "Hours" },
-                { val: countdown.minutes, label: "Minutes" },
-                { val: countdown.seconds, label: "Seconds" },
-              ].map((item) => (
-                <div key={item.label} style={{ backdropFilter: "blur(10px)", backgroundColor: "rgba(255,255,255,0.12)", border: `1px solid ${accent}55`, borderRadius: "12px", padding: "1rem 1.5rem", minWidth: "80px" }}>
-                  <div style={{ fontSize: "2rem", fontWeight: 600, color: "#fff", lineHeight: 1 }}>{item.val}</div>
+                { val: animCountdown.days, label: "Days" },
+                { val: animCountdown.hours, label: "Hours" },
+                { val: animCountdown.minutes, label: "Minutes" },
+                { val: animCountdown.seconds, label: "Seconds" },
+              ].map((item, i) => (
+                <div key={item.label} style={{ backdropFilter: "blur(10px)", backgroundColor: "rgba(255,255,255,0.15)", border: `1px solid ${accent}55`, borderRadius: "14px", padding: "1rem 1.5rem", minWidth: "85px", animation: `glow-pulse 3s ease-in-out infinite ${i * 0.5}s` }}>
+                  <div style={{ fontSize: "2.2rem", fontWeight: 600, color: "#fff", lineHeight: 1 }}>{item.val}</div>
                   <div style={{ fontSize: "0.65rem", letterSpacing: "2px", textTransform: "uppercase", marginTop: "0.3rem", color: accent }}>{item.label}</div>
                 </div>
               ))}
             </div>
-            <a href="#events" style={{ color: accent }}>
+            <a href="#events" style={{ color: accent, display: "inline-block", animation: "fade-in-up 1s ease-out 0.8s both" }}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ animation: "bounce 2s infinite" }}>
                 <path d="M12 5v14M5 12l7 7 7-7" />
               </svg>
             </a>
           </div>
-          <style>{`@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }`}</style>
         </section>
 
         {/* EVENTS */}
-        <section id="events" style={{ padding: "5rem 2rem", maxWidth: "900px", margin: "0 auto" }}>
+        <section id="events" className="anim-section" style={{ padding: "5rem 2rem", maxWidth: "900px", margin: "0 auto", opacity: 0, transform: "translateY(35px)", transition: "opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1)" }}>
           <FloralDivider color={accent} />
           <h2 style={{ textAlign: "center", fontSize: "2.2rem", fontWeight: 400, color: primary, marginBottom: "0.5rem" }}>Wedding Events</h2>
           <p style={{ fontFamily: "'Dancing Script', cursive", color: accent, marginBottom: "3rem", fontSize: "1.1rem" }}>Schedule of Celebrations</p>
@@ -163,7 +228,7 @@ export default function FloralTemplate({
               return (
                 <div key={event.id || idx} style={{ display: "flex", justifyContent: isLeft ? "flex-end" : "flex-start", paddingLeft: isLeft ? 0 : "calc(50% + 30px)", paddingRight: isLeft ? "calc(50% + 30px)" : 0, marginBottom: "3rem", position: "relative" }}>
                   <div style={{ position: "absolute", left: "50%", top: "20px", width: "12px", height: "12px", background: `radial-gradient(circle, ${accent}, ${primary})`, border: `3px solid ${background}`, borderRadius: "50%", transform: "translateX(-50%)", zIndex: 1 }} />
-                  <div style={{ backgroundColor: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", border: `1px solid ${accent}33`, borderRadius: "16px", padding: "1.5rem", maxWidth: "350px", width: "100%", boxShadow: `0 4px 20px ${primary}11` }}>
+                  <div className="hover-card" style={{ backgroundColor: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", border: `1px solid ${accent}33`, borderRadius: "16px", padding: "1.5rem", maxWidth: "350px", width: "100%", boxShadow: `0 4px 20px ${primary}11`, cursor: "default" }}>
                     <div style={{ fontSize: "0.7rem", letterSpacing: "2px", textTransform: "uppercase", color: accent, marginBottom: "0.3rem" }}>{formatDate(event.date)}</div>
                     <h3 style={{ margin: "0 0 0.5rem", fontSize: "1.3rem", color: primary }}>{event.name}</h3>
                     <p style={{ margin: "0 0 0.3rem", fontSize: "0.9rem", color: "#777" }}>{formatTime(event.startTime)}{event.duration ? ` · ${event.duration}` : ""}</p>
@@ -178,7 +243,7 @@ export default function FloralTemplate({
         </section>
 
         {/* OUR STORY */}
-        <section id="story" style={{ padding: "5rem 2rem", maxWidth: "700px", margin: "0 auto", textAlign: "center" }}>
+        <section id="story" className="anim-section" style={{ padding: "5rem 2rem", maxWidth: "700px", margin: "0 auto", textAlign: "center", opacity: 0, transform: "translateY(35px)", transition: "opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1)" }}>
           <FloralDivider color={accent} />
           <h2 style={{ fontSize: "2.2rem", fontWeight: 400, color: primary, marginBottom: "2rem" }}>Our Story</h2>
           {story.quote && (
@@ -201,12 +266,12 @@ export default function FloralTemplate({
         </section>
 
         {/* TRAVEL */}
-        <section id="travel" style={{ padding: "5rem 2rem", maxWidth: "900px", margin: "0 auto" }}>
+        <section id="travel" className="anim-section" style={{ padding: "5rem 2rem", maxWidth: "900px", margin: "0 auto", opacity: 0, transform: "translateY(35px)", transition: "opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1)" }}>
           <FloralDivider color={accent} />
           <h2 style={{ textAlign: "center", fontSize: "2.2rem", fontWeight: 400, color: primary, marginBottom: "0.5rem" }}>Travel & Stay</h2>
           <p style={{ textAlign: "center", fontSize: "1.1rem", fontFamily: "'Dancing Script', cursive", color: accent, marginBottom: "3rem" }}>Accommodations</p>
           {travel.venueName && (
-            <div style={{ backgroundColor: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", border: `1px solid ${accent}33`, borderRadius: "16px", padding: "2rem", marginBottom: "2rem", textAlign: "center" }}>
+            <div className="hover-card" style={{ backgroundColor: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", border: `1px solid ${accent}33`, borderRadius: "16px", padding: "2rem", marginBottom: "2rem", textAlign: "center", cursor: "default" }}>
               <h3 style={{ fontSize: "1.4rem", color: primary, margin: "0 0 0.5rem" }}>{travel.venueName}</h3>
               {travel.venueAddress && <p style={{ fontSize: "0.95rem", color: "#777", margin: "0 0 1rem" }}>{travel.venueAddress}</p>}
               {travel.mapsUrl && <a href={travel.mapsUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", padding: "0.6rem 1.8rem", background: `linear-gradient(135deg, ${primary}, ${accent})`, color: "#fff", textDecoration: "none", borderRadius: "24px", fontSize: "0.85rem", letterSpacing: "1px" }}>View on Map</a>}
@@ -215,7 +280,7 @@ export default function FloralTemplate({
           {travel.hotels && travel.hotels.length > 0 && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
               {travel.hotels.map((hotel: any, idx: number) => (
-                <div key={idx} style={{ backgroundColor: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", border: `1px solid ${accent}33`, borderRadius: "16px", padding: "1.5rem" }}>
+                <div key={idx} className="hover-card" style={{ backgroundColor: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", border: `1px solid ${accent}33`, borderRadius: "16px", padding: "1.5rem", cursor: "default" }}>
                   <h4 style={{ margin: "0 0 0.5rem", fontSize: "1.05rem", color: primary }}>{hotel.name}</h4>
                   {hotel.price && <p style={{ margin: "0 0 0.3rem", fontSize: "0.9rem", color: "#777" }}>{hotel.price}</p>}
                   {hotel.groupCode && <p style={{ margin: "0 0 0.5rem", fontSize: "0.8rem", color: accent }}>Group Code: {hotel.groupCode}</p>}
@@ -233,12 +298,12 @@ export default function FloralTemplate({
         </section>
 
         {/* REGISTRY */}
-        <section id="registry" style={{ padding: "5rem 2rem", maxWidth: "700px", margin: "0 auto" }}>
+        <section id="registry" className="anim-section" style={{ padding: "5rem 2rem", maxWidth: "700px", margin: "0 auto", opacity: 0, transform: "translateY(35px)", transition: "opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1)" }}>
           <FloralDivider color={accent} />
           <h2 style={{ textAlign: "center", fontSize: "2.2rem", fontWeight: 400, color: primary, marginBottom: "3rem" }}>Registry</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.5rem" }}>
             {registry.map((reg: any, idx: number) => (
-              <div key={idx} style={{ backgroundColor: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", border: `1px solid ${accent}33`, borderRadius: "16px", padding: "2rem", textAlign: "center" }}>
+              <div key={idx} className="hover-card" style={{ backgroundColor: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", border: `1px solid ${accent}33`, borderRadius: "16px", padding: "2rem", textAlign: "center", cursor: "default" }}>
                 <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>🎁</div>
                 <h4 style={{ margin: "0 0 1rem", fontSize: "1rem", color: primary }}>{reg.name}</h4>
                 {reg.url && <a href={reg.url} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", padding: "0.5rem 1.5rem", background: `linear-gradient(135deg, ${primary}, ${accent})`, color: "#fff", textDecoration: "none", borderRadius: "24px", fontSize: "0.8rem", letterSpacing: "1px" }}>Visit Registry</a>}
@@ -248,7 +313,7 @@ export default function FloralTemplate({
         </section>
 
         {/* FAQ */}
-        <section id="faq" style={{ padding: "5rem 2rem", maxWidth: "700px", margin: "0 auto" }}>
+        <section id="faq" className="anim-section" style={{ padding: "5rem 2rem", maxWidth: "700px", margin: "0 auto", opacity: 0, transform: "translateY(35px)", transition: "opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1)" }}>
           <FloralDivider color={accent} />
           <h2 style={{ textAlign: "center", fontSize: "2.2rem", fontWeight: 400, color: primary, marginBottom: "3rem" }}>Frequently Asked Questions</h2>
           <div style={{ borderTop: `1px solid ${accent}33` }}>
@@ -270,18 +335,18 @@ export default function FloralTemplate({
         </section>
 
         {/* RSVP */}
-        <section id="rsvp" style={{ padding: "5rem 2rem", maxWidth: "600px", margin: "0 auto" }}>
+        <section id="rsvp" className="anim-section" style={{ padding: "5rem 2rem", maxWidth: "600px", margin: "0 auto", opacity: 0, transform: "translateY(35px)", transition: "opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1)" }}>
           <FloralDivider color={accent} />
           <h2 style={{ textAlign: "center", fontSize: "2.2rem", fontWeight: 400, color: primary, marginBottom: "0.5rem" }}>RSVP</h2>
           <p style={{ textAlign: "center", fontSize: "1.1rem", fontFamily: "'Dancing Script', cursive", color: accent, marginBottom: "2.5rem" }}>Kindly Respond</p>
           {submitSuccess ? (
-            <div style={{ textAlign: "center", padding: "3rem", backgroundColor: "rgba(255,255,255,0.85)", border: `1px solid ${accent}33`, borderRadius: "16px" }}>
+            <div className="rsvp-success" style={{ textAlign: "center", padding: "3rem", backgroundColor: "rgba(255,255,255,0.85)", border: `1px solid ${accent}33`, borderRadius: "16px" }}>
               <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>✓</div>
               <h3 style={{ color: primary, fontSize: "1.3rem", margin: "0 0 0.5rem" }}>Thank You!</h3>
               <p style={{ color: "#777", fontSize: "0.95rem" }}>Your response has been recorded. We look forward to celebrating with you!</p>
             </div>
           ) : (
-            <div style={{ backgroundColor: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", border: `1px solid ${accent}33`, borderRadius: "16px", padding: "2rem" }}>
+            <div className="hover-card" style={{ backgroundColor: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", border: `1px solid ${accent}33`, borderRadius: "16px", padding: "2rem", cursor: "default" }}>
               <div style={{ position: "relative", marginBottom: "1.5rem" }}>
                 <label style={{ display: "block", fontSize: "0.75rem", letterSpacing: "2px", textTransform: "uppercase", color: accent, marginBottom: "0.5rem" }}>Find Your Name</label>
                 <input type="text" placeholder="Search for your name..." value={guestSearch} onChange={(e) => { onRsvpSearch(e.target.value); setSearchOpen(true); }} onFocus={() => setSearchOpen(true)} style={{ width: "100%", padding: "0.8rem 1rem", fontSize: "1rem", fontFamily: "'Playfair Display', Georgia, serif", border: `1px solid ${accent}33`, borderRadius: "12px", backgroundColor: "rgba(255,255,255,0.6)", color: textColor, outline: "none", boxSizing: "border-box" }} />
@@ -333,7 +398,7 @@ export default function FloralTemplate({
         </section>
 
         {/* FOOTER */}
-        <footer style={{ padding: "3rem 2rem", textAlign: "center", borderTop: `1px solid ${accent}22` }}>
+        <footer style={{ padding: "4rem 2rem", textAlign: "center", borderTop: `1px solid ${accent}22`, position: "relative", overflow: "hidden" }}>
           <FloralDivider color={accent} />
           <p style={{ margin: "0 0 0.5rem", fontSize: "0.9rem", color: "#aaa" }}>Made with love</p>
           <p style={{ margin: 0, fontSize: "0.7rem", color: "#ccc", letterSpacing: "2px" }}>SHAADISHEET</p>
