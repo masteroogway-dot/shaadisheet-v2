@@ -262,11 +262,16 @@ export default function TropicalTemplate({
               <div style={{ position: "relative", marginBottom: "1.5rem" }}>
                 <label style={{ display: "block", fontSize: "0.7rem", letterSpacing: "2px", textTransform: "uppercase", color: accent, marginBottom: "0.5rem", fontWeight: 600 }}>Find Your Name</label>
                 <input type="text" placeholder="Search for your name..." value={guestSearch} onChange={(e) => { onRsvpSearch(e.target.value); setSearchOpen(true); }} onFocus={() => setSearchOpen(true)} style={{ width: "100%", padding: "0.8rem 1rem", fontSize: "0.95rem", fontFamily: "'Quicksand', sans-serif", border: `1.5px solid ${accent}33`, backgroundColor: "#FAFAFA", color: textColor, outline: "none", boxSizing: "border-box", borderRadius: "12px" }} />
-                {searchOpen && guestSearch && filteredGuests.length > 0 && (
-                  <div style={{ position: "absolute", top: "100%", left: 0, right: 0, backgroundColor: "#fff", border: `1px solid ${accent}33`, borderRadius: "12px", marginTop: "4px", maxHeight: "200px", overflowY: "auto", zIndex: 10, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
+                {searchOpen && guestSearch && filteredGuests.length > 0 && !selectedGuest && (
+                  <div style={{ position: "absolute", top: "100%", left: 0, right: 0, backgroundColor: "#fff", border: `1px solid ${accent}33`, borderTop: "none", marginTop: "-1px", maxHeight: "200px", overflowY: "auto", zIndex: 10, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
                     {filteredGuests.map((guest: any) => (
-                      <button key={guest.id} onClick={() => { onGuestSelect(guest); onRsvpSearch(guest.name); setSearchOpen(false); }} style={{ width: "100%", padding: "0.7rem 1rem", textAlign: "left", backgroundColor: "transparent", border: "none", borderBottom: `1px solid ${accent}15`, cursor: "pointer", fontFamily: "'Quicksand', sans-serif", fontSize: "0.9rem", color: textColor, borderRadius: "0" }}>{guest.name}</button>
+                      <button key={guest.id} onClick={() => { onGuestSelect(guest); setSearchOpen(false); }} style={{ width: "100%", padding: "0.7rem 1rem", textAlign: "left", backgroundColor: "transparent", border: "none", borderBottom: `1px solid ${accent}15`, cursor: "pointer", fontFamily: "'Quicksand', sans-serif", fontSize: "0.9rem", color: textColor, borderRadius: "0", transition: "background-color 0.2s" }}>{guest.name}</button>
                     ))}
+                  </div>
+                )}
+                {searchOpen && guestSearch && filteredGuests.length === 0 && !selectedGuest && guestSearch.length >= 2 && (
+                  <div style={{ position: "absolute", top: "100%", left: 0, right: 0, backgroundColor: "#fff", border: `1px solid ${accent}33`, borderTop: "none", marginTop: "-1px", zIndex: 10, padding: "1rem", textAlign: "center" }}>
+                    <p style={{ margin: 0, fontSize: "0.85rem", color: "#999", fontFamily: "'Quicksand', sans-serif" }}>No guests found. Check the spelling or try a different name.</p>
                   </div>
                 )}
               </div>

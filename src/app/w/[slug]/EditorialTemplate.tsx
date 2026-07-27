@@ -250,11 +250,16 @@ export default function EditorialTemplate({
               <div style={{ position: "relative", marginBottom: "1.5rem" }}>
                 <label style={{ display: "block", fontSize: "0.7rem", letterSpacing: "3px", textTransform: "uppercase", color: accent, marginBottom: "0.5rem", fontWeight: 700 }}>Find Your Name</label>
                 <input type="text" placeholder="Search for your name..." value={guestSearch} onChange={(e) => { onRsvpSearch(e.target.value); setSearchOpen(true); }} onFocus={() => setSearchOpen(true)} style={{ width: "100%", padding: "0.9rem 1rem", fontSize: "1rem", fontFamily: "'Inter', sans-serif", border: `1px solid ${primary}15`, backgroundColor: "#FAFAFA", color: textColor, outline: "none", boxSizing: "border-box" }} />
-                {searchOpen && guestSearch && filteredGuests.length > 0 && (
-                  <div style={{ position: "absolute", top: "100%", left: 0, right: 0, backgroundColor: "#fff", border: `1px solid ${primary}15`, marginTop: "4px", maxHeight: "200px", overflowY: "auto", zIndex: 10, boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
+                {searchOpen && guestSearch && filteredGuests.length > 0 && !selectedGuest && (
+                  <div style={{ position: "absolute", top: "100%", left: 0, right: 0, backgroundColor: "#fff", border: `1px solid ${primary}15`, borderTop: "none", marginTop: "-1px", maxHeight: "200px", overflowY: "auto", zIndex: 10, boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
                     {filteredGuests.map((guest: any) => (
-                      <button key={guest.id} onClick={() => { onGuestSelect(guest); onRsvpSearch(guest.name); setSearchOpen(false); }} style={{ width: "100%", padding: "0.8rem 1rem", textAlign: "left", backgroundColor: "transparent", border: "none", borderBottom: `1px solid ${primary}08`, cursor: "pointer", fontFamily: "'Inter', sans-serif", fontSize: "0.95rem", color: textColor }}>{guest.name}</button>
+                      <button key={guest.id} onClick={() => { onGuestSelect(guest); setSearchOpen(false); }} style={{ width: "100%", padding: "0.8rem 1rem", textAlign: "left", backgroundColor: "transparent", border: "none", borderBottom: `1px solid ${primary}08`, cursor: "pointer", fontFamily: "'Inter', sans-serif", fontSize: "0.95rem", color: textColor, transition: "background-color 0.2s" }}>{guest.name}</button>
                     ))}
+                  </div>
+                )}
+                {searchOpen && guestSearch && filteredGuests.length === 0 && !selectedGuest && guestSearch.length >= 2 && (
+                  <div style={{ position: "absolute", top: "100%", left: 0, right: 0, backgroundColor: "#fff", border: `1px solid ${primary}15`, borderTop: "none", marginTop: "-1px", zIndex: 10, padding: "1rem", textAlign: "center" }}>
+                    <p style={{ margin: 0, fontSize: "0.85rem", color: "#999", fontFamily: "'Inter', sans-serif" }}>No guests found. Check the spelling or try a different name.</p>
                   </div>
                 )}
               </div>

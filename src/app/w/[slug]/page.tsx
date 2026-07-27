@@ -63,9 +63,20 @@ export default function WeddingWebsitePage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.wedding?.guests) {
-          setRsvpGuests(data.wedding.guests.filter((g: any) =>
+          const filtered = data.wedding.guests.filter((g: any) =>
             g.name.toLowerCase().includes(val.toLowerCase())
-          ));
+          );
+          setRsvpGuests(filtered);
+          // Auto-select if exact match
+          const exact = filtered.find((g: any) => g.name.toLowerCase() === val.toLowerCase());
+          if (exact) {
+            setSelectedGuest(exact);
+            setRsvpStatus(
+              exact.rsvp === "Yes" || exact.rsvp === "No" || exact.rsvp === "Maybe"
+                ? exact.rsvp : null
+            );
+            setRsvpGuests([]);
+          }
         }
       });
   };
