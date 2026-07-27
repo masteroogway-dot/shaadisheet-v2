@@ -60,6 +60,17 @@ function BotanicalDivider({ color = "#C4A882" }: { color?: string }) {
   );
 }
 
+function WaveDivider({ color = "#FAF6F1", accent = "#C4A882", flip = false }: { color?: string; accent?: string; flip?: boolean }) {
+  return (
+    <div style={{ width: "100%", lineHeight: 0, marginTop: flip ? 0 : "-2px", marginBottom: flip ? "-2px" : 0, transform: flip ? "rotate(180deg)" : "none" }}>
+      <svg viewBox="0 0 1440 80" fill="none" preserveAspectRatio="none" style={{ width: "100%", height: "50px", display: "block" }}>
+        <path d="M0,30 C360,70 720,0 1080,40 C1260,55 1380,20 1440,30 L1440,80 L0,80 Z" fill={color} />
+        <path d="M0,32 C360,72 720,2 1080,42 C1260,57 1380,22 1440,32" stroke={accent} strokeWidth="0.5" fill="none" opacity="0.25" />
+      </svg>
+    </div>
+  );
+}
+
 export default function BohoTemplate({
   wedding, countdown, rsvpGuests, guestSearch, onRsvpSearch, onGuestSelect,
   selectedGuest, rsvpStatus, onRsvpStatusChange, dietary, onDietaryChange,
@@ -79,11 +90,16 @@ export default function BohoTemplate({
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [animCountdown, setAnimCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [showNav, setShowNav] = useState(false);
+  const [heroLoaded, setHeroLoaded] = useState(false);
 
   const filteredGuests = rsvpGuests.filter((g: any) => g.name?.toLowerCase().includes(guestSearch.toLowerCase()));
 
   useEffect(() => {
-    const duration = 2000;
+    setHeroLoaded(true);
+
+    const duration = 2200;
     const fps = 60;
     const steps = duration / (1000 / fps);
     let frame = 0;
@@ -104,19 +120,27 @@ export default function BohoTemplate({
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
-            e.target.setAttribute("style", e.target.getAttribute("style") + "opacity:1 !important;transform:translateY(0) !important;");
+            e.target.classList.add("vis");
           }
         });
       },
-      { threshold: 0.12 }
+      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" }
     );
     const timer2 = setTimeout(() => {
-      document.querySelectorAll("[data-animate]").forEach((el) => observer.observe(el));
-    }, 100);
+      document.querySelectorAll(".bo-anim").forEach((el) => observer.observe(el));
+    }, 200);
 
     const onScroll = () => {
-      const bg = document.querySelector("[data-parallax]");
-      if (bg) (bg as HTMLElement).style.transform = `translateY(${window.scrollY * 0.2}px) scale(1.05)`;
+      const winScroll = document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      setScrollProgress(height > 0 ? (winScroll / height) * 100 : 0);
+      setShowNav(window.scrollY > window.innerHeight * 0.75);
+
+      const parallaxEl = document.getElementById("bo-hero-bg");
+      if (parallaxEl) {
+        const y = window.scrollY * 0.2;
+        parallaxEl.style.transform = `translateY(${y}px) scale(1.08)`;
+      }
     };
     window.addEventListener("scroll", onScroll, { passive: true });
 
@@ -128,156 +152,293 @@ export default function BohoTemplate({
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Josefin+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
         <style>{`
-          @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
-          @keyframes float { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-12px) rotate(2deg)} }
-          @keyframes leaf-drift { 0%{transform:translateY(-20px) translateX(0) rotate(0deg);opacity:0} 10%{opacity:0.5} 90%{opacity:0.5} 100%{transform:translateY(100vh) translateX(40px) rotate(180deg);opacity:0} }
-          @keyframes fade-in-up { from{opacity:0;transform:translateY(35px)} to{opacity:1;transform:translateY(0)} }
-          @keyframes scale-in { from{opacity:0;transform:scale(0.92)} to{opacity:1;transform:scale(1)} }
-          @keyframes glow-pulse { 0%,100%{box-shadow:0 0 12px rgba(196,168,130,0.08)} 50%{box-shadow:0 0 30px rgba(196,168,130,0.18)} }
-          @keyframes success-pop { 0%{transform:scale(0.5);opacity:0} 60%{transform:scale(1.08)} 100%{transform:scale(1);opacity:1} }
-          @keyframes slide-in-left { from{opacity:0;transform:translateX(-35px)} to{opacity:1;transform:translateX(0)} }
-          @keyframes slide-in-right { from{opacity:0;transform:translateX(35px)} to{opacity:1;transform:translateX(0)} }
-          .anim-section { opacity:0; transform:translateY(35px); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1); }
-          .anim-section.vis { opacity:1; transform:translateY(0); }
-          .hover-card { transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s ease; }
-          .hover-card:hover { transform: translateY(-5px); box-shadow: 0 10px 35px rgba(139,111,71,0.1); }
-          .rsvp-success { animation: success-pop 0.6s cubic-bezier(0.16,1,0.3,1) forwards; }
+          @keyframes bo-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
+          @keyframes bo-kb { from{transform:scale(1)} to{transform:scale(1.12)} }
+          @keyframes bo-leaf-particle {
+            0%{opacity:0;transform:translateY(0) translateX(0) rotate(0deg) scale(0.5)}
+            12%{opacity:0.6;transform:scale(1)}
+            88%{opacity:0.6;transform:scale(1)}
+            100%{opacity:0;transform:translateY(-100vh) translateX(30px) rotate(200deg) scale(0.5)}
+          }
+          @keyframes bo-pulse { 0%,100%{opacity:0.1;transform:scale(1)} 50%{opacity:0.25;transform:scale(1.06)} }
+          @keyframes bo-fade-up { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
+          @keyframes bo-hero-text { from{opacity:0;transform:translateY(25px) filter:blur(6px)} to{opacity:1;transform:translateY(0) filter:blur(0)} }
+          @keyframes bo-shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
+          @keyframes bo-success { 0%{transform:scale(0.4) rotate(-8deg);opacity:0} 55%{transform:scale(1.06) rotate(1deg)} 100%{transform:scale(1) rotate(0deg);opacity:1} }
+          @keyframes bo-line-grow { from{transform:scaleY(0)} to{transform:scaleY(1)} }
+          @keyframes bo-dot-pop { from{transform:scale(0)} 50%{transform:scale(1.3)} to{transform:scale(1)} }
+
+          .bo-anim { opacity:0; transform:translateY(40px); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1); }
+          .bo-anim.vis { opacity:1; transform:translateY(0); }
+          .bo-anim-d1 { transition-delay:0.12s !important; }
+          .bo-anim-d2 { transition-delay:0.24s !important; }
+          .bo-anim-d3 { transition-delay:0.36s !important; }
+
+          .bo-card { transition: transform 0.45s cubic-bezier(0.16,1,0.3,1), box-shadow 0.45s ease; }
+          .bo-card:hover { transform: translateY(-6px); box-shadow: 0 16px 48px rgba(139,111,71,0.1); }
+
+          .bo-btn { transition: all 0.35s cubic-bezier(0.16,1,0.3,1); position:relative; overflow:hidden; }
+          .bo-btn:hover:not(:disabled) { transform:translateY(-2px); box-shadow: 0 8px 24px rgba(139,111,71,0.15); }
+          .bo-btn:active:not(:disabled) { transform:translateY(0); }
+
+          .bo-success-anim { animation: bo-success 0.65s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+          .bo-timeline-node { animation: bo-dot-pop 0.45s cubic-bezier(0.16,1,0.3,1) forwards; }
+
           html { scroll-behavior: smooth; }
+          * { scrollbar-width: thin; scrollbar-color: ${accent}44 transparent; }
+          *::-webkit-scrollbar { width: 5px; }
+          *::-webkit-scrollbar-track { background: transparent; }
+          *::-webkit-scrollbar-thumb { background: ${accent}44; border-radius: 3px; }
         `}</style>
       </head>
-      <body style={{ margin: 0, padding: 0, fontFamily: "'Josefin Sans', sans-serif", color: textColor, backgroundColor: background, lineHeight: 1.8 }}>
+      <body style={{ margin: 0, padding: 0, fontFamily: "'Josefin Sans', sans-serif", color: textColor, backgroundColor: background, lineHeight: 1.8, overflowX: "hidden" }}>
+
+        {/* SCROLL PROGRESS BAR */}
+        <div style={{ position: "fixed", top: 0, left: 0, height: "2px", background: `linear-gradient(90deg, ${primary}, ${accent}, ${primary})`, backgroundSize: "200% 100%", zIndex: 99999, width: `${scrollProgress}%`, transition: "width 0.15s ease-out", animation: "bo-shimmer 3s linear infinite" }} />
+
+        {/* FLOATING NAVIGATION */}
+        <nav style={{ position: "fixed", top: "16px", left: "50%", transform: `translateX(-50%) translateY(${showNav ? "0" : "-100px"})`, zIndex: 9999, backgroundColor: `${background}f0`, backdropFilter: "blur(20px) saturate(1.4)", border: `1px solid ${accent}30`, padding: "0.55rem 1.4rem", display: "flex", gap: "0.25rem", transition: "transform 0.5s cubic-bezier(0.16,1,0.3,1)", boxShadow: `0 8px 32px rgba(139,111,71,0.08), 0 0 0 1px ${accent}10` }}>
+          {[{ href: "#hero", label: "Home" }, { href: "#events", label: "Events" }, { href: "#story", label: "Story" }, { href: "#travel", label: "Travel" }, { href: "#registry", label: "Registry" }, { href: "#faq", label: "FAQ" }, { href: "#rsvp", label: "RSVP" }].map((item) => (
+            <a key={item.href} href={item.href} style={{ color: "#999", textDecoration: "none", fontSize: "0.7rem", letterSpacing: "1.5px", textTransform: "uppercase", padding: "0.35rem 0.7rem", transition: "all 0.3s", fontWeight: 400 }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = primary; e.currentTarget.style.backgroundColor = `${accent}12`; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "#999"; e.currentTarget.style.backgroundColor = "transparent"; }}
+            >{item.label}</a>
+          ))}
+        </nav>
 
         {/* HERO */}
         <section id="hero" style={{ position: "relative", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", overflow: "hidden" }}>
-          <div data-parallax style={{ position: "absolute", inset: "-10%", backgroundImage: config.photo ? `url(${config.photo})` : "none", backgroundSize: "cover", backgroundPosition: "center", filter: "brightness(0.4) saturate(0.8) sepia(0.2)", transition: "transform 0.1s linear" }} />
-          <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${primary}44 0%, ${background}CC 50%, ${primary}44 100%)` }} />
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "200px", background: `linear-gradient(180deg, ${background} 0%, transparent 100%)` }} />
-          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "200px", background: `linear-gradient(0deg, ${background} 0%, transparent 100%)` }} />
+          {/* Ken Burns Background */}
+          <div id="bo-hero-bg" style={{ position: "absolute", inset: "-12%", backgroundImage: config.photo ? `url(${config.photo})` : "none", backgroundSize: "cover", backgroundPosition: "center", filter: "brightness(0.45) saturate(0.8) sepia(0.15)", animation: "bo-kb 25s ease-in-out infinite alternate", willChange: "transform" }} />
 
-          {/* Floating leaves */}
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} style={{ position: "absolute", left: `${15 + i * 16}%`, top: "-20px", animation: `leaf-drift ${8 + i * 2}s linear ${i * 1.5}s infinite`, opacity: 0, pointerEvents: "none" }}>
-              <svg width="16" height="22" viewBox="0 0 16 22" fill="none">
-                <path d="M8 0 C8 0 0 8 4 16 C6 20 8 22 8 22 C8 22 10 20 12 16 C16 8 8 0 8 0Z" fill={accent} opacity="0.35" />
-                <path d="M8 4 L8 18" stroke={accent} strokeWidth="0.5" opacity="0.3" />
+          {/* Gradient Overlays */}
+          <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${background}88 0%, transparent 30%, transparent 70%, ${background}88 100%)` }} />
+          <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse at 50% 50%, transparent 30%, ${background}66 100%)` }} />
+
+          {/* Floating Dried Leaf Particles */}
+          {Array.from({ length: 18 }).map((_, i) => (
+            <div key={`p-${i}`} style={{
+              position: "absolute",
+              left: `${(i * 37 + 5) % 100}%`,
+              bottom: "-5%",
+              opacity: 0,
+              pointerEvents: "none",
+              animation: `bo-leaf-particle ${10 + (i % 5) * 3}s linear infinite`,
+              animationDelay: `${(i * 1.2) % 14}s`,
+            }}>
+              <svg width={10 + (i % 4) * 3} height={14 + (i % 4) * 4} viewBox="0 0 16 22" fill="none">
+                <path d="M8 0 C8 0 0 8 4 16 C6 20 8 22 8 22 C8 22 10 20 12 16 C16 8 8 0 8 0Z" fill={i % 3 === 0 ? accent : primary} opacity="0.35" />
+                <path d="M8 4 L8 18" stroke={accent} strokeWidth="0.4" opacity="0.3" />
               </svg>
             </div>
           ))}
 
-          {/* Glow orbs */}
-          <div style={{ position: "absolute", top: "20%", left: "10%", width: "120px", height: "120px", borderRadius: "50%", background: `radial-gradient(circle, ${accent}18 0%, transparent 70%)`, animation: "float 6s ease-in-out infinite", pointerEvents: "none" }} />
-          <div style={{ position: "absolute", bottom: "25%", right: "12%", width: "90px", height: "90px", borderRadius: "50%", background: `radial-gradient(circle, ${accent}15 0%, transparent 70%)`, animation: "float 8s ease-in-out 2s infinite", pointerEvents: "none" }} />
+          {/* Glow Orbs */}
+          <div style={{ position: "absolute", width: "320px", height: "320px", borderRadius: "50%", background: `radial-gradient(circle, ${accent}10, transparent 70%)`, top: "8%", left: "-8%", animation: "bo-pulse 8s ease-in-out infinite", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", width: "280px", height: "280px", borderRadius: "50%", background: `radial-gradient(circle, ${primary}10, transparent 70%)`, bottom: "12%", right: "-6%", animation: "bo-pulse 10s ease-in-out infinite 3s", pointerEvents: "none" }} />
 
+          {/* Hero Content */}
           <div style={{ position: "relative", zIndex: 1, padding: "2rem" }}>
-            <div style={{ display: "flex", justifyContent: "center", gap: "2rem", marginBottom: "1rem", opacity: 0.5, animation: "fade-in-up 1s ease-out 0.2s both" }}>
+            {/* Dried Flower ornament */}
+            <div style={{
+              display: "flex", justifyContent: "center", gap: "2rem", marginBottom: "1rem",
+              opacity: heroLoaded ? 0.5 : 0, transform: heroLoaded ? "translateY(0)" : "translateY(20px)",
+              transition: "all 1s cubic-bezier(0.16,1,0.3,1) 0.1s",
+            }}>
               <DriedFlower color={accent} />
               <DriedFlower color={accent} flip />
             </div>
-            <p style={{ fontSize: "0.8rem", letterSpacing: "5px", textTransform: "uppercase", color: accent, marginBottom: "0.5rem", fontWeight: 300, animation: "fade-in-up 1s ease-out 0.4s both" }}>
+
+            {/* Tagline */}
+            <p style={{
+              fontSize: "0.8rem", letterSpacing: "6px", textTransform: "uppercase", color: accent, marginBottom: "0.5rem", fontWeight: 300,
+              opacity: heroLoaded ? 1 : 0, transform: heroLoaded ? "translateY(0)" : "translateY(20px)",
+              transition: "all 1s cubic-bezier(0.16,1,0.3,1) 0.3s",
+            }}>
               {config.tagline || "Together Forever"}
             </p>
-            <h1 style={{ fontSize: "clamp(2.5rem, 7vw, 4.5rem)", fontFamily: "'Lora', serif", fontWeight: 400, fontStyle: "italic", margin: "0.5rem 0", color: primary, lineHeight: 1.2, animation: "fade-in-up 1s ease-out 0.6s both" }}>
+
+            {/* Title */}
+            <h1 style={{
+              fontSize: "clamp(2.5rem, 7vw, 4.5rem)", fontFamily: "'Lora', serif", fontWeight: 400, fontStyle: "italic", margin: "0.5rem 0", color: primary, lineHeight: 1.2,
+              opacity: heroLoaded ? 1 : 0, transform: heroLoaded ? "translateY(0) filter:blur(0)" : "translateY(25px) blur(6px)",
+              transition: "all 1.2s cubic-bezier(0.16,1,0.3,1) 0.5s",
+            }}>
               {wedding.name || "Our Wedding"}
             </h1>
-            <div style={{ width: "40px", height: "1px", backgroundColor: accent, margin: "1.5rem auto", animation: "scale-in 0.8s ease-out 0.8s both" }} />
-            <p style={{ fontSize: "0.9rem", color: textColor, letterSpacing: "3px", textTransform: "uppercase", marginBottom: "2.5rem", fontWeight: 300, animation: "fade-in-up 1s ease-out 1s both" }}>
+
+            {/* Decorative Line */}
+            <div style={{
+              width: "50px", height: "1px", backgroundColor: accent, margin: "1.5rem auto",
+              opacity: heroLoaded ? 1 : 0, transform: heroLoaded ? "scaleX(1)" : "scaleX(0)",
+              transition: "all 1s cubic-bezier(0.16,1,0.3,1) 0.7s",
+            }} />
+
+            {/* Date */}
+            <p style={{
+              fontSize: "0.9rem", color: textColor, letterSpacing: "4px", textTransform: "uppercase", marginBottom: "2.5rem", fontWeight: 300,
+              opacity: heroLoaded ? 1 : 0, transform: heroLoaded ? "translateY(0)" : "translateY(20px)",
+              transition: "all 1s cubic-bezier(0.16,1,0.3,1) 0.9s",
+            }}>
               {formatDate(wedding.weddingDate)}{wedding.weddingCity ? ` · ${wedding.weddingCity}` : ""}
             </p>
-            <div style={{ display: "flex", gap: "1.5rem", justifyContent: "center", flexWrap: "wrap", marginBottom: "3rem", animation: "fade-in-up 1s ease-out 1.2s both" }}>
+
+            {/* Countdown */}
+            <div style={{
+              display: "flex", gap: "1.5rem", justifyContent: "center", flexWrap: "wrap", marginBottom: "3.5rem",
+              opacity: heroLoaded ? 1 : 0, transform: heroLoaded ? "translateY(0)" : "translateY(25px)",
+              transition: "all 1s cubic-bezier(0.16,1,0.3,1) 1.1s",
+            }}>
               {[
                 { val: animCountdown.days, label: "Days" },
                 { val: animCountdown.hours, label: "Hours" },
                 { val: animCountdown.minutes, label: "Minutes" },
                 { val: animCountdown.seconds, label: "Seconds" },
-              ].map((item) => (
-                <div key={item.label} style={{ padding: "1rem 1.5rem", minWidth: "80px", border: `1px solid ${accent}44`, borderRadius: "50%", display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: `${background}88`, backdropFilter: "blur(4px)", animation: "glow-pulse 3s ease-in-out infinite" }}>
-                  <div style={{ fontSize: "1.8rem", fontFamily: "'Lora', serif", fontWeight: 400, color: primary, lineHeight: 1 }}>{item.val}</div>
+              ].map((item, i) => (
+                <div key={item.label} style={{
+                  padding: "1rem 1.5rem", minWidth: "80px", border: `1px solid ${accent}44`,
+                  display: "flex", flexDirection: "column", alignItems: "center",
+                  backgroundColor: `${background}88`, backdropFilter: "blur(4px)",
+                  animation: `bo-pulse 3s ease-in-out infinite ${i * 0.5}s`,
+                }}>
+                  <div style={{ fontSize: "2rem", fontFamily: "'Lora', serif", fontWeight: 400, color: primary, lineHeight: 1 }}>{item.val}</div>
                   <div style={{ fontSize: "0.55rem", letterSpacing: "2px", textTransform: "uppercase", marginTop: "0.3rem", color: accent, fontWeight: 300 }}>{item.label}</div>
                 </div>
               ))}
             </div>
-            <a href="#events" style={{ color: accent, animation: "fade-in-up 1s ease-out 1.4s both" }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" style={{ animation: "bounce 2s infinite" }}>
+
+            {/* Scroll Arrow */}
+            <a href="#events" style={{
+              color: accent, display: "inline-block",
+              opacity: heroLoaded ? 1 : 0,
+              transition: "opacity 1s ease 1.5s",
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" style={{ animation: "bo-bounce 2.5s ease-in-out infinite" }}>
                 <path d="M12 5v14M5 12l7 7 7-7" />
               </svg>
             </a>
           </div>
         </section>
 
-        {/* EVENTS */}
-        <section id="events" data-animate style={{ opacity: 0, transform: "translateY(35px)", padding: "5rem 2rem", maxWidth: "800px", margin: "0 auto" }}>
-          <BotanicalDivider color={accent} />
-          <h2 style={{ textAlign: "center", fontFamily: "'Lora', serif", fontSize: "2rem", fontWeight: 400, fontStyle: "italic", color: primary, marginBottom: "0.5rem" }}>Wedding Events</h2>
-          <p style={{ textAlign: "center", fontSize: "0.75rem", letterSpacing: "3px", textTransform: "uppercase", color: accent, marginBottom: "3rem", fontWeight: 300 }}>Our Celebrations</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-            {events.map((event: any, idx: number) => (
-              <div key={event.id || idx} className="hover-card" style={{ display: "flex", gap: "2rem", alignItems: "flex-start", padding: "2rem", backgroundColor: `${background}`, border: `1px solid ${accent}22`, borderRadius: "2px", position: "relative" }}>
-                <div style={{ minWidth: "70px", textAlign: "center" }}>
-                  <div style={{ fontFamily: "'Lora', serif", fontSize: "1.8rem", fontWeight: 400, color: primary, lineHeight: 1 }}>{new Date(event.date).getDate()}</div>
-                  <div style={{ fontSize: "0.65rem", letterSpacing: "2px", textTransform: "uppercase", color: accent, fontWeight: 300 }}>{new Date(event.date).toLocaleDateString("en-US", { month: "short" })}</div>
+        {/* EVENTS — Interactive Timeline */}
+        <section id="events" className="bo-anim" style={{ padding: "5rem 2rem", maxWidth: "800px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+            <BotanicalDivider color={accent} />
+            <h2 style={{ fontFamily: "'Lora', serif", fontSize: "2rem", fontWeight: 400, fontStyle: "italic", color: primary, marginBottom: "0.5rem" }}>Wedding Events</h2>
+            <p style={{ fontSize: "0.75rem", letterSpacing: "4px", textTransform: "uppercase", color: accent, marginBottom: "1rem", fontWeight: 300 }}>Our Celebrations</p>
+          </div>
+
+          {/* Timeline */}
+          <div style={{ position: "relative", maxWidth: "750px", margin: "0 auto" }}>
+            {/* Vertical Line */}
+            <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: "1px", background: `linear-gradient(180deg, transparent, ${accent}44, ${accent}44, transparent)`, transform: "translateX(-50%)" }} />
+
+            {events.map((event: any, idx: number) => {
+              const isLeft = idx % 2 === 0;
+              return (
+                <div key={event.id || idx} className={`bo-anim ${isLeft ? "" : "bo-anim-d1"}`} style={{
+                  display: "flex", justifyContent: isLeft ? "flex-end" : "flex-start",
+                  paddingLeft: isLeft ? 0 : "calc(50% + 36px)", paddingRight: isLeft ? "calc(50% + 36px)" : 0,
+                  marginBottom: "2.5rem", position: "relative",
+                }}>
+                  {/* Timeline Node */}
+                  <div className="bo-timeline-node" style={{
+                    position: "absolute", left: "50%", top: "20px", width: "10px", height: "10px",
+                    backgroundColor: accent, border: `2px solid ${background}`,
+                    transform: "translateX(-50%)", zIndex: 2,
+                    boxShadow: `0 0 0 3px ${accent}20, 0 0 12px ${accent}20`,
+                  }} />
+
+                  {/* Event Card */}
+                  <div className="bo-card" style={{
+                    backgroundColor: background, border: `1px solid ${accent}20`,
+                    padding: "1.8rem", maxWidth: "340px", width: "100%", position: "relative",
+                  }}>
+                    {/* Date Badge */}
+                    <div style={{
+                      position: "absolute", top: "-10px", left: isLeft ? "auto" : "18px", right: isLeft ? "18px" : "auto",
+                      backgroundColor: primary, color: "#fff", padding: "3px 12px",
+                      fontSize: "0.6rem", letterSpacing: "1px", textTransform: "uppercase", fontWeight: 400,
+                    }}>
+                      {formatDate(event.date)}
+                    </div>
+
+                    <h3 style={{ margin: "0.4rem 0 0.4rem", fontSize: "1.2rem", fontFamily: "'Lora', serif", color: primary }}>{event.name}</h3>
+                    <p style={{ margin: "0 0 0.3rem", fontSize: "0.8rem", color: "#999" }}>{formatTime(event.startTime)}{event.duration ? ` · ${event.duration}` : ""}</p>
+                    {event.location && <p style={{ margin: "0 0 0.4rem", fontSize: "0.8rem", color: "#aaa" }}>{event.location}</p>}
+                    {event.dressCode && (
+                      <span style={{
+                        display: "inline-block", fontSize: "0.55rem", letterSpacing: "1.5px", textTransform: "uppercase",
+                        padding: "3px 10px", border: `1px solid ${accent}33`, color: accent, marginTop: "0.3rem", fontWeight: 300,
+                      }}>{event.dressCode}</span>
+                    )}
+                    {event.description && <p style={{ margin: "0.6rem 0 0", fontSize: "0.8rem", color: "#aaa", fontStyle: "italic", lineHeight: 1.6 }}>{event.description}</p>}
+                  </div>
                 </div>
-                <div style={{ width: "1px", backgroundColor: `${accent}33`, alignSelf: "stretch" }} />
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ margin: "0 0 0.5rem", fontFamily: "'Lora', serif", fontSize: "1.2rem", fontWeight: 500, color: primary }}>{event.name}</h3>
-                  <p style={{ margin: "0 0 0.3rem", fontSize: "0.85rem", color: "#888" }}>{formatTime(event.startTime)}{event.duration ? ` · ${event.duration}` : ""}</p>
-                  {event.location && <p style={{ margin: "0 0 0.5rem", fontSize: "0.85rem", color: "#999" }}>📍 {event.location}</p>}
-                  {event.dressCode && <span style={{ display: "inline-block", fontSize: "0.6rem", letterSpacing: "1px", textTransform: "uppercase", padding: "3px 10px", border: `1px solid ${accent}33`, color: accent, fontWeight: 300 }}>{event.dressCode}</span>}
-                  {event.description && <p style={{ margin: "0.5rem 0 0", fontSize: "0.85rem", color: "#aaa", fontStyle: "italic" }}>{event.description}</p>}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
         {/* STORY */}
-        <section id="story" data-animate style={{ opacity: 0, transform: "translateY(35px)", padding: "5rem 2rem", maxWidth: "700px", margin: "0 auto", textAlign: "center" }}>
-          <BotanicalDivider color={accent} />
-          <h2 style={{ fontFamily: "'Lora', serif", fontSize: "2rem", fontWeight: 400, fontStyle: "italic", color: primary, marginBottom: "2rem" }}>Our Story</h2>
-          {story.quote && (
-            <blockquote style={{ fontFamily: "'Lora', serif", fontSize: "1.2rem", fontStyle: "italic", color: primary, margin: "0 0 2rem", padding: "1.5rem", borderLeft: `2px solid ${accent}`, backgroundColor: `${accent}08`, textAlign: "left" }}>
-              &ldquo;{story.quote}&rdquo;
-            </blockquote>
-          )}
-          {story.howWeMet && (
-            <div style={{ marginBottom: "2rem", textAlign: "left" }}>
-              <h3 style={{ fontSize: "0.7rem", letterSpacing: "4px", textTransform: "uppercase", color: accent, marginBottom: "0.8rem", fontWeight: 300 }}>How We Met</h3>
-              <p style={{ fontSize: "1rem", lineHeight: 1.8, color: "#666" }}>{story.howWeMet}</p>
-            </div>
-          )}
-          {story.proposal && (
-            <div style={{ textAlign: "left" }}>
-              <h3 style={{ fontSize: "0.7rem", letterSpacing: "4px", textTransform: "uppercase", color: accent, marginBottom: "0.8rem", fontWeight: 300 }}>The Proposal</h3>
-              <p style={{ fontSize: "1rem", lineHeight: 1.8, color: "#666" }}>{story.proposal}</p>
-            </div>
-          )}
+        <section id="story" className="bo-anim" style={{ padding: "5rem 2rem", maxWidth: "700px", margin: "0 auto", textAlign: "center" }}>
+          <WaveDivider color={background} accent={accent} />
+          <div style={{ padding: "2rem 0" }}>
+            <BotanicalDivider color={accent} />
+            <h2 style={{ fontFamily: "'Lora', serif", fontSize: "2rem", fontWeight: 400, fontStyle: "italic", color: primary, marginBottom: "2rem" }}>Our Story</h2>
+            {story.quote && (
+              <blockquote style={{
+                fontFamily: "'Lora', serif", fontSize: "1.2rem", fontStyle: "italic", color: primary, margin: "0 0 2rem", padding: "1.5rem",
+                lineHeight: 1.8, borderLeft: `2px solid ${accent}`, backgroundColor: `${accent}08`,
+              }}>
+                &ldquo;{story.quote}&rdquo;
+              </blockquote>
+            )}
+            {story.howWeMet && (
+              <div className="bo-anim bo-anim-d1" style={{ marginBottom: "2rem", textAlign: "left" }}>
+                <h3 style={{ fontSize: "0.7rem", letterSpacing: "4px", textTransform: "uppercase", color: accent, marginBottom: "0.8rem", fontWeight: 300 }}>How We Met</h3>
+                <p style={{ fontSize: "1rem", lineHeight: 1.8, color: "#666" }}>{story.howWeMet}</p>
+              </div>
+            )}
+            {story.proposal && (
+              <div className="bo-anim bo-anim-d2" style={{ textAlign: "left" }}>
+                <h3 style={{ fontSize: "0.7rem", letterSpacing: "4px", textTransform: "uppercase", color: accent, marginBottom: "0.8rem", fontWeight: 300 }}>The Proposal</h3>
+                <p style={{ fontSize: "1rem", lineHeight: 1.8, color: "#666" }}>{story.proposal}</p>
+              </div>
+            )}
+          </div>
+          <WaveDivider color={background} accent={accent} flip />
         </section>
 
         {/* TRAVEL */}
-        <section id="travel" data-animate style={{ opacity: 0, transform: "translateY(35px)", padding: "5rem 2rem", maxWidth: "800px", margin: "0 auto" }}>
-          <BotanicalDivider color={accent} />
-          <h2 style={{ textAlign: "center", fontFamily: "'Lora', serif", fontSize: "2rem", fontWeight: 400, fontStyle: "italic", color: primary, marginBottom: "0.5rem" }}>Travel & Stay</h2>
-          <p style={{ textAlign: "center", fontSize: "0.75rem", letterSpacing: "3px", textTransform: "uppercase", color: accent, marginBottom: "3rem", fontWeight: 300 }}>Accommodations</p>
+        <section id="travel" className="bo-anim" style={{ padding: "5rem 2rem", maxWidth: "800px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+            <BotanicalDivider color={accent} />
+            <h2 style={{ fontFamily: "'Lora', serif", fontSize: "2rem", fontWeight: 400, fontStyle: "italic", color: primary, marginBottom: "0.5rem" }}>Travel & Stay</h2>
+            <p style={{ fontSize: "0.75rem", letterSpacing: "4px", textTransform: "uppercase", color: accent, fontWeight: 300 }}>Accommodations</p>
+          </div>
           {travel.venueName && (
-            <div className="hover-card" style={{ padding: "2rem", border: `1px solid ${accent}22`, marginBottom: "2rem", textAlign: "center" }}>
+            <div className="bo-anim bo-card" style={{ backgroundColor: background, border: `1px solid ${accent}20`, padding: "2rem", marginBottom: "2rem", textAlign: "center" }}>
               <h3 style={{ fontFamily: "'Lora', serif", fontSize: "1.3rem", color: primary, margin: "0 0 0.5rem" }}>{travel.venueName}</h3>
               {travel.venueAddress && <p style={{ fontSize: "0.9rem", color: "#888", margin: "0 0 1rem" }}>{travel.venueAddress}</p>}
-              {travel.mapsUrl && <a href={travel.mapsUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", padding: "0.5rem 1.5rem", border: `1px solid ${primary}`, color: primary, textDecoration: "none", fontSize: "0.75rem", letterSpacing: "2px", textTransform: "uppercase", fontWeight: 300 }}>View on Map</a>}
+              {travel.mapsUrl && <a href={travel.mapsUrl} target="_blank" rel="noopener noreferrer" className="bo-btn" style={{ display: "inline-block", padding: "0.5rem 1.5rem", border: `1px solid ${primary}`, color: primary, textDecoration: "none", fontSize: "0.75rem", letterSpacing: "2px", textTransform: "uppercase", fontWeight: 300 }}>View on Map</a>}
             </div>
           )}
           {travel.hotels && travel.hotels.length > 0 && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
               {travel.hotels.map((hotel: any, idx: number) => (
-                <div key={idx} className="hover-card" style={{ padding: "1.5rem", border: `1px solid ${accent}22` }}>
+                <div key={idx} className="bo-anim bo-card" style={{ backgroundColor: background, border: `1px solid ${accent}20`, padding: "1.5rem" }}>
                   <h4 style={{ margin: "0 0 0.5rem", fontFamily: "'Lora', serif", fontSize: "1rem", color: primary }}>{hotel.name}</h4>
                   {hotel.price && <p style={{ margin: "0 0 0.3rem", fontSize: "0.85rem", color: "#888" }}>{hotel.price}</p>}
                   {hotel.groupCode && <p style={{ margin: "0 0 0.5rem", fontSize: "0.75rem", color: accent }}>Group Code: {hotel.groupCode}</p>}
-                  {hotel.link && <a href={hotel.link} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", padding: "0.4rem 1rem", border: `1px solid ${accent}44`, color: accent, textDecoration: "none", fontSize: "0.7rem", letterSpacing: "1px", textTransform: "uppercase", fontWeight: 300 }}>Book</a>}
+                  {hotel.link && <a href={hotel.link} target="_blank" rel="noopener noreferrer" className="bo-btn" style={{ display: "inline-block", padding: "0.4rem 1rem", border: `1px solid ${accent}44`, color: accent, textDecoration: "none", fontSize: "0.7rem", letterSpacing: "1px", textTransform: "uppercase", fontWeight: 300 }}>Book</a>}
                 </div>
               ))}
             </div>
           )}
           {travel.tips && (
-            <div style={{ padding: "1.5rem", borderLeft: `2px solid ${accent}`, backgroundColor: `${accent}06` }}>
+            <div className="bo-anim" style={{ backgroundColor: `${accent}06`, borderLeft: `2px solid ${accent}`, padding: "1.5rem" }}>
               <h4 style={{ margin: "0 0 0.5rem", fontSize: "0.7rem", letterSpacing: "3px", textTransform: "uppercase", color: accent, fontWeight: 300 }}>Travel Tips</h4>
               <p style={{ margin: 0, fontSize: "0.9rem", lineHeight: 1.7, color: "#777" }}>{travel.tips}</p>
             </div>
@@ -285,53 +446,71 @@ export default function BohoTemplate({
         </section>
 
         {/* REGISTRY */}
-        <section id="registry" data-animate style={{ opacity: 0, transform: "translateY(35px)", padding: "5rem 2rem", maxWidth: "700px", margin: "0 auto" }}>
-          <BotanicalDivider color={accent} />
-          <h2 style={{ textAlign: "center", fontFamily: "'Lora', serif", fontSize: "2rem", fontWeight: 400, fontStyle: "italic", color: primary, marginBottom: "3rem" }}>Registry</h2>
+        <section id="registry" className="bo-anim" style={{ padding: "5rem 2rem", maxWidth: "700px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+            <BotanicalDivider color={accent} />
+            <h2 style={{ fontFamily: "'Lora', serif", fontSize: "2rem", fontWeight: 400, fontStyle: "italic", color: primary, marginBottom: "0.5rem" }}>Registry</h2>
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.5rem" }}>
             {registry.map((reg: any, idx: number) => (
-              <div key={idx} className="hover-card" style={{ padding: "2rem", textAlign: "center", border: `1px solid ${accent}22` }}>
+              <div key={idx} className="bo-anim bo-card" style={{ backgroundColor: background, border: `1px solid ${accent}20`, padding: "2rem", textAlign: "center" }}>
                 <div style={{ fontSize: "1.8rem", marginBottom: "0.5rem" }}>🎁</div>
                 <h4 style={{ margin: "0 0 1rem", fontFamily: "'Lora', serif", fontSize: "1rem", color: primary }}>{reg.name}</h4>
-                {reg.url && <a href={reg.url} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", padding: "0.5rem 1.5rem", border: `1px solid ${primary}`, color: primary, textDecoration: "none", fontSize: "0.7rem", letterSpacing: "2px", textTransform: "uppercase", fontWeight: 300 }}>Visit</a>}
+                {reg.url && <a href={reg.url} target="_blank" rel="noopener noreferrer" className="bo-btn" style={{ display: "inline-block", padding: "0.5rem 1.5rem", border: `1px solid ${primary}`, color: primary, textDecoration: "none", fontSize: "0.7rem", letterSpacing: "2px", textTransform: "uppercase", fontWeight: 300 }}>Visit</a>}
               </div>
             ))}
           </div>
         </section>
 
         {/* FAQ */}
-        <section id="faq" data-animate style={{ opacity: 0, transform: "translateY(35px)", padding: "5rem 2rem", maxWidth: "700px", margin: "0 auto" }}>
-          <BotanicalDivider color={accent} />
-          <h2 style={{ textAlign: "center", fontFamily: "'Lora', serif", fontSize: "2rem", fontWeight: 400, fontStyle: "italic", color: primary, marginBottom: "3rem" }}>FAQ</h2>
-          {faq.map((item: any, idx: number) => {
-            const isOpen = openFaq === idx;
-            return (
-              <div key={idx} style={{ borderBottom: `1px solid ${accent}22` }}>
-                <button onClick={() => setOpenFaq(isOpen ? null : idx)} style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.2rem 0", backgroundColor: "transparent", border: "none", cursor: "pointer", fontFamily: "'Lora', serif", fontSize: "0.95rem", color: textColor, textAlign: "left" }}>
-                  <span>{item.q}</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.5" style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s", flexShrink: 0, marginLeft: "1rem" }}><path d="M6 9l6 6 6-6" /></svg>
-                </button>
-                <div style={{ maxHeight: isOpen ? "300px" : "0", overflow: "hidden", transition: "max-height 0.4s ease" }}>
-                  <p style={{ padding: "0 0 1.2rem", margin: 0, fontSize: "0.9rem", color: "#888", lineHeight: 1.7 }}>{item.a}</p>
+        <section id="faq" className="bo-anim" style={{ padding: "5rem 2rem", maxWidth: "700px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+            <BotanicalDivider color={accent} />
+            <h2 style={{ fontFamily: "'Lora', serif", fontSize: "2rem", fontWeight: 400, fontStyle: "italic", color: primary, marginBottom: "0.5rem" }}>FAQ</h2>
+          </div>
+          <div style={{ borderTop: `1px solid ${accent}20` }}>
+            {faq.map((item: any, idx: number) => {
+              const isOpen = openFaq === idx;
+              return (
+                <div key={idx}>
+                  <button onClick={() => setOpenFaq(isOpen ? null : idx)} style={{
+                    width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
+                    padding: "1.2rem 0", backgroundColor: "transparent", border: "none",
+                    borderBottom: `1px solid ${accent}20`, cursor: "pointer", fontFamily: "'Lora', serif",
+                    fontSize: "0.95rem", color: textColor, textAlign: "left", transition: "color 0.3s",
+                  }}>
+                    <span>{item.q}</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.5" style={{
+                      transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1)", flexShrink: 0, marginLeft: "1rem",
+                    }}><path d="M6 9l6 6 6-6" /></svg>
+                  </button>
+                  <div style={{
+                    maxHeight: isOpen ? "400px" : "0", overflow: "hidden",
+                    transition: "max-height 0.5s cubic-bezier(0.16,1,0.3,1)",
+                  }}>
+                    <p style={{ padding: "0 0 1.2rem", margin: 0, fontSize: "0.9rem", color: "#888", lineHeight: 1.7 }}>{item.a}</p>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </section>
 
         {/* RSVP */}
-        <section id="rsvp" data-animate style={{ opacity: 0, transform: "translateY(35px)", padding: "5rem 2rem", maxWidth: "600px", margin: "0 auto" }}>
-          <BotanicalDivider color={accent} />
-          <h2 style={{ textAlign: "center", fontFamily: "'Lora', serif", fontSize: "2rem", fontWeight: 400, fontStyle: "italic", color: primary, marginBottom: "0.5rem" }}>RSVP</h2>
-          <p style={{ textAlign: "center", fontSize: "0.75rem", letterSpacing: "3px", textTransform: "uppercase", color: accent, marginBottom: "2.5rem", fontWeight: 300 }}>Kindly Respond</p>
+        <section id="rsvp" className="bo-anim" style={{ padding: "5rem 2rem", maxWidth: "600px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
+            <BotanicalDivider color={accent} />
+            <h2 style={{ fontFamily: "'Lora', serif", fontSize: "2rem", fontWeight: 400, fontStyle: "italic", color: primary, marginBottom: "0.5rem" }}>RSVP</h2>
+            <p style={{ fontSize: "0.75rem", letterSpacing: "4px", textTransform: "uppercase", color: accent, fontWeight: 300 }}>Kindly Respond</p>
+          </div>
           {submitSuccess ? (
-            <div className="rsvp-success" style={{ textAlign: "center", padding: "3rem", border: `1px solid ${accent}22` }}>
+            <div className="bo-success-anim" style={{ textAlign: "center", padding: "3rem", backgroundColor: background, border: `1px solid ${accent}20` }}>
               <DriedFlower color={accent} />
               <h3 style={{ fontFamily: "'Lora', serif", color: primary, fontSize: "1.3rem", margin: "1rem 0 0.5rem", fontStyle: "italic" }}>Thank You!</h3>
               <p style={{ color: "#888", fontSize: "0.9rem" }}>Your response has been recorded.</p>
             </div>
           ) : (
-            <div style={{ border: `1px solid ${accent}22`, padding: "2rem" }}>
+            <div style={{ backgroundColor: background, border: `1px solid ${accent}20`, padding: "2rem" }}>
               <div style={{ position: "relative", marginBottom: "1.5rem" }}>
                 <label style={{ display: "block", fontSize: "0.65rem", letterSpacing: "3px", textTransform: "uppercase", color: accent, marginBottom: "0.5rem", fontWeight: 300 }}>Find Your Name</label>
                 <input type="text" placeholder="Search for your name..." value={guestSearch} onChange={(e) => { onRsvpSearch(e.target.value); setSearchOpen(true); }} onFocus={() => setSearchOpen(true)} style={{ width: "100%", padding: "0.8rem 1rem", fontSize: "0.95rem", fontFamily: "'Josefin Sans', sans-serif", border: `1px solid ${accent}33`, backgroundColor: "transparent", color: textColor, outline: "none", boxSizing: "border-box", borderRadius: "0" }} />
@@ -354,7 +533,12 @@ export default function BohoTemplate({
                     <label style={{ display: "block", fontSize: "0.65rem", letterSpacing: "3px", textTransform: "uppercase", color: accent, marginBottom: "0.5rem", fontWeight: 300 }}>Will you attend?</label>
                     <div style={{ display: "flex", gap: "0.8rem", flexWrap: "wrap" }}>
                       {[{ val: "yes", label: "Joyfully Accept" }, { val: "no", label: "Regretfully Decline" }, { val: "maybe", label: "Maybe" }].map((opt) => (
-                        <button key={opt.val} onClick={() => onRsvpStatusChange(opt.val)} style={{ padding: "0.5rem 1.2rem", fontSize: "0.8rem", fontFamily: "'Josefin Sans', sans-serif", fontWeight: 300, letterSpacing: "1px", border: `1px solid ${rsvpStatus === opt.val ? primary : `${accent}33`}`, backgroundColor: rsvpStatus === opt.val ? primary : "transparent", color: rsvpStatus === opt.val ? "#fff" : textColor, cursor: "pointer" }}>{opt.label}</button>
+                        <button key={opt.val} onClick={() => onRsvpStatusChange(opt.val)} style={{
+                          padding: "0.5rem 1.2rem", fontSize: "0.78rem", fontFamily: "'Josefin Sans', sans-serif", fontWeight: 300, letterSpacing: "1px",
+                          border: `1px solid ${rsvpStatus === opt.val ? primary : `${accent}33`}`,
+                          backgroundColor: rsvpStatus === opt.val ? primary : "transparent", color: rsvpStatus === opt.val ? "#fff" : textColor,
+                          cursor: "pointer", transition: "all 0.3s", borderRadius: "0",
+                        }}>{opt.label}</button>
                       ))}
                     </div>
                   </div>
@@ -373,7 +557,13 @@ export default function BohoTemplate({
                     <label style={{ display: "block", fontSize: "0.65rem", letterSpacing: "3px", textTransform: "uppercase", color: accent, marginBottom: "0.5rem", fontWeight: 300 }}>Notes</label>
                     <textarea placeholder="Any special requests..." value={notes} onChange={(e) => onNotesChange(e.target.value)} rows={3} style={{ width: "100%", padding: "0.8rem 1rem", fontSize: "0.95rem", fontFamily: "'Josefin Sans', sans-serif", border: `1px solid ${accent}33`, backgroundColor: "transparent", color: textColor, outline: "none", resize: "vertical", boxSizing: "border-box", borderRadius: "0" }} />
                   </div>
-                  <button onClick={onRsvpSubmit} disabled={!rsvpStatus || submitting} style={{ width: "100%", padding: "0.8rem", fontSize: "0.75rem", fontFamily: "'Josefin Sans', sans-serif", fontWeight: 500, letterSpacing: "3px", textTransform: "uppercase", border: `1px solid ${primary}`, backgroundColor: !rsvpStatus || submitting ? "transparent" : primary, color: !rsvpStatus || submitting ? primary : "#fff", cursor: !rsvpStatus || submitting ? "not-allowed" : "pointer" }}>
+                  <button onClick={onRsvpSubmit} disabled={!rsvpStatus || submitting} className="bo-btn" style={{
+                    width: "100%", padding: "0.8rem", fontSize: "0.75rem", fontFamily: "'Josefin Sans', sans-serif", fontWeight: 500, letterSpacing: "3px",
+                    textTransform: "uppercase", border: `1px solid ${primary}`,
+                    backgroundColor: !rsvpStatus || submitting ? "transparent" : primary,
+                    color: !rsvpStatus || submitting ? primary : "#fff",
+                    cursor: !rsvpStatus || submitting ? "not-allowed" : "pointer", borderRadius: "0",
+                  }}>
                     {submitting ? "Submitting..." : "Send RSVP"}
                   </button>
                 </>
@@ -383,9 +573,9 @@ export default function BohoTemplate({
         </section>
 
         {/* FOOTER */}
-        <footer style={{ padding: "4rem 2rem", textAlign: "center", borderTop: `1px solid ${accent}22`, position: "relative", overflow: "hidden" }}>
+        <footer style={{ padding: "5rem 2rem 3rem", textAlign: "center", borderTop: `1px solid ${accent}20`, position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: "200px", height: "1px", background: `linear-gradient(90deg, transparent, ${accent}44, transparent)` }} />
-          <div style={{ display: "flex", justifyContent: "center", gap: "2rem", marginBottom: "1.5rem", opacity: 0.4 }}>
+          <div style={{ display: "flex", justifyContent: "center", gap: "2rem", marginBottom: "1.5rem", opacity: 0.35 }}>
             <DriedFlower color={accent} flip />
             <DriedFlower color={accent} />
           </div>
