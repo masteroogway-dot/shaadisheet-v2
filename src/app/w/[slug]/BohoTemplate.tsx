@@ -69,8 +69,9 @@ export default function BohoTemplate({
   const theme = config.theme || {};
   const primary = theme.primary || "#8B6F47";
   const accent = theme.accent || "#C4A882";
-  const background = theme.background || "#FAF6F1";
-  const textColor = theme.text || "#4A3F35";
+  // Boho always uses earthy tones — theme can't override
+  const background = "#FAF6F1";
+  const textColor = "#4A3F35";
   const story = config.story || {};
   const events = config.events || [];
   const travel = config.travel || {};

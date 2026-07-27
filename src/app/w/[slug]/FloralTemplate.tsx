@@ -90,7 +90,8 @@ export default function FloralTemplate({
   const theme = config.theme || {};
   const primary = theme.primary || "#C75B7A";
   const accent = theme.accent || "#BA94D1";
-  const background = theme.background || "#FFF5F7";
+  // Floral always uses soft pink — theme can't override
+  const background = "#FFF5F7";
   const textColor = theme.text || "#4A3B3B";
   const story = config.story || {};
   const events = config.events || [];

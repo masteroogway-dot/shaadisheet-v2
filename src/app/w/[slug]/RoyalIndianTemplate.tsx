@@ -90,8 +90,9 @@ export default function RoyalIndianTemplate({
   const theme = config.theme || {};
   const primary = theme.primary || "#722F37";
   const accent = theme.accent || "#D4AF37";
-  const background = theme.background || "#1A0A0A";
-  const textColor = theme.text || "#F5E6D3";
+  // Royal Indian always uses dark palette — theme can't override background/text
+  const background = "#0F0508";
+  const textColor = "#F0E0D0";
   const story = config.story || {};
   const events = config.events || [];
   const travel = config.travel || {};

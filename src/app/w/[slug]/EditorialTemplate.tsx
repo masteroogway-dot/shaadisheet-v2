@@ -47,8 +47,9 @@ export default function EditorialTemplate({
   const theme = config.theme || {};
   const primary = theme.primary || "#1A1A2E";
   const accent = theme.accent || "#E94560";
-  const background = theme.background || "#FFFFFF";
-  const textColor = theme.text || "#1A1A2E";
+  // Editorial always uses clean white — theme can't override
+  const background = "#FFFFFF";
+  const textColor = theme.primary || "#1A1A2E";
   const story = config.story || {};
   const events = config.events || [];
   const travel = config.travel || {};

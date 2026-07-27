@@ -65,8 +65,9 @@ export default function TropicalTemplate({
   const theme = config.theme || {};
   const primary = theme.primary || "#1B6B5A";
   const accent = theme.accent || "#FF7F50";
-  const background = theme.background || "#FFF8F0";
-  const textColor = theme.text || "#2C3E3A";
+  // Tropical always uses warm tones — theme can't override
+  const background = "#FFF8F0";
+  const textColor = "#2C3E3A";
   const story = config.story || {};
   const events = config.events || [];
   const travel = config.travel || {};
