@@ -2413,7 +2413,19 @@ export async function generateWebsiteSlug(weddingId: string) {
 
 export async function updateWeddingWebsite(weddingId: string, data: { websitePhoto?: string; websiteTagline?: string }) {
   const wedding = await getCurrentWedding(weddingId);
-  await prisma.wedding.update({ where: { id: wedding.id }, data });
+  const existingConfig = wedding.websiteConfig ? JSON.parse(wedding.websiteConfig) : {};
+  const newConfig = { ...existingConfig };
+  if (data.websitePhoto !== undefined) newConfig.photo = data.websitePhoto;
+  if (data.websiteTagline !== undefined) newConfig.tagline = data.websiteTagline;
+  await prisma.wedding.update({ where: { id: wedding.id }, data: { websiteConfig: JSON.stringify(newConfig) } });
+  return { success: true };
+}
+
+export async function updateWebsiteConfig(weddingId: string, config: Record<string, any>) {
+  const wedding = await getCurrentWedding(weddingId);
+  const existingConfig = wedding.websiteConfig ? JSON.parse(wedding.websiteConfig) : {};
+  const newConfig = { ...existingConfig, ...config };
+  await prisma.wedding.update({ where: { id: wedding.id }, data: { websiteConfig: JSON.stringify(newConfig) } });
   return { success: true };
 }
 
@@ -2425,10 +2437,9 @@ export async function getWeddingBySlug(slug: string) {
       name: true,
       weddingDate: true,
       weddingCity: true,
-      websitePhoto: true,
-      websiteTagline: true,
+      websiteConfig: true,
       religion: true,
-      events: { orderBy: { order: "asc" }, select: { id: true, name: true, date: true, startTime: true, duration: true, location: true, isRitual: true } },
+      events: { orderBy: { order: "asc" }, select: { id: true, name: true, date: true, startTime: true, duration: true, location: true, isRitual: true, description: true } },
       guests: { select: { id: true, name: true, rsvp: true } },
       _count: { select: { guests: true } },
     },
@@ -2437,9 +2448,12 @@ export async function getWeddingBySlug(slug: string) {
 
   const rsvpYes = wedding.guests.filter((g) => g.rsvp === "Yes").length;
   const rsvpPending = wedding.guests.filter((g) => g.rsvp === "Pending").length;
+  const config = wedding.websiteConfig ? JSON.parse(wedding.websiteConfig) : {};
 
   return {
     ...wedding,
+    config,
+    websiteConfig: undefined,
     rsvpYes,
     rsvpPending,
     guestCount: wedding._count.guests,
@@ -2450,10 +2464,10 @@ export async function getWeddingBySlug(slug: string) {
 
 export async function getWebsiteData(weddingId: string) {
   const wedding = await getCurrentWedding(weddingId);
+  const config = wedding.websiteConfig ? JSON.parse(wedding.websiteConfig) : {};
   return {
     websiteSlug: wedding.websiteSlug,
-    websitePhoto: wedding.websitePhoto,
-    websiteTagline: wedding.websiteTagline,
+    config,
     name: wedding.name,
     weddingDate: wedding.weddingDate,
     weddingCity: wedding.weddingCity,

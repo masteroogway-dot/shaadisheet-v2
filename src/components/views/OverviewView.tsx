@@ -7,6 +7,7 @@ import { updateWedding } from "@/lib/actions";
 import { formatINR, formatINRAbbrev } from "@/lib/format";
 import InviteModal from "@/components/InviteModal";
 import WeddingWebsiteModal from "@/components/WeddingWebsiteModal";
+import WeddingQuestionnaire from "@/components/WeddingQuestionnaire";
 import ToastContainer, { Toast } from "@/components/Toast";
 import CurrencyInput from "@/components/CurrencyInput";
 
@@ -28,6 +29,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
   const [saving, setSaving] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [websiteOpen, setWebsiteOpen] = useState(false);
+  const [questionnaireOpen, setQuestionnaireOpen] = useState(false);
   const [collaborators, setCollaborators] = useState<any[]>(wedding.collaborators || []);
   const [editingCollab, setEditingCollab] = useState<string | null>(null);
   const [collabRole, setCollabRole] = useState("");
@@ -299,7 +301,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
         {hasData && (
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setWebsiteOpen(true)}
+              onClick={() => setQuestionnaireOpen(true)}
               className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:border-[#D4AF37] hover:text-[#722F37] transition-colors cursor-pointer shrink-0"
             >
               <i className="fas fa-globe text-gray-400" />
@@ -601,6 +603,20 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
           websiteSlug: wedding.websiteSlug,
           websitePhoto: wedding.websitePhoto,
           websiteTagline: wedding.websiteTagline,
+          name: wedding.name,
+          weddingDate: wedding.weddingDate,
+          weddingCity: wedding.weddingCity,
+        }}
+        onUpdate={onUpdate}
+      />
+
+      <WeddingQuestionnaire
+        open={questionnaireOpen}
+        onClose={() => setQuestionnaireOpen(false)}
+        wedding={wedding}
+        websiteData={{
+          websiteSlug: wedding.websiteSlug,
+          config: wedding.websiteConfig ? JSON.parse(wedding.websiteConfig) : {},
           name: wedding.name,
           weddingDate: wedding.weddingDate,
           weddingCity: wedding.weddingCity,

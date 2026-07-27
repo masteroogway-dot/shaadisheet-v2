@@ -102,8 +102,7 @@ model Wedding {
   weddingDays     Int                   @default(1)
   rsvpToken       String                @default("")
   websiteSlug     String                @default("")
-  websitePhoto    String                @default("")
-  websiteTagline  String                @default("")
+  websiteConfig   String                @default("{}")
   aiMessages      AiMessage[]
   budgetItems     BudgetItem[]
   guests          Guest[]
