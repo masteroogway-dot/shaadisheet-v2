@@ -6,6 +6,7 @@ import ScrollReveal from "@/components/animations/ScrollReveal";
 import { updateWedding } from "@/lib/actions";
 import { formatINR, formatINRAbbrev } from "@/lib/format";
 import InviteModal from "@/components/InviteModal";
+import WeddingWebsiteModal from "@/components/WeddingWebsiteModal";
 import ToastContainer, { Toast } from "@/components/Toast";
 import CurrencyInput from "@/components/CurrencyInput";
 
@@ -26,6 +27,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
   const [editingDate, setEditingDate] = useState(false);
   const [saving, setSaving] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [websiteOpen, setWebsiteOpen] = useState(false);
   const [collaborators, setCollaborators] = useState<any[]>(wedding.collaborators || []);
   const [editingCollab, setEditingCollab] = useState<string | null>(null);
   const [collabRole, setCollabRole] = useState("");
@@ -295,12 +297,21 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
           </p>
         </div>
         {hasData && (
-          <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 shrink-0">
-            <div className="text-2xl">{currentPhase.emoji}</div>
-            <div>
-              <p className="text-xs text-gray-500 font-medium">Current Phase</p>
-              <p className="text-sm font-bold text-gray-900">{currentPhase.name}</p>
-              <p className="text-[0.65rem] text-gray-400">{currentPhase.description}</p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setWebsiteOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:border-[#D4AF37] hover:text-[#722F37] transition-colors cursor-pointer shrink-0"
+            >
+              <i className="fas fa-globe text-gray-400" />
+              <span className="hidden sm:inline">Website</span>
+            </button>
+            <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 shrink-0">
+              <div className="text-2xl">{currentPhase.emoji}</div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Current Phase</p>
+                <p className="text-sm font-bold text-gray-900">{currentPhase.name}</p>
+                <p className="text-[0.65rem] text-gray-400">{currentPhase.description}</p>
+              </div>
             </div>
           </div>
         )}
@@ -580,6 +591,22 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
           )}
 
           <InviteModal weddingId={wedding.id} weddingName={wedding.name || "My Wedding"} open={inviteOpen} onClose={() => setInviteOpen(false)} />
+
+      <WeddingWebsiteModal
+        open={websiteOpen}
+        onClose={() => setWebsiteOpen(false)}
+        weddingId={wedding.id}
+        weddingName={wedding.name || "My Wedding"}
+        websiteData={{
+          websiteSlug: wedding.websiteSlug,
+          websitePhoto: wedding.websitePhoto,
+          websiteTagline: wedding.websiteTagline,
+          name: wedding.name,
+          weddingDate: wedding.weddingDate,
+          weddingCity: wedding.weddingCity,
+        }}
+        onUpdate={onUpdate}
+      />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <ScrollReveal delay={0.1}>

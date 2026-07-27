@@ -101,6 +101,9 @@ model Wedding {
   guestCount      Int                   @default(0)
   weddingDays     Int                   @default(1)
   rsvpToken       String                @default("")
+  websiteSlug     String                @default("")
+  websitePhoto    String                @default("")
+  websiteTagline  String                @default("")
   aiMessages      AiMessage[]
   budgetItems     BudgetItem[]
   guests          Guest[]

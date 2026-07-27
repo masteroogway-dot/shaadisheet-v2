@@ -2380,3 +2380,82 @@ export async function getVendorUrgency(vendor: any, weddingDate: Date | null): P
   if (daysUntilBookBy <= 30) return { level: "soon", label: "Book soon", color: "text-amber-600 bg-amber-50" };
   return { level: "no-rush", label: "No rush", color: "text-gray-500 bg-gray-100" };
 }
+
+// ═══════════════════════════════════════════════════════════════
+// WEDDING WEBSITE
+// ═══════════════════════════════════════════════════════════════
+
+function generateSlug(): string {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let slug = "";
+  for (let i = 0; i < 7; i++) {
+    slug += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return slug;
+}
+
+export async function generateWebsiteSlug(weddingId: string) {
+  const wedding = await getCurrentWedding(weddingId);
+  if (wedding.websiteSlug) return { slug: wedding.websiteSlug };
+
+  let slug = generateSlug();
+  let attempts = 0;
+  while (attempts < 10) {
+    const existing = await prisma.wedding.findFirst({ where: { websiteSlug: slug } });
+    if (!existing) break;
+    slug = generateSlug();
+    attempts++;
+  }
+
+  await prisma.wedding.update({ where: { id: wedding.id }, data: { websiteSlug: slug } });
+  return { slug };
+}
+
+export async function updateWeddingWebsite(weddingId: string, data: { websitePhoto?: string; websiteTagline?: string }) {
+  const wedding = await getCurrentWedding(weddingId);
+  await prisma.wedding.update({ where: { id: wedding.id }, data });
+  return { success: true };
+}
+
+export async function getWeddingBySlug(slug: string) {
+  const wedding = await prisma.wedding.findFirst({
+    where: { websiteSlug: slug },
+    select: {
+      id: true,
+      name: true,
+      weddingDate: true,
+      weddingCity: true,
+      websitePhoto: true,
+      websiteTagline: true,
+      religion: true,
+      events: { orderBy: { order: "asc" }, select: { id: true, name: true, date: true, startTime: true, duration: true, location: true, isRitual: true } },
+      guests: { select: { id: true, name: true, rsvp: true } },
+      _count: { select: { guests: true } },
+    },
+  });
+  if (!wedding) return null;
+
+  const rsvpYes = wedding.guests.filter((g) => g.rsvp === "Yes").length;
+  const rsvpPending = wedding.guests.filter((g) => g.rsvp === "Pending").length;
+
+  return {
+    ...wedding,
+    rsvpYes,
+    rsvpPending,
+    guestCount: wedding._count.guests,
+    _count: undefined,
+    guests: undefined,
+  };
+}
+
+export async function getWebsiteData(weddingId: string) {
+  const wedding = await getCurrentWedding(weddingId);
+  return {
+    websiteSlug: wedding.websiteSlug,
+    websitePhoto: wedding.websitePhoto,
+    websiteTagline: wedding.websiteTagline,
+    name: wedding.name,
+    weddingDate: wedding.weddingDate,
+    weddingCity: wedding.weddingCity,
+  };
+}
