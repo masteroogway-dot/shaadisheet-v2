@@ -2439,6 +2439,7 @@ export async function getWeddingBySlug(slug: string) {
       weddingCity: true,
       websiteConfig: true,
       religion: true,
+      rsvpToken: true,
       events: { orderBy: { order: "asc" }, select: { id: true, name: true, date: true, startTime: true, duration: true, location: true, isRitual: true, description: true } },
       guests: { select: { id: true, name: true, rsvp: true } },
       _count: { select: { guests: true } },
