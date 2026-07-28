@@ -9,6 +9,7 @@ import ScrollReveal from "@/components/animations/ScrollReveal";
 import SpotlightCard from "@/components/animations/SpotlightCard";
 import { StaggerContainer, StaggerItem } from "@/components/animations/StaggerChildren";
 import LiveCount from "@/components/LiveCount";
+import PublicHashtagGenerator from "@/components/PublicHashtagGenerator";
 
 /* ─────────────────────────────────────────────
    ROSE PETAL ANIMATION
@@ -540,6 +541,9 @@ export default function Home() {
           </StaggerContainer>
         </div>
       </section>
+
+      {/* HASHTAG GENERATOR TRY-IT */}
+      <PublicHashtagGenerator />
 
       {/* CTA */}
       <section className="py-16 md:py-28 text-center wedding-cta text-white relative">

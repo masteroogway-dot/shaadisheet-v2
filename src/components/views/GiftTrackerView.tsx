@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import confetti from "canvas-confetti";
 import { createGift, updateGift, deleteGift, bulkDeleteGifts, bulkUpdateGifts, batchCreateGifts, bulkAddGifts } from "@/lib/actions";
 import { formatINR } from "@/lib/format";
 import { exportToCSV } from "@/lib/export";
@@ -10,6 +12,21 @@ import CurrencyInput from "@/components/CurrencyInput";
 const SIDES = ["All", "Paternal", "Maternal", "Groom", "Friends", "Colleagues", "Both"];
 const TYPES = ["All", "Cash", "Gold", "Gift", "Other"];
 const THANK_YOU = ["All", "Sent", "Pending"];
+
+const SIDE_COLORS: Record<string, { color: string; bg: string; bar: string }> = {
+  Paternal: { color: "#8B0000", bg: "bg-maroon/10", bar: "bg-maroon" },
+  Maternal: { color: "#D4AF37", bg: "bg-yellow-50", bar: "bg-yellow-500" },
+  Groom: { color: "#1565C0", bg: "bg-blue-50", bar: "bg-blue-500" },
+  Friends: { color: "#2E7D32", bg: "bg-green-50", bar: "bg-green" },
+  Colleagues: { color: "#7C3AED", bg: "bg-purple-50", bar: "bg-purple-500" },
+  Both: { color: "#6B7280", bg: "bg-gray-50", bar: "bg-gray-400" },
+};
+
+const THANK_YOU_TEMPLATES = [
+  { label: "Formal", text: "Dear {name}, thank you so much for your generous gift of {amount} for our wedding. Your blessings mean the world to us. With warm regards." },
+  { label: "Warm", text: "{name}, your love and generosity touched our hearts. The {amount} gift was so thoughtful. We are grateful to have you in our lives. Love always." },
+  { label: "Fun", text: "Hey {name}! Still smiling about your amazing {amount} gift! You made our shaadi even more special. Let's celebrate together soon! 🎉" },
+];
 
 export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast, canEdit = true }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void; canEdit?: boolean }) {
   const gifts = wedding.gifts || [];
@@ -25,6 +42,9 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
   const [showBulkAdd, setShowBulkAdd] = useState(false);
   const [bulkAddCount, setBulkAddCount] = useState(5);
   const [rangeInput, setRangeInput] = useState("");
+  const [thankYouModal, setThankYouModal] = useState<{ name: string; amount: number; id: string } | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState(0);
+  const [copiedTY, setCopiedTY] = useState(false);
 
   const filtered = gifts.filter((g: any) => {
     if (search && !g.fromName.toLowerCase().includes(search.toLowerCase())) return false;
@@ -43,6 +63,27 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
     const sideGifts = gifts.filter((g: any) => g.fromSide === side);
     return { side, total: sideGifts.reduce((s: number, g: any) => s + (g.amount || 0), 0), count: sideGifts.length };
   }).filter((s) => s.count > 0);
+
+  const maxSideTotal = useMemo(() => Math.max(...sideBreakdown.map((s) => s.total), 1), [sideBreakdown]);
+
+  const giftRanges = useMemo(() => {
+    const ranges = [
+      { label: "0 - 5K", min: 0, max: 5000, count: 0, color: "from-gray-400 to-gray-500" },
+      { label: "5K - 10K", min: 5000, max: 10000, count: 0, color: "from-blue-400 to-blue-500" },
+      { label: "10K - 25K", min: 10000, max: 25000, count: 0, color: "from-green-400 to-green-500" },
+      { label: "25K - 50K", min: 25000, max: 50000, count: 0, color: "from-yellow-400 to-yellow-500" },
+      { label: "50K+", min: 50000, max: Infinity, count: 0, color: "from-maroon to-maroon-light" },
+    ];
+    for (const g of gifts) {
+      const amt = g.amount || 0;
+      for (const r of ranges) {
+        if (amt >= r.min && amt < r.max) { r.count++; break; }
+      }
+    }
+    return ranges;
+  }, [gifts]);
+
+  const maxRangeCount = useMemo(() => Math.max(...giftRanges.map((r) => r.count), 1), [giftRanges]);
 
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
@@ -149,9 +190,22 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
       await bulkUpdateGifts(weddingId, Array.from(selected), { thankYou: "Sent" });
       setSelected(new Set());
       onUpdate();
+      confetti({ particleCount: 60, spread: 50, origin: { y: 0.7 }, colors: ["#D4AF37", "#8B0000", "#2E7D32"] });
       onToast(`${selected.size} thank-you(s) marked as sent`, "success");
     } catch {
       onToast("Failed to update gifts", "error");
+    }
+  };
+
+  const handleSendThankYou = async (id: string) => {
+    try {
+      await updateGift(weddingId, id, { thankYou: "Sent" });
+      confetti({ particleCount: 60, spread: 50, origin: { y: 0.7 }, colors: ["#D4AF37", "#8B0000", "#2E7D32"] });
+      onUpdate();
+      onToast("Thank-you marked as sent!");
+      setThankYouModal(null);
+    } catch {
+      onToast("Failed to update", "error");
     }
   };
 
@@ -193,34 +247,68 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
       {/* Stats */}
       {totalCount > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-          <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className="text-2xl font-extrabold block mb-1">{formatINR(totalReceived)}</span>
-            <span className="text-xs text-gray-500">Total Received</span>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className="text-2xl font-extrabold block mb-1">{totalCount}</span>
-            <span className="text-xs text-gray-500">Gifts</span>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className={`text-2xl font-extrabold block mb-1 ${pendingThankYou > 0 ? "text-yellow" : ""}`}>{pendingThankYou}</span>
-            <span className="text-xs text-gray-500">Pending Thank-Yous</span>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className="text-2xl font-extrabold block mb-1">{formatINR(avgGift)}</span>
-            <span className="text-xs text-gray-500">Average Gift</span>
+          {[
+            { value: formatINR(totalReceived), label: "Total Received", color: "text-gray-900" },
+            { value: totalCount.toString(), label: "Gifts", color: "text-blue-600" },
+            { value: pendingThankYou.toString(), label: "Pending Thank-Yous", color: pendingThankYou > 0 ? "text-yellow" : "text-gray-900", pulse: pendingThankYou > 0 },
+            { value: formatINR(avgGift), label: "Average Gift", color: "text-green" },
+          ].map((s, i) => (
+            <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="bg-white border border-gray-200 rounded-xl p-4 text-center hover:shadow-md transition-shadow">
+              <span className={`text-2xl font-extrabold block mb-1 ${s.color} ${s.pulse ? "animate-pulse" : ""}`}>{s.value}</span>
+              <span className="text-xs text-gray-500">{s.label}</span>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {/* Side Breakdown — Animated Bars */}
+      {sideBreakdown.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-xl p-5 mb-5">
+          <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-4">By Family Side</h4>
+          <div className="space-y-3">
+            {sideBreakdown.map((s) => {
+              const cfg = SIDE_COLORS[s.side] || SIDE_COLORS.Both;
+              return (
+                <div key={s.side} className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 w-28 shrink-0">
+                    <div className="w-3 h-3 rounded-full shrink-0" style={{ background: cfg.color }} />
+                    <span className="text-sm font-semibold text-gray-700 truncate">{s.side}</span>
+                  </div>
+                  <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
+                    <motion.div
+                      className={`h-full rounded-full ${cfg.bar}`}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(s.total / maxSideTotal) * 100}%` }}
+                      transition={{ duration: 0.6, ease: "easeOut" }}
+                    />
+                  </div>
+                  <span className="text-xs font-bold text-gray-600 w-24 text-right shrink-0">{formatINR(s.total)}</span>
+                  <span className="text-[10px] text-gray-400 w-10 text-right shrink-0">{s.count} gifts</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* Side breakdown */}
-      {sideBreakdown.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-xl p-4 mb-5">
-          <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">By Side</h4>
-          <div className="flex flex-wrap gap-3">
-            {sideBreakdown.map((s) => (
-              <div key={s.side} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
-                <span className="text-sm font-semibold text-gray-700">{s.side}</span>
-                <span className="text-xs text-gray-500">{formatINR(s.total)} ({s.count})</span>
+      {/* Gift Range Histogram */}
+      {totalCount > 0 && (
+        <div className="bg-white border border-gray-200 rounded-xl p-5 mb-5">
+          <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-4">Gift Distribution</h4>
+          <div className="flex items-end gap-3 h-32">
+            {giftRanges.map((r, i) => (
+              <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                <span className="text-[10px] font-bold text-gray-500">{r.count}</span>
+                <div className="w-full flex items-end" style={{ height: "80px" }}>
+                  <motion.div
+                    className={`w-full rounded-t-lg bg-gradient-to-t ${r.color}`}
+                    initial={{ height: 0 }}
+                    animate={{ height: `${(r.count / maxRangeCount) * 100}%` }}
+                    transition={{ duration: 0.5, delay: i * 0.1, ease: "easeOut" }}
+                    style={{ minHeight: r.count > 0 ? "4px" : "0" }}
+                  />
+                </div>
+                <span className="text-[10px] text-gray-500 font-medium text-center leading-tight">{r.label}</span>
               </div>
             ))}
           </div>
@@ -283,12 +371,10 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
 
       {/* Empty state */}
       {totalCount === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-8 md:p-16 text-center">
-          <div className="w-16 h-16 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-4">
-            <i className="fas fa-gift text-maroon text-xl" />
-          </div>
+        <div className="bg-white rounded-xl border-2 border-dashed border-gray-200 p-8 md:p-16 text-center">
+          <motion.div animate={{ y: [0, -8, 0], rotate: [0, 5, -5, 0] }} transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }} className="text-6xl mb-4">🎁</motion.div>
           <h3 className="font-bold text-lg mb-2">No gifts tracked yet</h3>
-          <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">Start tracking gifts (shagun) from your guests.</p>
+          <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">Start tracking gifts (shagun) from your guests. See who gave what and send thank-yous.</p>
           {canEdit && (
             <div className="flex flex-wrap gap-3 justify-center">
               <button onClick={handleAdd} className="btn-maroon">
@@ -309,7 +395,7 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
             const isSelected = selected.has(g.id);
 
             return (
-              <div key={g.id} className={`item-card ${isEditing ? "editing" : ""}`}>
+              <div key={g.id} className={`item-card ${isEditing ? "editing" : ""}`} style={{ borderLeft: `4px solid ${SIDE_COLORS[g.fromSide]?.color || "#D1D5DB"}` }}>
                 <div className="flex items-start justify-between gap-2 sm:gap-4 mb-3">
                   <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <span className="text-[0.65rem] font-bold text-gray-400 bg-gray-100 rounded px-1.5 py-0.5 leading-none shrink-0">{idx + 1}</span>
@@ -323,6 +409,16 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
                       <span className={`status-badge hidden sm:inline-block ${g.thankYou === "Sent" ? "paid" : "planning"}`}>
                         {g.thankYou === "Sent" ? "Thanked" : "Pending"}
                       </span>
+                    )}
+                    {!isEditing && g.thankYou === "Pending" && canEdit && (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setThankYouModal({ name: g.fromName, amount: g.amount || 0, id: g.id })}
+                        className="text-xs px-2.5 py-1 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-lg font-medium shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        💌 Thank You
+                      </motion.button>
                     )}
                   </div>
                   <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
@@ -411,6 +507,51 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
           <button onClick={() => { setShowBulkAdd(false); setBulkAddCount(5); }} className="px-4 py-1.5 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300">Cancel</button>
         </div>
       )}
+
+      {/* Thank You Modal */}
+      <AnimatePresence>
+        {thankYouModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[150] bg-black/50 flex items-center justify-center p-4" onClick={() => setThankYouModal(null)}>
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+              <h3 className="font-bold text-lg mb-1">Send Thank You</h3>
+              <p className="text-sm text-gray-500 mb-4">Choose a template for <strong>{thankYouModal.name}</strong> ({formatINR(thankYouModal.amount)})</p>
+              <div className="space-y-2 mb-4">
+                {THANK_YOU_TEMPLATES.map((t, i) => {
+                  const msg = t.text.replace("{name}", thankYouModal.name).replace("{amount}", formatINR(thankYouModal.amount));
+                  return (
+                    <button key={i} onClick={() => setSelectedTemplate(i)} className={`w-full text-left p-3 rounded-xl border-2 text-sm transition-all ${selectedTemplate === i ? "border-maroon bg-maroon/5" : "border-gray-200 hover:border-gray-300"}`}>
+                      <span className="font-semibold text-xs text-gray-500 uppercase">{t.label}</span>
+                      <p className="mt-1 text-gray-700 leading-relaxed">{msg}</p>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex gap-2">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    const msg = THANK_YOU_TEMPLATES[selectedTemplate].text.replace("{name}", thankYouModal.name).replace("{amount}", formatINR(thankYouModal.amount));
+                    navigator.clipboard.writeText(msg);
+                    setCopiedTY(true);
+                    setTimeout(() => setCopiedTY(false), 2000);
+                  }}
+                  className="flex-1 py-2.5 bg-white border border-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50"
+                >
+                  {copiedTY ? "✓ Copied!" : "Copy Message"}
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleSendThankYou(thankYouModal.id)}
+                  className="flex-1 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-xl text-sm font-bold hover:from-rose-600 hover:to-pink-600 shadow-lg shadow-rose-200"
+                >
+                  Mark as Sent 💌
+                </motion.button>
+              </div>
+              <button onClick={() => setThankYouModal(null)} className="w-full mt-2 py-2 text-sm text-gray-500 hover:text-gray-700">Cancel</button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <ImportModal open={showImport} onClose={() => setShowImport(false)} type="gifts" onImport={async (items: any[]) => {
         try {

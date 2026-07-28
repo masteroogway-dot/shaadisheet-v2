@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import confetti from "canvas-confetti";
 import { createChecklistItem, updateChecklistItem, deleteChecklistItem, bulkDeleteChecklistItems, bulkUpdateChecklistItems, batchCreateChecklistItems, bulkAddChecklistItems } from "@/lib/actions";
 import ImportModal from "@/components/ImportModal";
 
@@ -73,6 +75,8 @@ export default function CulturalChecklistsView({ wedding, weddingId, onUpdate, o
   const [showImport, setShowImport] = useState(false);
   const [showBulkAdd, setShowBulkAdd] = useState(false);
   const [bulkAddCount, setBulkAddCount] = useState(5);
+  const [showPriestCard, setShowPriestCard] = useState(false);
+  const prevProgress = useRef(0);
 
   const items = useMemo(() => allItems.filter((i) => i.category === activeTab), [allItems, activeTab]);
 
@@ -118,6 +122,13 @@ export default function CulturalChecklistsView({ wedding, weddingId, onUpdate, o
     try {
       await updateChecklistItem(weddingId, id, { done: !done });
       onUpdate();
+      // Confetti on completion
+      if (!done) {
+        const newDone = items.filter((i) => i.id === id ? true : i.done).length + 1;
+        if (newDone === items.length && items.length > 0) {
+          confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ["#D4AF37", "#8B0000", "#2E7D32", "#FF6B6B"] });
+        }
+      }
     } catch (e) {
       onToast("Failed to update item", "error");
     }
@@ -237,17 +248,32 @@ export default function CulturalChecklistsView({ wedding, weddingId, onUpdate, o
       {/* Progress Bar */}
       {totalCount > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-3">
             <span className="text-sm text-gray-500">Progress</span>
-            <span className="text-sm font-medium text-gray-900">{doneCount}/{totalCount} ({progress}%)</span>
+            <span className="text-sm font-bold text-gray-900">{doneCount}/{totalCount} ({progress}%)</span>
           </div>
-          <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-rose-400 to-rose-500 rounded-full transition-all duration-500"
-              style={{ width: `${progress}%` }}
+          <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full rounded-full transition-all duration-500"
+              style={{ background: progress === 100 ? "linear-gradient(90deg, #2E7D32, #4CAF50)" : "linear-gradient(90deg, #E53935, #D4AF37, #8B0000)" }}
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
             />
           </div>
+          {progress === 100 && (
+            <motion.p initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="text-center text-sm font-bold text-green mt-2">
+              🎉 All items complete! You&apos;re ready!
+            </motion.p>
+          )}
         </div>
+      )}
+
+      {/* Priest Card Button */}
+      {activeTab === "Priest Requirements" && items.length > 0 && (
+        <button onClick={() => setShowPriestCard(true)} className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl text-sm font-bold hover:from-amber-600 hover:to-orange-600 shadow-lg shadow-amber-200 transition-all">
+          🙏 Print Priest Instruction Card
+        </button>
       )}
 
       {/* Bulk Actions */}
@@ -265,16 +291,16 @@ export default function CulturalChecklistsView({ wedding, weddingId, onUpdate, o
 
       {/* Empty State */}
       {items.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-          <div className="text-4xl mb-3">{TAB_ICONS[activeTab]}</div>
-          <p className="text-gray-500 mb-1">No items in {activeTab} yet</p>
-          <p className="text-xs text-gray-400 mb-4">Load defaults or add your own items</p>
+        <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed border-gray-200">
+          <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 2 }} className="text-5xl mb-3">{TAB_ICONS[activeTab]}</motion.div>
+          <p className="text-gray-700 font-semibold mb-1">No items in {activeTab} yet</p>
+          <p className="text-gray-400 text-sm mb-4">Load defaults or add your own items</p>
           {canEdit && (
             <div className="flex gap-2 justify-center">
-              <button onClick={handleLoadDefaults} className="px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 text-sm font-medium">
+              <button onClick={handleLoadDefaults} className="px-5 py-2.5 bg-rose-500 text-white rounded-xl hover:bg-rose-600 text-sm font-medium shadow-lg shadow-rose-200">
                 Load Defaults
               </button>
-              <button onClick={() => { setNewItemText(""); }} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-medium">
+              <button onClick={() => { setNewItemText(""); }} className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 text-sm font-medium">
                 Add Manually
               </button>
             </div>
@@ -363,6 +389,46 @@ export default function CulturalChecklistsView({ wedding, weddingId, onUpdate, o
           </button>
         </div>
       )}
+
+      {/* Priest Card Modal */}
+      <AnimatePresence>
+        {showPriestCard && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[150] bg-black/50 flex items-center justify-center p-4" onClick={() => setShowPriestCard(false)}>
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-lg">🙏 Priest Instruction Card</h3>
+                <button onClick={() => setShowPriestCard(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+              </div>
+              <div id="priest-card" className="border-2 border-amber-300 rounded-xl p-5" style={{ background: "linear-gradient(135deg, #FFFBF0, #FFF8E8)" }}>
+                <div className="text-center mb-3">
+                  <p className="text-amber-800 text-xs tracking-widest uppercase font-bold">Puja Samagri</p>
+                  <h4 className="text-lg font-bold text-gray-900" style={{ fontFamily: "var(--font-display)" }}>
+                    {wedding?.partner1Name || "Partner 1"} & {wedding?.partner2Name || "Partner 2"}
+                  </h4>
+                </div>
+                <div className="space-y-1.5">
+                  {items.map((item) => (
+                    <div key={item.id} className="flex items-center gap-2 text-sm">
+                      <span className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${item.done ? "bg-green-500 border-green-500 text-white" : "border-gray-300"}`}>
+                        {item.done && <span className="text-[10px]">✓</span>}
+                      </span>
+                      <span className={item.done ? "line-through text-gray-400" : "text-gray-800"}>{item.text}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-center text-[10px] text-gray-400 mt-4 border-t border-amber-200 pt-2">Generated by ShaadiSheet</p>
+              </div>
+              <button onClick={() => {
+                const text = `PUJA SAMAGRI\n${wedding?.partner1Name || "Partner 1"} & ${wedding?.partner2Name || "Partner 2"}\n\n${items.map((i) => `☐ ${i.text}`).join("\n")}`;
+                navigator.clipboard.writeText(text);
+                onToast("Card copied!");
+              }} className="w-full mt-4 py-2.5 bg-amber-500 text-white rounded-xl text-sm font-bold hover:bg-amber-600 transition-colors">
+                Copy to Clipboard
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <ImportModal
         open={showImport}
