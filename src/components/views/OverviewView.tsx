@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import CountUp from "@/components/animations/CountUp";
 import { updateWedding } from "@/lib/actions";
 import { formatINR, formatINRAbbrev } from "@/lib/format";
@@ -19,6 +20,7 @@ function formatTime(time: string): string {
 }
 
 export default function OverviewView({ wedding, onUpdate, userRole = "owner", onToast }: { wedding: any; onUpdate?: () => void; userRole?: string; onToast?: (msg: string, type?: "success" | "error") => void }) {
+  const { data: session } = useSession();
   const [editBudget, setEditBudget] = useState("");
   const [editGuests, setEditGuests] = useState("");
   const [editDate, setEditDate] = useState("");
@@ -290,51 +292,54 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
 
   return (
     <div data-tutorial="overview">
-      <div className="flex justify-between items-start mb-8 md:mb-10">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Wedding Dashboard</h2>
-          <p className="text-gray-500 text-sm mt-1">
-            {countdown !== null ? (countdown > 0 ? `${countdown} days until your wedding` : countdown === 0 ? "Your wedding day!" : `${Math.abs(countdown)} days since your wedding`) : "Set your wedding date to see countdown"}
-          </p>
-        </div>
-        {hasData && (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setQuestionnaireOpen(true)}
-              data-tutorial="website"
-              className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:border-[#D4AF37] hover:text-[#722F37] transition-colors cursor-pointer shrink-0"
-            >
-              <i className="fas fa-globe text-gray-400" />
-              <span className="hidden sm:inline">Website</span>
-            </button>
-            <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 shrink-0">
-              <div className="text-2xl">{currentPhase.emoji}</div>
-              <div>
-                <p className="text-xs text-gray-500 font-medium">Current Phase</p>
-                <p className="text-sm font-bold text-gray-900">{currentPhase.name}</p>
-                <p className="text-[0.65rem] text-gray-400">{currentPhase.description}</p>
+      <div className="bg-gradient-to-br from-[#722F37] to-[#5C2530] rounded-2xl p-5 sm:p-6 md:p-8 mb-8 md:mb-10">
+        {/* Header */}
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-1">Welcome back, {session?.user?.name?.split(" ")[0] || "there"}</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-white">Wedding Dashboard</h2>
+            <p className="text-white/50 text-sm mt-1">
+              {countdown !== null ? (countdown > 0 ? `${countdown} days until your wedding` : countdown === 0 ? "Your wedding day!" : `${Math.abs(countdown)} days since your wedding`) : "Set your wedding date to see countdown"}
+            </p>
+          </div>
+          {hasData && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setQuestionnaireOpen(true)}
+                data-tutorial="website"
+                className="flex items-center gap-2 px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-sm font-semibold text-white hover:bg-white/20 transition-colors cursor-pointer shrink-0"
+              >
+                <i className="fas fa-globe text-white/70" />
+                <span className="hidden sm:inline">Website</span>
+              </button>
+              <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-4 py-3 shrink-0">
+                <div className="text-2xl">{currentPhase.emoji}</div>
+                <div>
+                  <p className="text-xs text-white/50 font-medium">Current Phase</p>
+                  <p className="text-sm font-bold text-white">{currentPhase.name}</p>
+                  <p className="text-[0.65rem] text-white/40">{currentPhase.description}</p>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-
-      {!hasData ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-8 md:p-16 text-center">
-          <div className="w-16 h-16 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-4">
-            <i className="fas fa-rocket text-maroon text-xl" />
-          </div>
-          <h3 className="font-bold text-lg mb-2">Welcome to ShaadiSheet!</h3>
-          <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">Your wedding dashboard is ready. Start by adding budget items, vendors, or guests from the sidebar.</p>
-          <div className="flex gap-3 justify-center">
-            <span className="px-4 py-2 bg-maroon/5 rounded-lg text-sm text-maroon font-medium">Budget {'\u2192'}</span>
-            <span className="px-4 py-2 bg-maroon/5 rounded-lg text-sm text-maroon font-medium">Vendors {'\u2192'}</span>
-            <span className="px-4 py-2 bg-maroon/5 rounded-lg text-sm text-maroon font-medium">Guests {'\u2192'}</span>
-          </div>
+          )}
         </div>
-      ) : (
-        <>            <div className="bg-gradient-to-br from-[#722F37] to-[#5C2530] rounded-2xl p-5 sm:p-6 md:p-8 mb-8 md:mb-10">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+
+        {/* Stat Cards */}
+        {!hasData ? (
+          <div className="bg-white rounded-xl border border-gray-200 p-8 md:p-16 text-center">
+            <div className="w-16 h-16 rounded-full bg-maroon/10 flex items-center justify-center mx-auto mb-4">
+              <i className="fas fa-rocket text-maroon text-xl" />
+            </div>
+            <h3 className="font-bold text-lg mb-2">Welcome to ShaadiSheet!</h3>
+            <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">Your wedding dashboard is ready. Start by adding budget items, vendors, or guests from the sidebar.</p>
+            <div className="flex gap-3 justify-center">
+              <span className="px-4 py-2 bg-maroon/5 rounded-lg text-sm text-maroon font-medium">Budget {'\u2192'}</span>
+              <span className="px-4 py-2 bg-maroon/5 rounded-lg text-sm text-maroon font-medium">Vendors {'\u2192'}</span>
+              <span className="px-4 py-2 bg-maroon/5 rounded-lg text-sm text-maroon font-medium">Guests {'\u2192'}</span>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
               {[
                 { label: "Total Budget", numVal: totalBudget, prefix: totalBudget > 0 ? "₹" : "", suffix: "", formatFn: totalBudget > 0 ? formatINRAbbrev : undefined, sub: totalSpent > 0 ? `₹${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
                 { label: "Guests", numVal: totalGuests, prefix: "", suffix: "", formatFn: undefined, sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : floating > 0 ? `${floating} local/floating` : "No RSVPs yet", icon: "fa-users", gradient: "from-green to-green/80" },
@@ -359,8 +364,11 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                 </div>
               ))}
             </div>
-          </div>
-          {/* Phase Progress Bar */}            <div className="bg-white rounded-xl border border-gray-200 p-5 md:p-6 mb-6 md:mb-8">
+          )}
+        </div>
+
+          {/* Phase Progress Bar */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6 md:p-8 mb-8 md:mb-10">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-sm">
                   {currentPhase.emoji} {currentPhase.name}
@@ -791,8 +799,6 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
               </div>
             </div>
           )}
-        </>
-      )}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
