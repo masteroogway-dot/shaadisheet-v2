@@ -260,6 +260,7 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
   const [heartBurst, setHeartBurst] = useState<{ x: number; y: number } | null>(null);
   const [showShareCard, setShowShareCard] = useState(false);
   const [copyAllFeedback, setCopyAllFeedback] = useState(false);
+  const [showNameInput, setShowNameInput] = useState(false);
 
   const filteredHashtags = useMemo(() => {
     let list = [...hashtags];
@@ -295,6 +296,7 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
       await batchCreateHashtags(weddingId, newHashtags);
       onUpdate();
       onToast(`Generated ${newHashtags.length} hashtags`);
+      setShowNameInput(false);
       // Fire confetti on generate
       confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 }, colors: ["#D4AF37", "#8B0000", "#C62828", "#FF6B6B", "#A855F7"] });
     } catch {
@@ -388,6 +390,11 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
         </div>
         <div className="flex gap-2">
           {canEdit && hashtags.length > 0 && (
+            <button onClick={() => { setShowNameInput(!showNameInput); setName1(""); setName2(""); }} className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">
+              <i className="fas fa-sync-alt mr-1" /> Regenerate
+            </button>
+          )}
+          {canEdit && hashtags.length > 0 && (
             <button onClick={() => setSelected(selected.size === filteredHashtags.length ? new Set() : new Set(filteredHashtags.map((h) => h.id)))} className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">
               {selected.size === filteredHashtags.length ? "Deselect" : "Select All"}
             </button>
@@ -401,7 +408,14 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
       </div>
 
       {/* Name Input — Hero Section */}
-      <div className="relative rounded-2xl overflow-hidden" style={{ background: "linear-gradient(135deg, #722F37 0%, #5C0000 50%, #8B0000 100%)" }}>
+      {(showNameInput || hashtags.length === 0) && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          className="relative rounded-2xl overflow-hidden"
+          style={{ background: "linear-gradient(135deg, #722F37 0%, #5C0000 50%, #8B0000 100%)" }}
+        >
         <div className="absolute inset-0 opacity-[0.08]" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23D4AF37' fill-opacity='1'%3E%3Ccircle cx='20' cy='20' r='1.5'/%3E%3C/g%3E%3C/svg%3E")`,
         }} />
@@ -450,7 +464,8 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
             </motion.button>
           </div>
         </div>
-      </div>
+      </motion.div>
+      )}
 
       {/* Stats Row */}
       {hashtags.length > 0 && (
