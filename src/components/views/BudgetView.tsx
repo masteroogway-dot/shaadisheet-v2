@@ -211,7 +211,7 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canE
                       </>
                     ) : (
                       <>
-                        {canEdit && <button onClick={() => { setEditing(item.id); setEditData({}); }} className="btn-edit"><i className="fas fa-pen sm:mr-1" /> <span className="hidden sm:inline">Edit</span></button>}
+                        {canEdit && <button onClick={() => { setEditing(item.id); setEditData({ category: item.category, item: item.item, estimated: item.estimated, actual: item.actual, paid: item.paid, balance: item.balance, dueDate: item.dueDate, notes: item.notes, status: item.status }); }} className="btn-edit"><i className="fas fa-pen sm:mr-1" /> <span className="hidden sm:inline">Edit</span></button>}
                         {canEdit && (
                           <button onClick={() => handleDelete(item.id)} className="btn-delete"><i className="fas fa-trash sm:mr-1" /> <span className="hidden sm:inline">Delete</span></button>
                         )}
