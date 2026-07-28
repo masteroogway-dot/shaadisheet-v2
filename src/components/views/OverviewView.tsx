@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import CountUp from "@/components/animations/CountUp";
-import ScrollReveal from "@/components/animations/ScrollReveal";
 import { updateWedding } from "@/lib/actions";
 import { formatINR, formatINRAbbrev } from "@/lib/format";
 import InviteModal from "@/components/InviteModal";
@@ -333,9 +332,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
           </div>
         </div>
       ) : (
-        <>
-          <ScrollReveal>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-8 md:mb-10">
+        <>            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-8 md:mb-10">
               {[
                 { label: "Total Budget", numVal: totalBudget, prefix: totalBudget > 0 ? "₹" : "", suffix: "", formatFn: totalBudget > 0 ? formatINRAbbrev : undefined, sub: totalSpent > 0 ? `₹${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
                 { label: "Guests", numVal: totalGuests, prefix: "", suffix: "", formatFn: undefined, sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : floating > 0 ? `${floating} local/floating` : "No RSVPs yet", icon: "fa-users", gradient: "from-green to-green/80" },
@@ -360,11 +357,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                 </div>
               ))}
             </div>
-          </ScrollReveal>
-
-          {/* Phase Progress Bar */}
-          <ScrollReveal>
-            <div className="bg-white rounded-xl border border-gray-200 p-5 md:p-6 mb-6 md:mb-8">
+          {/* Phase Progress Bar */}            <div className="bg-white rounded-xl border border-gray-200 p-5 md:p-6 mb-6 md:mb-8">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-sm">
                   {currentPhase.emoji} {currentPhase.name}
@@ -385,11 +378,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                 ))}
               </div>
             </div>
-          </ScrollReveal>
-
-          {/* Wedding Settings */}
-          <ScrollReveal>
-            <div className="bg-white rounded-xl border border-gray-200 p-5 md:p-6 mb-8 md:mb-10">
+          {/* Wedding Settings */}            <div className="bg-white rounded-xl border border-gray-200 p-5 md:p-6 mb-8 md:mb-10">
               <h3 className="font-bold text-gray-900 mb-4">
                 <i className="fas fa-cog text-gray-400 mr-2" />
                 Wedding Settings
@@ -504,12 +493,8 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                 </div>
               </div>
             </div>
-          </ScrollReveal>
-
           {/* Collaborators Section */}
-          {canManageCollabs && (
-            <ScrollReveal>
-            <div className="bg-white rounded-xl border border-gray-200 p-6 md:p-8 mb-8 md:mb-10">
+          {canManageCollabs && (            <div className="bg-white rounded-xl border border-gray-200 p-6 md:p-8 mb-8 md:mb-10">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3 sm:gap-0">
                   <h3 className="font-bold text-gray-900">
                     <i className="fas fa-users text-gray-400 mr-2" />
@@ -587,9 +572,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                     ))}
                   </div>
                 )}
-              </div>
-            </ScrollReveal>
-          )}
+              </div>          )}
 
           <InviteModal weddingId={wedding.id} weddingName={wedding.name || "My Wedding"} open={inviteOpen} onClose={() => setInviteOpen(false)} />
 
@@ -623,9 +606,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
         onUpdate={onUpdate}
       />
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 md:mb-10">
-            <ScrollReveal delay={0.1}>
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 md:mb-10">              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div className="flex items-center justify-between px-6 pt-5 pb-0">
                   <h3 className="font-bold">Upcoming Events</h3>
                 </div>
@@ -658,9 +639,6 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                   })}
                 </div>
               </div>
-            </ScrollReveal>
-
-            <ScrollReveal delay={0.2}>
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div className="px-6 pt-5 pb-0">
                   <h3 className="font-bold">Your Next 3 Steps</h3>
@@ -683,14 +661,10 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                     </div>
                   ))}
                 </div>
-              </div>
-            </ScrollReveal>
-          </div>
+              </div>          </div>
 
           {/* This Month's Focus */}
-          {tasksThisMonth.length > 0 && (
-            <ScrollReveal>
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
+          {tasksThisMonth.length > 0 && (              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
                 <div className="flex items-center justify-between px-6 pt-5 pb-0">
                   <h3 className="font-bold">
                     <i className="fas fa-calendar-day text-gray-400 mr-2" />
@@ -726,14 +700,10 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                     })}
                   </div>
                 </div>
-              </div>
-            </ScrollReveal>
-          )}
+              </div>          )}
 
           {/* Wedding Week at a Glance */}
-          {weddingWeekEvents.length > 0 && (
-            <ScrollReveal>
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
+          {weddingWeekEvents.length > 0 && (              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
                 <div className="px-6 pt-5 pb-0">
                   <h3 className="font-bold">
                     <i className="fas fa-rings-wedding text-gray-400 mr-2" />
@@ -770,9 +740,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                     })}
                   </div>
                 </div>
-              </div>
-            </ScrollReveal>
-          )}
+              </div>          )}
 
           {wedding.budgetItems && wedding.budgetItems.length > 0 && (
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
