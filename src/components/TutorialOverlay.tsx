@@ -287,9 +287,9 @@ export default function TutorialOverlay({ open, onClose, steps }: TutorialOverla
               </span>
               <button
                 onClick={onClose}
-                className="w-7 h-7 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                className="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
               >
-                <i className="fas fa-times text-xs" />
+                <i className="fas fa-times text-sm" />
               </button>
             </div>
 
@@ -305,7 +305,7 @@ export default function TutorialOverlay({ open, onClose, steps }: TutorialOverla
                 {currentStep > 0 && (
                   <button
                     onClick={() => setCurrentStep((p) => p - 1)}
-                    className="px-3 py-1.5 text-xs font-semibold text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                    className="px-4 py-2.5 text-xs font-semibold text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer min-h-[44px]"
                   >
                     <i className="fas fa-arrow-left mr-1.5" />
                     Back
@@ -315,7 +315,7 @@ export default function TutorialOverlay({ open, onClose, steps }: TutorialOverla
               <div className="flex items-center gap-2">
                 <button
                   onClick={onClose}
-                  className="px-3 py-1.5 text-xs font-semibold text-gray-400 hover:text-gray-600 rounded-lg transition-colors cursor-pointer"
+                  className="px-4 py-2.5 text-xs font-semibold text-gray-400 hover:text-gray-600 rounded-lg transition-colors cursor-pointer min-h-[44px]"
                 >
                   Skip
                 </button>
@@ -324,7 +324,7 @@ export default function TutorialOverlay({ open, onClose, steps }: TutorialOverla
                     if (currentStep < totalSteps - 1) setCurrentStep((p) => p + 1);
                     else onClose();
                   }}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-gradient-to-r from-[#722F37] to-[#8B3A44] rounded-lg hover:from-[#5C2530] hover:to-[#722F37] transition-all shadow-md hover:shadow-lg cursor-pointer"
+                  className="px-5 py-2.5 text-xs font-semibold text-white bg-gradient-to-r from-[#722F37] to-[#8B3A44] rounded-lg hover:from-[#5C2530] hover:to-[#722F37] transition-all shadow-md hover:shadow-lg cursor-pointer min-h-[44px]"
                 >
                   {currentStep < totalSteps - 1 ? (
                     <>
@@ -344,8 +344,8 @@ export default function TutorialOverlay({ open, onClose, steps }: TutorialOverla
         </motion.div>
       </AnimatePresence>
 
-      {/* Keyboard hint */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 text-white/40 text-[0.65rem]">
+      {/* Keyboard hint — hidden on mobile */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 hidden sm:flex items-center gap-3 text-white/40 text-[0.65rem]">
         <span className="flex items-center gap-1">
           <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[0.6rem]">←</kbd>
           <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[0.6rem]">→</kbd>

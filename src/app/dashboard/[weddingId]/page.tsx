@@ -187,7 +187,7 @@ export default function WeddingDashboardPage() {
         <div className="flex items-center gap-2 md:gap-3">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="w-9 h-9 md:w-10 md:h-10 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 lg:hidden cursor-pointer"
+            className="w-11 h-11 md:w-10 md:h-10 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 lg:hidden cursor-pointer"
           >
             <i className="fas fa-bars text-base md:text-lg" />
           </button>
@@ -202,7 +202,7 @@ export default function WeddingDashboardPage() {
           </div>
         </div>
         <div className="flex items-center gap-1.5 md:gap-2">
-          <button onClick={() => setAiOpen(!aiOpen)} data-tutorial="ai" className="w-9 h-9 md:w-10 md:h-10 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-maroon transition-all cursor-pointer" title="AI Assistant">
+          <button onClick={() => setAiOpen(!aiOpen)} data-tutorial="ai" className="w-11 h-11 md:w-10 md:h-10 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-maroon transition-all cursor-pointer" title="AI Assistant">
             <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24">
               <path d="M12 2L9.5 8.5 3 11l6.5 2.5L12 20l2.5-6.5L21 11l-6.5-2.5z" fill="currentColor" />
               <path d="M19 15l-1.5 4-3.5-3 4-1z" fill="currentColor" opacity="0.6" />

@@ -336,7 +336,7 @@ export default function CulturalChecklistsView({ wedding, weddingId, onUpdate, o
                 {canEdit && (
                   <button
                     onClick={() => handleDelete(item.id)}
-                    className="opacity-0 group-hover:opacity-100 px-2 py-1 text-xs text-red-500 hover:bg-red-50 rounded transition-opacity"
+                    className="sm:opacity-0 sm:group-hover:opacity-100 px-2.5 py-2 text-xs text-red-500 hover:bg-red-50 rounded transition-opacity min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
                     <i className="fas fa-trash" />
                   </button>

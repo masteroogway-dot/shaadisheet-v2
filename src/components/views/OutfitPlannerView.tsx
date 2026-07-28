@@ -230,18 +230,18 @@ export default function OutfitPlannerView({ wedding, weddingId, onUpdate, onToas
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h2 className="text-xl font-bold text-gray-900">Outfit Planner</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {canEdit && outfits.length > 0 && (
-            <button onClick={toggleSelectAll} className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">
-              <i className="fas fa-check-double mr-1" /> {selected.size === filtered.length ? "Deselect All" : "Select All"}
+            <button onClick={toggleSelectAll} className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium min-h-[44px]">
+              <i className="fas fa-check-double mr-1" /> {selected.size === filtered.length ? "Deselect" : "Select All"}
             </button>
           )}
           {canEdit && (
             <>
-              <button onClick={() => setShowImport(true)} className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">
+              <button onClick={() => setShowImport(true)} className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium min-h-[44px]">
                 <i className="fas fa-file-import mr-1" /> Import
               </button>
-              <button onClick={() => { exportToCSV(outfits.map((o, i) => ({ "#": i + 1, Event: o.event, Person: o.person, Description: o.description, Designer: o.designer, Status: o.status, Cost: o.cost, "Jewelry Pairing": o.jewelryPairing, Notes: o.notes || "" })), "outfit-planner.csv"); onToast("Outfits exported"); }} className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">
+              <button onClick={() => { exportToCSV(outfits.map((o, i) => ({ "#": i + 1, Event: o.event, Person: o.person, Description: o.description, Designer: o.designer, Status: o.status, Cost: o.cost, "Jewelry Pairing": o.jewelryPairing, Notes: o.notes || "" })), "outfit-planner.csv"); onToast("Outfits exported"); }} className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium min-h-[44px]">
                 <i className="fas fa-download mr-1" /> Export
               </button>
             </>
@@ -385,7 +385,7 @@ export default function OutfitPlannerView({ wedding, weddingId, onUpdate, onToas
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2">
-        <input type="text" placeholder="Search outfits..." value={search} onChange={(e) => setSearch(e.target.value)} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg flex-1 min-w-[150px]" />
+        <input type="text" placeholder="Search outfits..." value={search} onChange={(e) => setSearch(e.target.value)} className="px-3 py-2 text-sm border border-gray-300 rounded-lg flex-1 min-w-0" />
         <select value={filterEvent} onChange={(e) => setFilterEvent(e.target.value)} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white">
           <option value="All">All Events</option>
           {eventNames.map((e) => <option key={e} value={e}>{e}</option>)}
@@ -469,8 +469,8 @@ export default function OutfitPlannerView({ wedding, weddingId, onUpdate, onToas
                   </div>
                   {canEdit && (
                     <div className="flex gap-1">
-                      <button onClick={() => { setEditing(o.id); setEditData({ event: o.event, person: o.person, description: o.description, designer: o.designer, status: o.status, cost: o.cost, jewelryPairing: o.jewelryPairing, notes: o.notes }); }} className="px-2 py-1 text-xs text-gray-600 hover:bg-gray-100 rounded">Edit</button>
-                      <button onClick={() => handleDelete(o.id)} className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded">Delete</button>
+                      <button onClick={() => { setEditing(o.id); setEditData({ event: o.event, person: o.person, description: o.description, designer: o.designer, status: o.status, cost: o.cost, jewelryPairing: o.jewelryPairing, notes: o.notes }); }} className="px-3 py-2 text-xs text-gray-600 hover:bg-gray-100 rounded min-h-[44px] min-w-[44px] flex items-center justify-center">Edit</button>
+                      <button onClick={() => handleDelete(o.id)} className="px-3 py-2 text-xs text-red-600 hover:bg-red-50 rounded min-h-[44px] min-w-[44px] flex items-center justify-center">Delete</button>
                     </div>
                   )}
                 </div>

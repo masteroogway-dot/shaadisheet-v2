@@ -424,13 +424,13 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
                   <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     {isEditing ? (
                       <>
-                        {canEdit && <button onClick={() => handleSave(g.id)} className="btn-save"><i className="fas fa-check sm:mr-1" /> <span className="hidden sm:inline">Save</span></button>}
-                        <button onClick={() => { setEditing(null); setEditData({}); }} className="btn-cancel"><span className="hidden sm:inline">Cancel</span></button>
+                        {canEdit && <button onClick={() => handleSave(g.id)} className="btn-save min-h-[44px] min-w-[44px]"><i className="fas fa-check sm:mr-1" /> <span className="hidden sm:inline">Save</span></button>}
+                        <button onClick={() => { setEditing(null); setEditData({}); }} className="btn-cancel min-h-[44px] min-w-[44px]"><span className="hidden sm:inline">Cancel</span></button>
                       </>
                     ) : (
                       <>
-                        {canEdit && <button onClick={() => { setEditing(g.id); setEditData({ fromName: g.fromName, fromSide: g.fromSide, amount: g.amount || 0, giftType: g.giftType, received: g.received, thankYou: g.thankYou, notes: g.notes }); }} className="btn-edit"><i className="fas fa-pen sm:mr-1" /> <span className="hidden sm:inline">Edit</span></button>}
-                        {canEdit && <button onClick={() => handleDelete(g.id)} className="btn-delete"><i className="fas fa-trash sm:mr-1" /> <span className="hidden sm:inline">Delete</span></button>}
+                        {canEdit && <button onClick={() => { setEditing(g.id); setEditData({ fromName: g.fromName, fromSide: g.fromSide, amount: g.amount || 0, giftType: g.giftType, received: g.received, thankYou: g.thankYou, notes: g.notes }); }} className="btn-edit min-h-[44px] min-w-[44px]"><i className="fas fa-pen sm:mr-1" /> <span className="hidden sm:inline">Edit</span></button>}
+                        {canEdit && <button onClick={() => handleDelete(g.id)} className="btn-delete min-h-[44px] min-w-[44px]"><i className="fas fa-trash sm:mr-1" /> <span className="hidden sm:inline">Delete</span></button>}
                       </>
                     )}
                   </div>

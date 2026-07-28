@@ -168,23 +168,22 @@ export default function InviteDetailsView({ wedding, weddingId, onUpdate, onToas
       {invites.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-4">Invite Pipeline</h4>
-          <div className="flex items-center justify-between relative">
-            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-200 -translate-y-1/2" />
+          <div className="flex items-center justify-between relative overflow-x-auto pb-2">
+            <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-gray-200 -translate-y-1/2 min-w-[calc(100%-2rem)]" />
             {STATUSES.map((status, idx) => {
               const count = invites.filter((i) => i.status === status).length;
               const isActive = count > 0;
-              const isPast = STATUSES.indexOf(invites[0]?.status || "Planning") > idx;
               return (
-                <div key={status} className="relative flex flex-col items-center z-10">
+                <div key={status} className="relative flex flex-col items-center z-10 shrink-0 mx-1">
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: idx * 0.1 }}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors ${isActive ? "bg-maroon text-white border-maroon" : "bg-white text-gray-400 border-gray-300"}`}
+                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors ${isActive ? "bg-maroon text-white border-maroon" : "bg-white text-gray-400 border-gray-300"}`}
                   >
                     {count}
                   </motion.div>
-                  <span className="text-[10px] text-gray-500 mt-1.5 font-medium text-center max-w-[60px]">{status}</span>
+                  <span className="text-[9px] sm:text-[10px] text-gray-500 mt-1.5 font-medium text-center w-12 sm:w-14 leading-tight">{status}</span>
                 </div>
               );
             })}
@@ -210,7 +209,7 @@ export default function InviteDetailsView({ wedding, weddingId, onUpdate, onToas
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2">
-        <input type="text" placeholder="Search invites..." value={search} onChange={(e) => setSearch(e.target.value)} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg flex-1 min-w-[150px]" />
+        <input type="text" placeholder="Search invites..." value={search} onChange={(e) => setSearch(e.target.value)} className="px-3 py-2 text-sm border border-gray-300 rounded-lg flex-1 min-w-0" />
         <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white">
           <option value="All">All Types</option>
           {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -294,11 +293,11 @@ export default function InviteDetailsView({ wedding, weddingId, onUpdate, onToas
                   </div>
                   {canEdit && (
                     <div className="flex gap-1">
-                      <button onClick={() => setWhatsAppPreview(i)} className="px-2 py-1 text-xs text-green-600 hover:bg-green-50 rounded font-medium" title="WhatsApp Preview">
+                      <button onClick={() => setWhatsAppPreview(i)} className="px-3 py-2 text-sm text-green-600 hover:bg-green-50 rounded font-medium min-h-[44px] min-w-[44px] flex items-center justify-center" title="WhatsApp Preview">
                         <i className="fab fa-whatsapp" />
                       </button>
-                      <button onClick={() => { setEditing(i.id); setEditData({ type: i.type, description: i.description, designer: i.designer, printer: i.printer, quantity: i.quantity, cost: i.cost, sentDate: i.sentDate, rsvpDeadline: i.rsvpDeadline, status: i.status, notes: i.notes }); }} className="px-2 py-1 text-xs text-gray-600 hover:bg-gray-100 rounded">Edit</button>
-                      <button onClick={() => handleDelete(i.id)} className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded">Delete</button>
+                      <button onClick={() => { setEditing(i.id); setEditData({ type: i.type, description: i.description, designer: i.designer, printer: i.printer, quantity: i.quantity, cost: i.cost, sentDate: i.sentDate, rsvpDeadline: i.rsvpDeadline, status: i.status, notes: i.notes }); }} className="px-3 py-2 text-xs text-gray-600 hover:bg-gray-100 rounded min-h-[44px] min-w-[44px] flex items-center justify-center">Edit</button>
+                      <button onClick={() => handleDelete(i.id)} className="px-3 py-2 text-xs text-red-600 hover:bg-red-50 rounded min-h-[44px] min-w-[44px] flex items-center justify-center">Delete</button>
                     </div>
                   )}
                 </div>

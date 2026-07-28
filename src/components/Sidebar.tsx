@@ -107,8 +107,8 @@ export default function Sidebar({ activeView, onViewChange, mobileOpen, onMobile
             <i className="fas fa-arrow-left w-5 text-center" />
             <span>My Weddings</span>
           </Link>
-          <button onClick={onMobileClose} className="lg:hidden w-9 h-9 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500 cursor-pointer">
-            <i className="fas fa-times" />
+          <button onClick={onMobileClose} className="lg:hidden w-11 h-11 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500 cursor-pointer">
+            <i className="fas fa-times text-lg" />
           </button>
         </div>
 
@@ -137,7 +137,7 @@ export default function Sidebar({ activeView, onViewChange, mobileOpen, onMobile
                         key={item.id}
                         onClick={() => handleNav(item.id)}
                         data-tutorial={item.id}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 ml-2 mr-2 min-h-[40px] rounded-lg text-[0.85rem] font-medium transition-all mb-0.5 cursor-pointer ${
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 ml-2 mr-2 min-h-[44px] rounded-lg text-[0.85rem] font-medium transition-all mb-0.5 cursor-pointer ${
                           activeView === item.id
                             ? "bg-gradient-to-br from-maroon to-maroon-light text-white shadow-sm"
                             : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
