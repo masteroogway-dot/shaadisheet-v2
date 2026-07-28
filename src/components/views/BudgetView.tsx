@@ -191,7 +191,7 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canE
                     {isEditing ? (
                       <div className="flex flex-col sm:flex-row gap-2 w-full">
                         <input value={editData.category ?? item.category} onChange={(e) => setEditData({ ...editData, category: e.target.value })} className="card-input py-1.5 w-full sm:w-40 font-bold" placeholder="Category" />
-                        <input value={editData.item ?? item.item} onChange={(e) => setEditData({ ...editData, item: e.target.value })} className="card-input py-1.5 flex-1" placeholder="Item name" />
+                        <input value={editData.item ?? item.item} onChange={(e) => setEditData({ ...editData, item: e.target.value })} className="py-1.5 flex-1 min-w-0 px-3.5 border border-gray-200 rounded-[10px] text-[0.875rem] text-gray-800 bg-[#fafafa] focus:border-[#8B0000] focus:shadow-[0_0_0_3px_rgba(139,0,0,0.08)] focus:bg-white outline-none transition-all" placeholder="Item name" />
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 min-w-0">
