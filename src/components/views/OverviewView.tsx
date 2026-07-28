@@ -291,10 +291,10 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
 
   return (
     <div>
-      <div className="flex justify-between items-start mb-7">
+      <div className="flex justify-between items-start mb-8 md:mb-10">
         <div>
-          <h2 className="text-2xl font-bold">Wedding Dashboard</h2>
-          <p className="text-gray-500 text-sm">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Wedding Dashboard</h2>
+          <p className="text-gray-500 text-sm mt-1">
             {countdown !== null ? (countdown > 0 ? `${countdown} days until your wedding` : countdown === 0 ? "Your wedding day!" : `${Math.abs(countdown)} days since your wedding`) : "Set your wedding date to see countdown"}
           </p>
         </div>
@@ -335,7 +335,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
       ) : (
         <>
           <ScrollReveal>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-5 mb-7">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-8 md:mb-10">
               {[
                 { label: "Total Budget", numVal: totalBudget, prefix: totalBudget > 0 ? "₹" : "", suffix: "", formatFn: totalBudget > 0 ? formatINRAbbrev : undefined, sub: totalSpent > 0 ? `₹${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
                 { label: "Guests", numVal: totalGuests, prefix: "", suffix: "", formatFn: undefined, sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : floating > 0 ? `${floating} local/floating` : "No RSVPs yet", icon: "fa-users", gradient: "from-green to-green/80" },
@@ -344,18 +344,18 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                 { label: "Rooms", numVal: totalRooms, prefix: "", suffix: "", formatFn: undefined, sub: roomsOccupied > 0 ? `${roomsOccupied} checked in` : needsRoom > 0 ? `${needsRoom} guests need rooms` : totalRooms > 0 ? "None checked in" : "No rooms allocated", icon: "fa-bed", gradient: "from-purple-600 to-purple-800" },
                 { label: "Gifts", numVal: totalGiftAmount, prefix: totalGiftAmount > 0 ? "₹" : "", suffix: "", formatFn: totalGiftAmount > 0 ? formatINRAbbrev : undefined, sub: totalGifts > 0 ? `${totalGifts} gifts${pendingThankYous > 0 ? ` \u2022 ${pendingThankYous} pending thank-yous` : ""}` : "No gifts tracked", icon: "fa-gift", gradient: "from-pink-500 to-rose-600" },
               ].map((s, i) => (
-                <div key={i} className="bg-white rounded-xl p-4 md:p-5 border border-gray-200 flex items-center gap-3 md:gap-4 hover:shadow-md transition-shadow">
-                  <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${s.gradient} flex items-center justify-center text-white shrink-0`}>
-                    <i className={`fas ${s.icon}`} />
+                <div key={i} className="bg-white rounded-xl p-5 md:p-6 border border-gray-200 flex items-center gap-4 hover:shadow-lg transition-all duration-300 hover:border-gray-300 group">
+                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${s.gradient} flex items-center justify-center text-white shrink-0 shadow-sm group-hover:scale-105 transition-transform`}>
+                    <i className={`fas ${s.icon} text-lg`} />
                   </div>
-                  <div className="min-w-0">
-                    <span className="text-xs text-gray-500 font-medium">{s.label}</span>
-                    <div className="text-xl font-extrabold">
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[0.7rem] text-gray-400 font-semibold uppercase tracking-wider">{s.label}</span>
+                    <div className="text-2xl font-extrabold text-gray-900 mt-0.5">
                       {s.numVal === 0 && s.label !== "Total Budget" ? "\u2014" : (
                         <CountUp target={s.numVal} prefix={s.prefix} suffix={s.suffix} formatValue={s.formatFn} duration={1.5} />
                       )}
                     </div>
-                    <span className="text-xs text-gray-500 block">{s.sub}</span>
+                    <span className="text-xs text-gray-500 block mt-1 leading-relaxed">{s.sub}</span>
                   </div>
                 </div>
               ))}
@@ -389,16 +389,15 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
 
           {/* Wedding Settings */}
           <ScrollReveal>
-            <div className="bg-white rounded-xl border border-gray-200 p-5 md:p-6 mb-6 md:mb-8">
+            <div className="bg-white rounded-xl border border-gray-200 p-5 md:p-6 mb-8 md:mb-10">
               <h3 className="font-bold text-gray-900 mb-4">
                 <i className="fas fa-cog text-gray-400 mr-2" />
                 Wedding Settings
-                <span className="text-xs text-gray-400 font-normal ml-2">- Refresh page after saving to see updated stats</span>
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Budget */}
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-500 font-medium mb-2">Total Budget</p>
+                  <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Total Budget</p>
                   {editingBudget ? (
                     <>
                       <CurrencyInput
@@ -432,7 +431,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
 
                 {/* Guest Count */}
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-500 font-medium mb-2">Expected Guests</p>
+                  <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Expected Guests</p>
                   {editingGuests ? (
                     <>
                       <input
@@ -470,7 +469,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
 
                 {/* Wedding Date */}
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-500 font-medium mb-2">Wedding Date</p>
+                  <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Wedding Date</p>
                   {editingDate ? (
                     <>
                       <input
@@ -510,7 +509,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
           {/* Collaborators Section */}
           {canManageCollabs && (
             <ScrollReveal>
-              <div className="bg-white rounded-xl border border-gray-200 p-5 md:p-6 mb-6 md:mb-8">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 md:p-8 mb-8 md:mb-10">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3 sm:gap-0">
                   <h3 className="font-bold text-gray-900">
                     <i className="fas fa-users text-gray-400 mr-2" />
@@ -624,7 +623,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
         onUpdate={onUpdate}
       />
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 md:mb-10">
             <ScrollReveal delay={0.1}>
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div className="flex items-center justify-between px-6 pt-5 pb-0">
