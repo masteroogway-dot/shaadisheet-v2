@@ -333,7 +333,8 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
           </div>
         </div>
       ) : (
-        <>            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-8 md:mb-10">
+        <>            <div className="bg-gradient-to-br from-[#722F37] to-[#5C2530] rounded-2xl p-5 sm:p-6 md:p-8 mb-8 md:mb-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
               {[
                 { label: "Total Budget", numVal: totalBudget, prefix: totalBudget > 0 ? "₹" : "", suffix: "", formatFn: totalBudget > 0 ? formatINRAbbrev : undefined, sub: totalSpent > 0 ? `₹${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
                 { label: "Guests", numVal: totalGuests, prefix: "", suffix: "", formatFn: undefined, sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : floating > 0 ? `${floating} local/floating` : "No RSVPs yet", icon: "fa-users", gradient: "from-green to-green/80" },
@@ -358,6 +359,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                 </div>
               ))}
             </div>
+          </div>
           {/* Phase Progress Bar */}            <div className="bg-white rounded-xl border border-gray-200 p-5 md:p-6 mb-6 md:mb-8">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-sm">
