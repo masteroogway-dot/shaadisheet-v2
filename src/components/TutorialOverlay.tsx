@@ -156,34 +156,55 @@ export default function TutorialOverlay({ open, onClose, steps }: TutorialOverla
     }
     const pos = step?.position || "bottom";
     const gap = 16;
+    const tooltipW = 340;
+    const tooltipH = 180;
+    const viewW = window.innerWidth;
+    const viewH = window.innerHeight;
+
+    let top: number;
+    let left: number;
+    let transform = "";
+
     switch (pos) {
       case "bottom":
-        return {
-          top: `${targetRect.top + targetRect.height + gap}px`,
-          left: `${targetRect.left + targetRect.width / 2}px`,
-          transform: "translateX(-50%)",
-        };
+        top = targetRect.top + targetRect.height + gap;
+        left = targetRect.left + targetRect.width / 2;
+        transform = "translateX(-50%)";
+        if (left + tooltipW / 2 > viewW - 16) { left = viewW - tooltipW - 16; transform = ""; }
+        if (left - tooltipW / 2 < 16) { left = tooltipW + 16; transform = ""; }
+        if (top + tooltipH > viewH - 16) { top = targetRect.top - gap - tooltipH; }
+        break;
       case "top":
-        return {
-          top: `${targetRect.top - gap}px`,
-          left: `${targetRect.left + targetRect.width / 2}px`,
-          transform: "translateX(-50%) translateY(-100%)",
-        };
+        top = targetRect.top - gap - tooltipH;
+        left = targetRect.left + targetRect.width / 2;
+        transform = "translateX(-50%)";
+        if (left + tooltipW / 2 > viewW - 16) { left = viewW - tooltipW - 16; transform = ""; }
+        if (left - tooltipW / 2 < 16) { left = tooltipW + 16; transform = ""; }
+        if (top < 16) { top = targetRect.top + targetRect.height + gap; }
+        break;
       case "right":
-        return {
-          top: `${targetRect.top + targetRect.height / 2}px`,
-          left: `${targetRect.left + targetRect.width + gap}px`,
-          transform: "translateY(-50%)",
-        };
+        top = targetRect.top + targetRect.height / 2 - tooltipH / 2;
+        left = targetRect.left + targetRect.width + gap;
+        transform = "";
+        if (left + tooltipW > viewW - 16) { left = targetRect.left - gap - tooltipW; }
+        if (top < 16) top = 16;
+        if (top + tooltipH > viewH - 16) top = viewH - tooltipH - 16;
+        break;
       case "left":
-        return {
-          top: `${targetRect.top + targetRect.height / 2}px`,
-          left: `${targetRect.left - gap}px`,
-          transform: "translate(-100%, -50%)",
-        };
+        top = targetRect.top + targetRect.height / 2 - tooltipH / 2;
+        left = targetRect.left - gap - tooltipW;
+        transform = "";
+        if (left < 16) { left = targetRect.left + targetRect.width + gap; }
+        if (top < 16) top = 16;
+        if (top + tooltipH > viewH - 16) top = viewH - tooltipH - 16;
+        break;
       default:
-        return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
+        top = viewH / 2 - tooltipH / 2;
+        left = viewW / 2 - tooltipW / 2;
+        transform = "";
     }
+
+    return { top: `${top}px`, left: `${left}px`, transform };
   };
 
   if (!open) return null;
