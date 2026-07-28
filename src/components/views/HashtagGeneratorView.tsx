@@ -17,6 +17,30 @@ const STYLE_CONFIG: Record<string, { gradient: string; emoji: string; bg: string
   Modern: { gradient: "from-cyan-400 to-blue-500", emoji: "✨", bg: "bg-cyan-50", text: "text-cyan-700", border: "border-cyan-200" },
 };
 
+function getShortNames(name: string): string[] {
+  const n = name.trim();
+  if (!n) return [];
+  const cap = n.charAt(0).toUpperCase() + n.slice(1).toLowerCase();
+  const lower = n.toLowerCase();
+  const len = n.length;
+  const shorts: string[] = [cap];
+  if (len >= 4) shorts.push(cap.slice(0, 3));
+  if (len >= 5) shorts.push(cap.slice(0, 4));
+  if (len >= 3) shorts.push(cap.slice(0, 2));
+  // Vowel-ending short: drop last char if vowel-heavy
+  if (len >= 4) {
+    const trimmed = cap.slice(0, -1);
+    if (trimmed.length >= 3) shorts.push(trimmed);
+  }
+  // "ie/y" ending nickname
+  if (len >= 4) {
+    const nickname = cap.slice(0, -1) + "ie";
+    if (nickname !== cap) shorts.push(nickname);
+  }
+  // Unique only
+  return [...new Set(shorts)];
+}
+
 function generateHashtags(name1: string, name2: string): { text: string; language: string; style: string }[] {
   const n1 = name1.trim();
   const n2 = name2.trim();
@@ -24,66 +48,126 @@ function generateHashtags(name1: string, name2: string): { text: string; languag
 
   const n1Cap = n1.charAt(0).toUpperCase() + n1.slice(1).toLowerCase();
   const n2Cap = n2.charAt(0).toUpperCase() + n2.slice(1).toLowerCase();
+  const n1Shorts = getShortNames(n1);
+  const n2Shorts = getShortNames(n2);
 
   const results: { text: string; language: string; style: string }[] = [];
+  const seen = new Set<string>();
 
-  // Romantic
-  results.push({ text: `#${n1Cap}Loves${n2Cap}`, language: "English", style: "Romantic" });
-  results.push({ text: `#${n2Cap}Loves${n1Cap}`, language: "English", style: "Romantic" });
-  results.push({ text: `#${n1Cap}And${n2Cap}`, language: "English", style: "Romantic" });
-  results.push({ text: `#${n1Cap}Weds${n2Cap}`, language: "English", style: "Romantic" });
-  results.push({ text: `#${n2Cap}Weds${n1Cap}`, language: "English", style: "Romantic" });
-  results.push({ text: `#${n1Cap}${n2Cap}Forever`, language: "English", style: "Romantic" });
-  results.push({ text: `#${n1Cap}Meets${n2Cap}`, language: "English", style: "Romantic" });
-  results.push({ text: `#TogetherForever${n1Cap}${n2Cap}`, language: "English", style: "Romantic" });
-  results.push({ text: `#PyaarKaBandhan${n1Cap}${n2Cap}`, language: "Hindi", style: "Romantic" });
-  results.push({ text: `#DilKiDhadkan${n1Cap}${n2Cap}`, language: "Hindi", style: "Romantic" });
-  results.push({ text: `#IshqKaIzhaar${n1Cap}${n2Cap}`, language: "Hindi", style: "Romantic" });
+  const add = (text: string, language: string, style: string) => {
+    const t = `#${text.replace(/^#/, "")}`;
+    if (!seen.has(t.toLowerCase())) {
+      seen.add(t.toLowerCase());
+      results.push({ text: t, language, style });
+    }
+  };
 
-  // Funny
-  results.push({ text: `#${n1Cap}KaSaudagar`, language: "English", style: "Funny" });
-  results.push({ text: `#${n2Cap}KaSaudagar`, language: "English", style: "Funny" });
-  results.push({ text: `#${n1Cap}Boss`, language: "English", style: "Funny" });
-  results.push({ text: `#${n2Cap}Boss`, language: "English", style: "Funny" });
-  results.push({ text: `#CoupleGoals${n1Cap}${n2Cap}`, language: "English", style: "Funny" });
-  results.push({ text: `#${n1Cap}Ki${n2Cap}`, language: "English", style: "Funny" });
-  results.push({ text: `#${n2Cap}Ki${n1Cap}`, language: "English", style: "Funny" });
-  results.push({ text: `#${n1Cap}KiBoss`, language: "Hindi", style: "Funny" });
-  results.push({ text: `#${n2Cap}KiBoss`, language: "Hindi", style: "Funny" });
-  results.push({ text: `#ShaadiKaLadoo${n1Cap}${n2Cap}`, language: "Hindi", style: "Funny" });
-  results.push({ text: `#PatiParmeshwar${n1Cap}`, language: "Hindi", style: "Funny" });
-  results.push({ text: `#BiwiNo1${n2Cap}`, language: "Hindi", style: "Funny" });
+  // ── Romantic: short+full combos ──
+  for (const s1 of n1Shorts.slice(0, 3)) {
+    for (const s2 of n2Shorts.slice(0, 3)) {
+      if (s1 !== n1Cap || s2 !== n2Cap) {
+        add(`${s1}Loves${s2}`, "English", "Romantic");
+        add(`${s2}Loves${s1}`, "English", "Romantic");
+      }
+    }
+  }
+  add(`${n1Cap}Loves${n2Cap}`, "English", "Romantic");
+  add(`${n2Cap}Loves${n1Cap}`, "English", "Romantic");
+  add(`${n1Cap}And${n2Cap}`, "English", "Romantic");
+  add(`${n1Cap}Weds${n2Cap}`, "English", "Romantic");
+  add(`${n2Cap}Weds${n1Cap}`, "English", "Romantic");
+  add(`${n1Cap}${n2Cap}Forever`, "English", "Romantic");
+  add(`${n1Cap}Meets${n2Cap}`, "English", "Romantic");
+  add(`TogetherForever${n1Cap}${n2Cap}`, "English", "Romantic");
+  // Short+full romantic
+  for (const s1 of n1Shorts.slice(0, 2)) {
+    add(`${s1}For${n2Cap}`, "English", "Romantic");
+    add(`${s1}Meets${n2Cap}`, "English", "Romantic");
+  }
+  for (const s2 of n2Shorts.slice(0, 2)) {
+    add(`${s2}For${n1Cap}`, "English", "Romantic");
+    add(`${s2}Meets${n1Cap}`, "English", "Romantic");
+  }
+  add(`PyaarKaBandhan${n1Cap}${n2Cap}`, "Hindi", "Romantic");
+  add(`DilKiDhadkan${n1Cap}${n2Cap}`, "Hindi", "Romantic");
+  add(`IshqKaIzhaar${n1Cap}${n2Cap}`, "Hindi", "Romantic");
+  add(`DilKaRishta${n1Cap}${n2Cap}`, "Hindi", "Romantic");
 
-  // Pun
-  results.push({ text: `#${n1Cap}Weds${n2Cap}`, language: "English", style: "Pun" });
-  results.push({ text: `#ShaadiMubarak${n1Cap}${n2Cap}`, language: "English", style: "Pun" });
-  results.push({ text: `#JodiPakki${n1Cap}${n2Cap}`, language: "English", style: "Pun" });
-  results.push({ text: `#DulhaDulhan${n1Cap}${n2Cap}`, language: "English", style: "Pun" });
-  results.push({ text: `#MehendiLagaDungi`, language: "Hindi", style: "Pun" });
-  results.push({ text: `#SangeetNights`, language: "Hindi", style: "Pun" });
-  results.push({ text: `#DholAndSangeet`, language: "Hindi", style: "Pun" });
-  results.push({ text: `#BandBaaja${n1Cap}${n2Cap}`, language: "Hindi", style: "Pun" });
+  // ── Funny: short name humor ──
+  for (const s1 of n1Shorts.slice(0, 2)) {
+    add(`${s1}KaSaudagar`, "English", "Funny");
+    add(`${s1}Boss`, "English", "Funny");
+    add(`${s1}KiBoss`, "Hindi", "Funny");
+  }
+  for (const s2 of n2Shorts.slice(0, 2)) {
+    add(`${s2}KaSaudagar`, "English", "Funny");
+    add(`${s2}Boss`, "English", "Funny");
+    add(`${s2}KiBoss`, "Hindi", "Funny");
+  }
+  add(`CoupleGoals${n1Cap}${n2Cap}`, "English", "Funny");
+  add(`${n1Cap}Ki${n2Cap}`, "English", "Funny");
+  add(`${n2Cap}Ki${n1Cap}`, "English", "Funny");
+  add(`ShaadiKaLadoo${n1Cap}${n2Cap}`, "Hindi", "Funny");
+  add(`PatiParmeshwar${n1Cap}`, "Hindi", "Funny");
+  add(`BiwiNo1${n2Cap}`, "Hindi", "Funny");
+  // Short+short funny
+  for (const s1 of n1Shorts.slice(0, 2)) {
+    for (const s2 of n2Shorts.slice(0, 2)) {
+      if (s1.length + s2.length < n1Cap.length + n2Cap.length) {
+        add(`${s1}Ki${s2}`, "Hindi", "Funny");
+      }
+    }
+  }
 
-  // Traditional
-  results.push({ text: `#VivahaUtsav${n1Cap}${n2Cap}`, language: "English", style: "Traditional" });
-  results.push({ text: `#ShubhVivaha${n1Cap}${n2Cap}`, language: "English", style: "Traditional" });
-  results.push({ text: `#Grihastha${n1Cap}${n2Cap}`, language: "English", style: "Traditional" });
-  results.push({ text: `#SaatPhere${n1Cap}${n2Cap}`, language: "English", style: "Traditional" });
-  results.push({ text: `#MangalPheras`, language: "English", style: "Traditional" });
-  results.push({ text: `#SindoorKiLaaj`, language: "Hindi", style: "Traditional" });
-  results.push({ text: `#Mangalsutra`, language: "Hindi", style: "Traditional" });
-  results.push({ text: `#Saptapadi`, language: "Hindi", style: "Traditional" });
-  results.push({ text: `#VivahSanskar`, language: "Hindi", style: "Traditional" });
+  // ── Pun: creative short combos ──
+  add(`${n1Cap}Weds${n2Cap}`, "English", "Pun");
+  add(`ShaadiMubarak${n1Cap}${n2Cap}`, "English", "Pun");
+  add(`JodiPakki${n1Cap}${n2Cap}`, "English", "Pun");
+  add(`DulhaDulhan${n1Cap}${n2Cap}`, "English", "Pun");
+  add(`MehendiLagaDungi`, "Hindi", "Pun");
+  add(`SangeetNights`, "Hindi", "Pun");
+  add(`DholAndSangeet`, "Hindi", "Pun");
+  add(`BandBaaja${n1Cap}${n2Cap}`, "Hindi", "Pun");
+  // Short puns
+  for (const s1 of n1Shorts.slice(0, 2)) {
+    for (const s2 of n2Shorts.slice(0, 2)) {
+      add(`${s1}Weds${s2}`, "English", "Pun");
+      add(`${s2}Weds${s1}`, "English", "Pun");
+    }
+  }
+  add(`JodiNo1${n1Cap}${n2Cap}`, "Hindi", "Pun");
 
-  // Modern
-  results.push({ text: `#${n1Cap}X${n2Cap}`, language: "Bilingual", style: "Modern" });
-  results.push({ text: `#${n2Cap}X${n1Cap}`, language: "Bilingual", style: "Modern" });
-  results.push({ text: `#${n1Cap}${n2Cap}Wedding`, language: "Bilingual", style: "Modern" });
-  results.push({ text: `#${n1Cap}${n2Cap}Shaadi`, language: "Bilingual", style: "Modern" });
-  results.push({ text: `#JustMarried${n1Cap}${n2Cap}`, language: "Bilingual", style: "Modern" });
-  results.push({ text: `#MrAndMrs${n1Cap}`, language: "Bilingual", style: "Modern" });
-  results.push({ text: `#NewlyWed${n1Cap}${n2Cap}`, language: "Bilingual", style: "Modern" });
-  results.push({ text: `#${n1Cap}${n2Cap}Vibes`, language: "Bilingual", style: "Modern" });
+  // ── Traditional ──
+  add(`VivahaUtsav${n1Cap}${n2Cap}`, "English", "Traditional");
+  add(`ShubhVivaha${n1Cap}${n2Cap}`, "English", "Traditional");
+  add(`Grihastha${n1Cap}${n2Cap}`, "English", "Traditional");
+  add(`SaatPhere${n1Cap}${n2Cap}`, "English", "Traditional");
+  add(`MangalPheras`, "English", "Traditional");
+  add(`SindoorKiLaaj`, "Hindi", "Traditional");
+  add(`Mangalsutra`, "Hindi", "Traditional");
+  add(`Saptapadi`, "Hindi", "Traditional");
+  add(`VivahSanskar`, "Hindi", "Traditional");
+
+  // ── Modern: short x short, vibes ──
+  add(`${n1Cap}X${n2Cap}`, "Bilingual", "Modern");
+  add(`${n2Cap}X${n1Cap}`, "Bilingual", "Modern");
+  add(`${n1Cap}${n2Cap}Wedding`, "Bilingual", "Modern");
+  add(`${n1Cap}${n2Cap}Shaadi`, "Bilingual", "Modern");
+  add(`JustMarried${n1Cap}${n2Cap}`, "Bilingual", "Modern");
+  add(`MrAndMrs${n1Cap}`, "Bilingual", "Modern");
+  add(`NewlyWed${n1Cap}${n2Cap}`, "Bilingual", "Modern");
+  add(`${n1Cap}${n2Cap}Vibes`, "Bilingual", "Modern");
+  // Short modern combos
+  for (const s1 of n1Shorts.slice(0, 3)) {
+    for (const s2 of n2Shorts.slice(0, 3)) {
+      if (s1 !== n1Cap || s2 !== n2Cap) {
+        add(`${s1}X${s2}`, "Bilingual", "Modern");
+        add(`${s2}X${s1}`, "Bilingual", "Modern");
+      }
+    }
+  }
+  add(`${n1Cap}${n2Cap}SZN`, "Bilingual", "Modern");
+  add(`${n1Cap}Meets${n2Cap}`, "Bilingual", "Modern");
 
   return results;
 }
