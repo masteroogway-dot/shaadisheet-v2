@@ -24,6 +24,7 @@ import HashtagGeneratorView from "@/components/views/HashtagGeneratorView";
 import AiPanel from "@/components/AiPanel";
 import ProfileMenu from "@/components/ProfileMenu";
 import ToastContainer, { Toast } from "@/components/Toast";
+import TutorialOverlay, { TUTORIAL_STEPS } from "@/components/TutorialOverlay";
 
 let toastId = 0;
 
@@ -39,6 +40,7 @@ export default function WeddingDashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [userRole, setUserRole] = useState<string>("owner");
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const addToast = useCallback((message: string, type: "success" | "error" = "success", options?: { undoAction?: () => void }) => {
     const id = ++toastId;
@@ -103,6 +105,22 @@ export default function WeddingDashboardPage() {
     } catch (e) {
       console.error("Failed to save wedding:", e);
     }
+  };
+
+  useEffect(() => {
+    if (!wedding) return;
+    const onboardingComplete = wedding.religion && wedding.religion !== "";
+    if (!onboardingComplete) return;
+    const tutorialDone = localStorage.getItem("shaadisheet-tutorial-done");
+    if (!tutorialDone) {
+      const timer = setTimeout(() => setShowTutorial(true), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [wedding]);
+
+  const handleTutorialClose = () => {
+    setShowTutorial(false);
+    localStorage.setItem("shaadisheet-tutorial-done", "true");
   };
 
   const handleToggleTask = async (id: string, done: boolean) => {
@@ -184,7 +202,7 @@ export default function WeddingDashboardPage() {
           </div>
         </div>
         <div className="flex items-center gap-1.5 md:gap-2">
-          <button onClick={() => setAiOpen(!aiOpen)} className="w-9 h-9 md:w-10 md:h-10 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-maroon transition-all cursor-pointer" title="AI Assistant">
+          <button onClick={() => setAiOpen(!aiOpen)} data-tutorial="ai" className="w-9 h-9 md:w-10 md:h-10 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-maroon transition-all cursor-pointer" title="AI Assistant">
             <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24">
               <path d="M12 2L9.5 8.5 3 11l6.5 2.5L12 20l2.5-6.5L21 11l-6.5-2.5z" fill="currentColor" />
               <path d="M19 15l-1.5 4-3.5-3 4-1z" fill="currentColor" opacity="0.6" />
@@ -205,6 +223,7 @@ export default function WeddingDashboardPage() {
       </div>
 
       <AiPanel open={aiOpen} onClose={() => setAiOpen(false)} wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} />
+      <TutorialOverlay open={showTutorial} onClose={handleTutorialClose} steps={TUTORIAL_STEPS} />
     </div>
   );
 }

@@ -96,7 +96,7 @@ export default function Sidebar({ activeView, onViewChange, mobileOpen, onMobile
 
       <aside
         className={`
-          fixed top-0 left-0 h-full w-[260px] bg-white border-r border-gray-200 flex flex-col shrink-0 overflow-y-auto z-50
+          sidebar fixed top-0 left-0 h-full w-[260px] bg-white border-r border-gray-200 flex flex-col shrink-0 overflow-y-auto z-50
           transition-transform duration-300 ease-in-out
           lg:static lg:translate-x-0 lg:w-[240px]
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
@@ -132,10 +132,11 @@ export default function Sidebar({ activeView, onViewChange, mobileOpen, onMobile
 
                 {!isCollapsed && (
                   <div className="mt-0.5">
-                    {section.items.map((item) => (
+                      {section.items.map((item) => (
                       <button
                         key={item.id}
                         onClick={() => handleNav(item.id)}
+                        data-tutorial={item.id}
                         className={`w-full flex items-center gap-3 px-4 py-2.5 ml-2 mr-2 min-h-[40px] rounded-lg text-[0.85rem] font-medium transition-all mb-0.5 cursor-pointer ${
                           activeView === item.id
                             ? "bg-gradient-to-br from-maroon to-maroon-light text-white shadow-sm"

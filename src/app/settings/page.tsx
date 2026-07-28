@@ -105,6 +105,22 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        {/* Help */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 mb-6">
+          <h2 className="text-base font-bold text-gray-900 mb-2">Help</h2>
+          <p className="text-sm text-gray-500 mb-4">Replay the feature walkthrough tutorial anytime.</p>
+          <button
+            onClick={() => {
+              localStorage.removeItem("shaadisheet-tutorial-done");
+              router.push("/dashboard");
+            }}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-maroon border border-maroon/30 rounded-xl hover:bg-maroon/5 transition-colors cursor-pointer"
+          >
+            <i className="fas fa-play-circle text-xs" />
+            Replay Tutorial
+          </button>
+        </div>
+
         {/* Danger zone */}
         <div className="bg-white border border-red-200 rounded-2xl p-6 md:p-8">
           <h2 className="text-base font-bold text-red-600 mb-2">Danger Zone</h2>

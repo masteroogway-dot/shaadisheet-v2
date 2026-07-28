@@ -289,7 +289,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
     .slice(0, 5);
 
   return (
-    <div>
+    <div data-tutorial="overview">
       <div className="flex justify-between items-start mb-8 md:mb-10">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Wedding Dashboard</h2>
@@ -301,6 +301,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
           <div className="flex items-center gap-2">
             <button
               onClick={() => setQuestionnaireOpen(true)}
+              data-tutorial="website"
               className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:border-[#D4AF37] hover:text-[#722F37] transition-colors cursor-pointer shrink-0"
             >
               <i className="fas fa-globe text-gray-400" />
