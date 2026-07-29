@@ -636,6 +636,384 @@ const tools: OpenAI.ChatCompletionTool[] = [
       },
     },
   },
+  // ── Events ──
+  {
+    type: "function",
+    function: {
+      name: "create_events",
+      description: "Create wedding events/ceremonies (e.g. Mehendi, Sangeet, Haldi, Wedding, Reception).",
+      parameters: {
+        type: "object",
+        properties: {
+          events: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string", description: "Event name like Mehendi, Sangeet, Haldi" },
+                date: { type: "string", description: "Date in YYYY-MM-DD format" },
+                startTime: { type: "string", description: "Start time like 10:00" },
+                duration: { type: "number", description: "Duration in minutes" },
+                location: { type: "string", description: "Venue or location" },
+                description: { type: "string", description: "Event description" },
+                isRitual: { type: "boolean", description: "Whether this is a religious ritual" },
+              },
+              required: ["name"],
+            },
+            description: "Array of events to create",
+          },
+        },
+        required: ["events"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_events",
+      description: "Update wedding events by name filter.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              name_contains: { type: "string", description: "Event name to match" },
+            },
+          },
+          updates: {
+            type: "object",
+            properties: {
+              date: { type: "string" },
+              startTime: { type: "string" },
+              duration: { type: "number" },
+              location: { type: "string" },
+              description: { type: "string" },
+            },
+          },
+        },
+        required: ["updates"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_events",
+      description: "Delete wedding events by name filter.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              name_contains: { type: "string" },
+            },
+          },
+        },
+        required: ["filter"],
+      },
+    },
+  },
+  // ── Seating ──
+  {
+    type: "function",
+    function: {
+      name: "create_seating_tables",
+      description: "Create seating tables with capacity and guest assignments.",
+      parameters: {
+        type: "object",
+        properties: {
+          tables: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string", description: "Table name like Table 1, Family Table" },
+                capacity: { type: "number", description: "Number of seats (default 8)" },
+                guests: {
+                  type: "array",
+                  items: { type: "string" },
+                  description: "List of guest names to seat at this table",
+                },
+              },
+              required: ["name"],
+            },
+            description: "Array of tables to create",
+          },
+        },
+        required: ["tables"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_seating",
+      description: "Update seating tables by name.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              name_contains: { type: "string" },
+            },
+          },
+          updates: {
+            type: "object",
+            properties: {
+              capacity: { type: "number" },
+              guests: {
+                type: "array",
+                items: { type: "string" },
+                description: "New guest list (replaces existing)",
+              },
+            },
+          },
+        },
+        required: ["updates"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_seating",
+      description: "Delete seating tables by name.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              name_contains: { type: "string" },
+            },
+          },
+        },
+        required: ["filter"],
+      },
+    },
+  },
+  // ── Timeline ──
+  {
+    type: "function",
+    function: {
+      name: "create_timeline_items",
+      description: "Create timeline items for the wedding day schedule.",
+      parameters: {
+        type: "object",
+        properties: {
+          items: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                title: { type: "string", description: "Timeline item title" },
+                startTime: { type: "string", description: "Start time like 09:00" },
+                duration: { type: "number", description: "Duration in minutes" },
+                description: { type: "string", description: "What happens during this slot" },
+                isHighlight: { type: "boolean", description: "Whether this is a highlight/key moment" },
+              },
+              required: ["title"],
+            },
+            description: "Array of timeline items",
+          },
+        },
+        required: ["items"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_timeline",
+      description: "Update timeline items by title.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              title_contains: { type: "string" },
+            },
+          },
+          updates: {
+            type: "object",
+            properties: {
+              startTime: { type: "string" },
+              duration: { type: "number" },
+              description: { type: "string" },
+              isHighlight: { type: "boolean" },
+            },
+          },
+        },
+        required: ["updates"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_timeline",
+      description: "Delete timeline items by title.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              title_contains: { type: "string" },
+            },
+          },
+        },
+        required: ["filter"],
+      },
+    },
+  },
+  // ── Hashtags ──
+  {
+    type: "function",
+    function: {
+      name: "create_hashtags",
+      description: "Create custom hashtags for the couple. Use when user wants specific hashtags.",
+      parameters: {
+        type: "object",
+        properties: {
+          hashtags: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                text: { type: "string", description: "Hashtag text with # (e.g. #MadhurWedsAnanya)" },
+                style: { type: "string", enum: ["Romantic", "Funny", "Pun", "Traditional", "Modern"], description: "Hashtag style" },
+                language: { type: "string", enum: ["English", "Hindi", "Bilingual"], description: "Language" },
+              },
+              required: ["text"],
+            },
+            description: "Array of hashtags to create",
+          },
+        },
+        required: ["hashtags"],
+      },
+    },
+  },
+  // ── Tasks (update/delete) ──
+  {
+    type: "function",
+    function: {
+      name: "update_tasks",
+      description: "Update tasks by filter. Use for marking done, changing priority.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              text_contains: { type: "string", description: "Task text to match" },
+              done: { type: "boolean" },
+              category: { type: "string" },
+              priority: { type: "string", enum: ["Low", "Medium", "High", "Urgent"] },
+            },
+          },
+          updates: {
+            type: "object",
+            properties: {
+              done: { type: "boolean" },
+              priority: { type: "string", enum: ["Low", "Medium", "High", "Urgent"] },
+              category: { type: "string" },
+              dueDate: { type: "string", description: "Due date in YYYY-MM-DD format" },
+            },
+          },
+        },
+        required: ["updates"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_tasks",
+      description: "Delete tasks by filter.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              text_contains: { type: "string" },
+              done: { type: "boolean" },
+              category: { type: "string" },
+            },
+          },
+        },
+        required: ["filter"],
+      },
+    },
+  },
+  // ── Budget (update) ──
+  {
+    type: "function",
+    function: {
+      name: "update_budget_items",
+      description: "Update budget items by filter. Use for updating actual cost, paid amount, status.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              item_contains: { type: "string" },
+              category: { type: "string" },
+            },
+          },
+          updates: {
+            type: "object",
+            properties: {
+              actual: { type: "number", description: "Actual cost in INR" },
+              paid: { type: "number", description: "Amount paid in INR" },
+              status: { type: "string", enum: ["Pending", "Booked", "Paid"] },
+              notes: { type: "string" },
+            },
+          },
+        },
+        required: ["updates"],
+      },
+    },
+  },
+  // ── Vendors (update) ──
+  {
+    type: "function",
+    function: {
+      name: "update_vendors",
+      description: "Update vendors by filter. Use for updating quote, contract status, notes.",
+      parameters: {
+        type: "object",
+        properties: {
+          filter: {
+            type: "object",
+            properties: {
+              name_contains: { type: "string" },
+              category: { type: "string" },
+              contract: { type: "string", enum: ["Pending", "Signed", "Completed"] },
+            },
+          },
+          updates: {
+            type: "object",
+            properties: {
+              quote: { type: "number", description: "Quoted price in INR" },
+              paid: { type: "number", description: "Amount paid in INR" },
+              contract: { type: "string", enum: ["Pending", "Signed", "Completed"] },
+              rating: { type: "string" },
+              notes: { type: "string" },
+              deadline: { type: "string" },
+            },
+          },
+        },
+        required: ["updates"],
+      },
+    },
+  },
   {
     type: "function",
     function: {
@@ -740,9 +1118,63 @@ function validateAndCoerceArgs(name: string, args: any): any {
     case "delete_vendors":
     case "delete_budget_items":
     case "delete_rooms":
+    case "delete_events":
+    case "delete_seating":
+    case "delete_timeline":
+    case "delete_tasks":
       return { filter: args.filter || {} };
     case "search_vendors":
       return { query: toString(args.query) };
+    case "create_events":
+      return {
+        events: (args.events || []).map((e: any) => ({
+          name: toString(e.name),
+          date: toString(e.date),
+          startTime: toString(e.startTime, "10:00"),
+          duration: toNumber(e.duration, 60),
+          location: toString(e.location),
+          description: toString(e.description),
+          isRitual: !!e.isRitual,
+        })),
+      };
+    case "update_events":
+      return { filter: args.filter || {}, updates: args.updates };
+    case "create_seating_tables":
+      return {
+        tables: (args.tables || []).map((t: any) => ({
+          name: toString(t.name),
+          capacity: toNumber(t.capacity, 8),
+          guests: t.guests || [],
+        })),
+      };
+    case "update_seating":
+      return { filter: args.filter || {}, updates: args.updates };
+    case "create_timeline_items":
+      return {
+        items: (args.items || []).map((i: any) => ({
+          title: toString(i.title),
+          startTime: toString(i.startTime, "09:00"),
+          duration: toNumber(i.duration, 30),
+          description: toString(i.description),
+          isHighlight: !!i.isHighlight,
+        })),
+      };
+    case "update_timeline":
+      return { filter: args.filter || {}, updates: args.updates };
+    case "create_hashtags":
+      return {
+        hashtags: (args.hashtags || []).map((h: any) => ({
+          text: toString(h.text),
+          style: toString(h.style, "Romantic"),
+          language: toString(h.language, "English"),
+        })),
+      };
+    case "update_tasks":
+      return { filter: args.filter || {}, updates: args.updates };
+    case "update_budget_items":
+      return { filter: args.filter || {}, updates: args.updates };
+    case "update_vendors":
+      return { filter: args.filter || {}, updates: args.updates };
     default:
       return args;
   }
@@ -980,6 +1412,149 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
       const result = await prisma.budgetItem.deleteMany({ where });
       return `Deleted ${result.count} budget item(s).`;
     }
+    case "create_events": {
+      const items = a.events || [];
+      const maxOrder = await prisma.weddingEvent.aggregate({ where: { weddingId }, _max: { order: true } });
+      let order = (maxOrder._max.order ?? -1) + 1;
+      for (const item of items) {
+        await prisma.weddingEvent.create({
+          data: {
+            weddingId, order: order++,
+            name: item.name, date: item.date, startTime: item.startTime,
+            duration: item.duration, location: item.location,
+            description: item.description, isRitual: item.isRitual,
+          },
+        });
+      }
+      return `Created ${items.length} event(s): ${items.map((i: any) => i.name).join(", ")}.`;
+    }
+    case "update_events": {
+      const { filter = {}, updates } = a;
+      const where: any = { weddingId };
+      if (filter.name_contains) where.name = { contains: filter.name_contains, mode: "insensitive" };
+      const result = await prisma.weddingEvent.updateMany({ where, data: updates });
+      return `Updated ${result.count} event(s).`;
+    }
+    case "delete_events": {
+      const { filter = {} } = a;
+      const where: any = { weddingId };
+      if (filter.name_contains) where.name = { contains: filter.name_contains, mode: "insensitive" };
+      const result = await prisma.weddingEvent.deleteMany({ where });
+      return `Deleted ${result.count} event(s).`;
+    }
+    case "create_seating_tables": {
+      const items = a.tables || [];
+      const maxOrder = await prisma.seatingTable.aggregate({ where: { weddingId }, _max: { order: true } });
+      let order = (maxOrder._max.order ?? -1) + 1;
+      for (const item of items) {
+        await prisma.seatingTable.create({
+          data: {
+            weddingId, order: order++,
+            name: item.name, capacity: item.capacity,
+            guests: JSON.stringify(item.guests || []),
+          },
+        });
+      }
+      return `Created ${items.length} table(s): ${items.map((i: any) => i.name).join(", ")}.`;
+    }
+    case "update_seating": {
+      const { filter = {}, updates } = a;
+      const where: any = { weddingId };
+      if (filter.name_contains) where.name = { contains: filter.name_contains, mode: "insensitive" };
+      const data: any = {};
+      if (updates.capacity !== undefined) data.capacity = updates.capacity;
+      if (updates.guests) data.guests = JSON.stringify(updates.guests);
+      const result = await prisma.seatingTable.updateMany({ where, data });
+      return `Updated ${result.count} table(s).`;
+    }
+    case "delete_seating": {
+      const { filter = {} } = a;
+      const where: any = { weddingId };
+      if (filter.name_contains) where.name = { contains: filter.name_contains, mode: "insensitive" };
+      const result = await prisma.seatingTable.deleteMany({ where });
+      return `Deleted ${result.count} table(s).`;
+    }
+    case "create_timeline_items": {
+      const items = a.items || [];
+      const maxOrder = await prisma.weddingTimelineItem.aggregate({ where: { weddingId }, _max: { order: true } });
+      let order = (maxOrder._max.order ?? -1) + 1;
+      for (const item of items) {
+        await prisma.weddingTimelineItem.create({
+          data: {
+            weddingId, order: order++,
+            title: item.title, startTime: item.startTime,
+            duration: item.duration, description: item.description,
+            isHighlight: item.isHighlight,
+          },
+        });
+      }
+      return `Created ${items.length} timeline item(s): ${items.map((i: any) => i.title).join(", ")}.`;
+    }
+    case "update_timeline": {
+      const { filter = {}, updates } = a;
+      const where: any = { weddingId };
+      if (filter.title_contains) where.title = { contains: filter.title_contains, mode: "insensitive" };
+      const result = await prisma.weddingTimelineItem.updateMany({ where, data: updates });
+      return `Updated ${result.count} timeline item(s).`;
+    }
+    case "delete_timeline": {
+      const { filter = {} } = a;
+      const where: any = { weddingId };
+      if (filter.title_contains) where.title = { contains: filter.title_contains, mode: "insensitive" };
+      const result = await prisma.weddingTimelineItem.deleteMany({ where });
+      return `Deleted ${result.count} timeline item(s).`;
+    }
+    case "create_hashtags": {
+      const items = a.hashtags || [];
+      const maxOrder = await prisma.hashtag.aggregate({ where: { weddingId }, _max: { order: true } });
+      let order = (maxOrder._max.order ?? -1) + 1;
+      for (const item of items) {
+        await prisma.hashtag.create({
+          data: {
+            weddingId, order: order++,
+            text: item.text.startsWith("#") ? item.text : `#${item.text}`,
+            style: item.style, language: item.language,
+          },
+        });
+      }
+      return `Created ${items.length} hashtag(s): ${items.map((i: any) => i.text).join(", ")}.`;
+    }
+    case "update_tasks": {
+      const { filter = {}, updates } = a;
+      const where: any = { weddingId };
+      if (filter.text_contains) where.text = { contains: filter.text_contains, mode: "insensitive" };
+      if (filter.done !== undefined) where.done = filter.done;
+      if (filter.category) where.category = filter.category;
+      if (filter.priority) where.priority = filter.priority;
+      const result = await prisma.task.updateMany({ where, data: updates });
+      return `Updated ${result.count} task(s).`;
+    }
+    case "delete_tasks": {
+      const { filter = {} } = a;
+      const where: any = { weddingId };
+      if (filter.text_contains) where.text = { contains: filter.text_contains, mode: "insensitive" };
+      if (filter.done !== undefined) where.done = filter.done;
+      if (filter.category) where.category = filter.category;
+      const result = await prisma.task.deleteMany({ where });
+      return `Deleted ${result.count} task(s).`;
+    }
+    case "update_budget_items": {
+      const { filter = {}, updates } = a;
+      const where: any = { weddingId };
+      if (filter.item_contains) where.item = { contains: filter.item_contains, mode: "insensitive" };
+      if (filter.category) where.category = { contains: filter.category, mode: "insensitive" };
+      const result = await prisma.budgetItem.updateMany({ where, data: updates });
+      return `Updated ${result.count} budget item(s).`;
+    }
+    case "update_vendors": {
+      const { filter = {}, updates } = a;
+      const where: any = { weddingId };
+      if (filter.name_contains) where.name = { contains: filter.name_contains, mode: "insensitive" };
+      if (filter.category) where.category = { contains: filter.category, mode: "insensitive" };
+      if (filter.contract) where.contract = filter.contract;
+      const result = await prisma.vendor.updateMany({ where, data: updates });
+      return `Updated ${result.count} vendor(s).`;
+    }
     case "search_vendors": {
       return await searchGooglePlaces(a.query);
     }
@@ -1004,9 +1579,9 @@ ${weddingCtx}
 
 ## YOUR CAPABILITIES
 You have direct database access via tools:
-- CREATE guests, vendors, budget items, tasks, room allocations
-- UPDATE RSVP, dietary, vendor contracts, task status, room status
-- DELETE guests, vendors, budget items, rooms by any filter
+- CREATE guests, vendors, budget items, tasks, room allocations, events, seating tables, timeline items, hashtags
+- UPDATE RSVP, dietary, vendor contracts, task status, room status, events, seating, timeline, budget items, vendors
+- DELETE guests, vendors, budget items, rooms, tasks, events, seating, timeline by any filter
 - SEARCH real vendors in any city via Google Places
 
 ## TOOL USAGE RULES
@@ -1019,6 +1594,13 @@ You have direct database access via tools:
 - Outfit Planner: Use create_outfits when user mentions outfit, dress, lehenga, sherwani, gown. Map person from context (bride, groom, mother). Ask which event if not specified.
 - Invitations: Use create_invites when user mentions invite, card, save-the-date, printed cards. Default type to "Main Invite". Ask quantity if not provided.
 - Cultural Checklists: Use create_checklist_items for emergency kit, priest requirements, vidaai essentials. Ask which category if not specified. Mark items done with update_checklist_items.
+- Events: Use create_events for Mehendi, Sangeet, Haldi, Wedding, Reception. Include date, time, location if provided.
+- Seating: Use create_seating_tables for table assignments. Include capacity and guest names.
+- Timeline: Use create_timeline_items for day-of schedule. Include start times and durations.
+- Hashtags: Use create_hashtags when user wants specific custom hashtags.
+- Tasks: Use update_tasks to mark done, change priority. Use delete_tasks to remove completed tasks.
+- Budget: Use update_budget_items to record actual costs, payments, and status.
+- Vendors: Use update_vendors to update quotes, contract status, ratings, deadlines.
 - After tool runs, confirm in one sentence, then ask if they need anything else
 
 ## WEDDING EXPERTISE
