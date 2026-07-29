@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { createTask, deleteTask, updateTask } from "@/lib/actions";
 import { motion, AnimatePresence } from "framer-motion";
+import TaskSuggestions from "@/components/TaskSuggestions";
 
 const PERIODS = ["12+ Months", "9-12 Months", "6-9 Months", "3-6 Months", "1-3 Months", "Last Month"];
 const PRIORITIES = ["Low", "Medium", "High", "Urgent"];
@@ -166,6 +167,8 @@ export default function TasksView({ wedding, weddingId, onToggle, canEdit = true
           <span className="text-sm font-medium text-red-700">{overdueCount} task{overdueCount > 1 ? "s" : ""} overdue</span>
         </div>
       )}
+
+      <TaskSuggestions weddingId={weddingId} wedding={wedding} onUpdate={() => {}} onToast={(msg) => {}} />
 
       {/* Summary bar */}
       {tasks.length > 0 && (

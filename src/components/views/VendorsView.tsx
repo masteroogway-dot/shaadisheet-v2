@@ -7,6 +7,7 @@ import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
 import CurrencyInput from "@/components/CurrencyInput";
 import VendorPriceAdvisor from "@/components/VendorPriceAdvisor";
+import VendorAlerts from "@/components/VendorAlerts";
 
 function StarRating({ value, onChange, readonly }: { value: string; onChange?: (v: string) => void; readonly?: boolean }) {
   const stars = 5;
@@ -284,6 +285,8 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
           )}
         </div>
       </div>
+
+      <VendorAlerts vendors={vendors} weddingDate={wedding.weddingDate} />
 
       {vendors.length > 0 && (
         <>

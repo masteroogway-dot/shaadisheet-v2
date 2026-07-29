@@ -7,6 +7,7 @@ import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
 import DatePicker from "@/components/DatePicker";
 import CurrencyInput from "@/components/CurrencyInput";
+import BudgetInsights from "@/components/BudgetInsights";
 import { motion } from "framer-motion";
 
 export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canEdit = true }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void; canEdit?: boolean }) {
@@ -205,6 +206,7 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canE
       {/* Summary Cards + Progress Bar */}
       {items.length > 0 && (
         <div className="mb-6">
+          <BudgetInsights items={items} totalBudget={totalBudget} />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
               <span className="text-2xl font-extrabold block">{formatINR(totalBudget)}</span>

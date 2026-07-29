@@ -5,6 +5,7 @@ import { updateGuest, createGuest, deleteGuest, batchCreateGuests, bulkDeleteGue
 import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
 import WhatsAppInvite from "@/components/WhatsAppInvite";
+import DietaryMatrix from "@/components/DietaryMatrix";
 
 export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canEdit = true }: { wedding: any; weddingId: string; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error", options?: { undoAction?: () => void }) => void; canEdit?: boolean }) {
   const [editing, setEditing] = useState<string | null>(null);
@@ -250,6 +251,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
 
       {totalGuests > 0 && (
         <>
+        <DietaryMatrix guests={guests} />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           {[
             { num: totalGuests, label: "Total Invited", color: "" },

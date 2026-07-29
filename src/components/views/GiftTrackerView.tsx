@@ -8,6 +8,7 @@ import { formatINR } from "@/lib/format";
 import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
 import CurrencyInput from "@/components/CurrencyInput";
+import GiftAnalytics from "@/components/GiftAnalytics";
 
 const SIDES = ["All", "Paternal", "Maternal", "Groom", "Friends", "Colleagues", "Both"];
 const TYPES = ["All", "Cash", "Gold", "Gift", "Other"];
@@ -314,6 +315,8 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
           </div>
         </div>
       )}
+
+      {totalCount > 0 && <GiftAnalytics gifts={gifts} />}
 
       {/* Filters */}
       {totalCount > 0 && (
