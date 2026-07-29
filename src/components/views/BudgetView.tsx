@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { updateBudgetItem, createBudgetItem, deleteBudgetItem, batchCreateBudgetItems, bulkDeleteBudgetItems, bulkAddBudgetItems } from "@/lib/actions";
-import { formatINR } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
 import DatePicker from "@/components/DatePicker";
@@ -156,19 +156,19 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canE
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Estimated</label>
-            {isEditing ? <CurrencyInput value={editData.estimated ?? 0} onChange={(val) => setEditData({ ...editData, estimated: val })} /> : <p className="text-sm font-bold">{formatINR(item.estimated)}</p>}
+            {isEditing ? <CurrencyInput value={editData.estimated ?? 0} onChange={(val) => setEditData({ ...editData, estimated: val })} currency={wedding.currency} /> : <p className="text-sm font-bold">{formatCurrency(item.estimated, wedding.currency)}</p>}
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Actual</label>
-            {isEditing ? <CurrencyInput value={editData.actual ?? 0} onChange={(val) => setEditData({ ...editData, actual: val })} /> : <p className="text-sm">{formatINR(item.actual)}</p>}
+            {isEditing ? <CurrencyInput value={editData.actual ?? 0} onChange={(val) => setEditData({ ...editData, actual: val })} currency={wedding.currency} /> : <p className="text-sm">{formatCurrency(item.actual, wedding.currency)}</p>}
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Paid</label>
-            {isEditing ? <CurrencyInput value={editData.paid ?? 0} onChange={(val) => setEditData({ ...editData, paid: val })} /> : <p className="text-sm font-bold text-green">{formatINR(item.paid)}</p>}
+            {isEditing ? <CurrencyInput value={editData.paid ?? 0} onChange={(val) => setEditData({ ...editData, paid: val })} currency={wedding.currency} /> : <p className="text-sm font-bold text-green">{formatCurrency(item.paid, wedding.currency)}</p>}
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Balance</label>
-            <p className={`text-sm font-bold ${balance > 0 ? "text-yellow" : "text-green"}`}>{formatINR(balance)}</p>
+            <p className={`text-sm font-bold ${balance > 0 ? "text-yellow" : "text-green"}`}>{formatCurrency(balance, wedding.currency)}</p>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -206,22 +206,22 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canE
       {/* Summary Cards + Progress Bar */}
       {items.length > 0 && (
         <div className="mb-6">
-          <BudgetInsights items={items} totalBudget={totalBudget} />
+          <BudgetInsights items={items} totalBudget={totalBudget} wedding={wedding} />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-              <span className="text-2xl font-extrabold block">{formatINR(totalBudget)}</span>
+              <span className="text-2xl font-extrabold block">{formatCurrency(totalBudget, wedding.currency)}</span>
               <span className="text-xs text-gray-500">Total Budget</span>
             </div>
             <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-              <span className="text-2xl font-extrabold block text-blue-600">{formatINR(totalEstimated)}</span>
+              <span className="text-2xl font-extrabold block text-blue-600">{formatCurrency(totalEstimated, wedding.currency)}</span>
               <span className="text-xs text-gray-500">Allocated ({items.length} items)</span>
             </div>
             <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-              <span className="text-2xl font-extrabold block text-green">{formatINR(totalPaid)}</span>
+              <span className="text-2xl font-extrabold block text-green">{formatCurrency(totalPaid, wedding.currency)}</span>
               <span className="text-xs text-gray-500">Paid ({paidCount}/{items.length})</span>
             </div>
             <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-              <span className={`text-2xl font-extrabold block ${budgetRemaining > 0 ? "text-yellow" : "text-red"}`}>{formatINR(budgetRemaining)}</span>
+              <span className={`text-2xl font-extrabold block ${budgetRemaining > 0 ? "text-yellow" : "text-red"}`}>{formatCurrency(budgetRemaining, wedding.currency)}</span>
               <span className="text-xs text-gray-500">Remaining</span>
             </div>
           </div>
@@ -314,7 +314,7 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canE
                     <span className="w-2 h-2 rounded-full bg-maroon inline-block" />{cat}
                     <span className="text-xs font-normal text-gray-400">({catItems.length})</span>
                   </h3>
-                  <div className="text-xs font-semibold text-gray-500">{formatINR(catTotal)} est. / {formatINR(catPaid)} paid</div>
+                  <div className="text-xs font-semibold text-gray-500">{formatCurrency(catTotal, wedding.currency)} est. / {formatCurrency(catPaid, wedding.currency)} paid</div>
                 </div>
                 <div className="space-y-3">{catItems.map((item: any) => renderRow(item))}</div>
               </div>

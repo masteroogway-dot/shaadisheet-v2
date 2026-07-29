@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { createInviteDetail, updateInviteDetail, deleteInviteDetail, bulkDeleteInviteDetails, batchCreateInviteDetails, bulkAddInviteDetails } from "@/lib/actions";
-import { formatINR } from "@/lib/format";
+import { formatCurrency, getCurrencySymbol } from "@/lib/format";
 import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
 
@@ -195,7 +195,7 @@ export default function InviteDetailsView({ wedding, weddingId, onUpdate, onToas
       <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between">
         <div>
           <span className="text-sm text-gray-500">Total Invitation Cost</span>
-          <div className="text-xl font-bold text-gray-900">{formatINR(totalCost)}</div>
+          <div className="text-xl font-bold text-gray-900">{formatCurrency(totalCost, wedding.currency)}</div>
         </div>
         {hasRsvpDeadline && (
           <div className="text-right">
@@ -259,7 +259,7 @@ export default function InviteDetailsView({ wedding, weddingId, onUpdate, onToas
                   <input type="text" placeholder="Designer" value={editData.designer || ""} onChange={(e) => setEditData({ ...editData, designer: e.target.value })} className="px-3 py-2 text-sm border rounded-lg" />
                   <input type="text" placeholder="Printer" value={editData.printer || ""} onChange={(e) => setEditData({ ...editData, printer: e.target.value })} className="px-3 py-2 text-sm border rounded-lg" />
                   <input type="number" placeholder="Quantity" value={editData.quantity || ""} onChange={(e) => setEditData({ ...editData, quantity: parseInt(e.target.value) || 0 })} className="px-3 py-2 text-sm border rounded-lg" />
-                  <input type="number" placeholder="Cost (₹)" value={editData.cost || ""} onChange={(e) => setEditData({ ...editData, cost: parseInt(e.target.value) || 0 })} className="px-3 py-2 text-sm border rounded-lg" />
+                  <input type="number" placeholder={`Cost (${getCurrencySymbol(wedding.currency)})`} value={editData.cost || ""} onChange={(e) => setEditData({ ...editData, cost: parseInt(e.target.value) || 0 })} className="px-3 py-2 text-sm border rounded-lg" />
                   <input type="date" placeholder="Sent Date" value={editData.sentDate || ""} onChange={(e) => setEditData({ ...editData, sentDate: e.target.value })} className="px-3 py-2 text-sm border rounded-lg" />
                   <input type="date" placeholder="RSVP Deadline" value={editData.rsvpDeadline || ""} onChange={(e) => setEditData({ ...editData, rsvpDeadline: e.target.value })} className="px-3 py-2 text-sm border rounded-lg" />
                   <select value={editData.status || "Planning"} onChange={(e) => setEditData({ ...editData, status: e.target.value })} className="px-3 py-2 text-sm border rounded-lg bg-white">
@@ -286,7 +286,7 @@ export default function InviteDetailsView({ wedding, weddingId, onUpdate, onToas
                       {i.printer && <span><i className="fas fa-print mr-1" />{i.printer}</span>}
                       {i.designer && <span><i className="fas fa-palette mr-1" />{i.designer}</span>}
                       {i.quantity ? <span><i className="fas fa-copy mr-1" />{i.quantity.toLocaleString("en-IN")} cards</span> : null}
-                      {i.cost ? <span><i className="fas fa-rupee-sign mr-1" />{formatINR(i.cost)}</span> : null}
+                      {i.cost ? <span><i className="fas fa-rupee-sign mr-1" />{formatCurrency(i.cost, wedding.currency)}</span> : null}
                       {i.sentDate && <span><i className="fas fa-paper-plane mr-1" />Sent: {i.sentDate}</span>}
                       {i.rsvpDeadline && <span><i className="fas fa-calendar-check mr-1" />RSVP: {i.rsvpDeadline}</span>}
                     </div>

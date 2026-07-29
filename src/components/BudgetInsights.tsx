@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { formatINR } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 
 const CATEGORY_BENCHMARKS: Record<string, number> = {
   "venue": 0.35, "catering": 0.25, "photography": 0.10, "decorator": 0.08,
@@ -10,7 +10,7 @@ const CATEGORY_BENCHMARKS: Record<string, number> = {
   "invitation": 0.02, "misc": 0.05,
 };
 
-export default function BudgetInsights({ items, totalBudget }: { items: any[]; totalBudget: number }) {
+export default function BudgetInsights({ items, totalBudget, wedding }: { items: any[]; totalBudget: number; wedding: { currency: string } }) {
   const insights = useMemo(() => {
     if (!items.length || !totalBudget) return [];
     const result: { type: "warning" | "tip" | "info"; icon: string; text: string; color: string }[] = [];
@@ -20,15 +20,15 @@ export default function BudgetInsights({ items, totalBudget }: { items: any[]; t
     const percentUsed = Math.round((totalEstimated / totalBudget) * 100);
 
     if (overBudget) {
-      result.push({ type: "warning", icon: "fa-exclamation-triangle", text: `Over budget by ${formatINR(totalEstimated - totalBudget)} (${percentUsed}% of ${formatINR(totalBudget)} used)`, color: "text-red-700 bg-red-50 border-red-200" });
+      result.push({ type: "warning", icon: "fa-exclamation-triangle", text: `Over budget by ${formatCurrency(totalEstimated - totalBudget, wedding.currency)} (${percentUsed}% of ${formatCurrency(totalBudget, wedding.currency)} used)`, color: "text-red-700 bg-red-50 border-red-200" });
     } else if (percentUsed < 70) {
-      result.push({ type: "tip", icon: "fa-lightbulb", text: `${formatINR(totalBudget - totalEstimated)} remaining — ${100 - percentUsed}% buffer left for unexpected costs`, color: "text-green-700 bg-green-50 border-green-200" });
+      result.push({ type: "tip", icon: "fa-lightbulb", text: `${formatCurrency(totalBudget - totalEstimated, wedding.currency)} remaining — ${100 - percentUsed}% buffer left for unexpected costs`, color: "text-green-700 bg-green-50 border-green-200" });
     }
 
     const unpaidItems = items.filter((i) => i.status === "Partial" || (i.paid > 0 && i.paid < i.estimated));
     if (unpaidItems.length > 0) {
       const totalPending = unpaidItems.reduce((s: number, i: any) => s + ((i.estimated || 0) - (i.paid || 0)), 0);
-      result.push({ type: "info", icon: "fa-clock", text: `${unpaidItems.length} partial payment${unpaidItems.length > 1 ? "s" : ""} pending — ${formatINR(totalPending)} balance remaining`, color: "text-blue-700 bg-blue-50 border-blue-200" });
+      result.push({ type: "info", icon: "fa-clock", text: `${unpaidItems.length} partial payment${unpaidItems.length > 1 ? "s" : ""} pending — ${formatCurrency(totalPending, wedding.currency)} balance remaining`, color: "text-blue-700 bg-blue-50 border-blue-200" });
     }
 
     const categoryTotals: Record<string, number> = {};
@@ -41,9 +41,9 @@ export default function BudgetInsights({ items, totalBudget }: { items: any[]; t
       if (benchmark) {
         const expected = Math.round(totalBudget * benchmark);
         if (spent > expected * 1.2) {
-          result.push({ type: "warning", icon: "fa-chart-line", text: `${cat.charAt(0).toUpperCase() + cat.slice(1)}: ${formatINR(spent)} — ${Math.round((spent / totalEstimated) * 100)}% of budget (recommended: ${Math.round(benchmark * 100)}%)`, color: "text-orange-700 bg-orange-50 border-orange-200" });
+          result.push({ type: "warning", icon: "fa-chart-line", text: `${cat.charAt(0).toUpperCase() + cat.slice(1)}: ${formatCurrency(spent, wedding.currency)} — ${Math.round((spent / totalEstimated) * 100)}% of budget (recommended: ${Math.round(benchmark * 100)}%)`, color: "text-orange-700 bg-orange-50 border-orange-200" });
         } else if (spent < expected * 0.5 && totalEstimated > totalBudget * 0.5) {
-          result.push({ type: "tip", icon: "fa-tag", text: `${cat.charAt(0).toUpperCase() + cat.slice(1)}: Only ${formatINR(spent)} allocated — may need more for quality`, color: "text-blue-700 bg-blue-50 border-blue-200" });
+          result.push({ type: "tip", icon: "fa-tag", text: `${cat.charAt(0).toUpperCase() + cat.slice(1)}: Only ${formatCurrency(spent, wedding.currency)} allocated — may need more for quality`, color: "text-blue-700 bg-blue-50 border-blue-200" });
         }
       }
     }

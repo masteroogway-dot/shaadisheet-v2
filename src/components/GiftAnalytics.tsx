@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { formatINR } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 
-export default function GiftAnalytics({ gifts }: { gifts: any[] }) {
+export default function GiftAnalytics({ gifts, wedding }: { gifts: any[]; wedding: { currency: string } }) {
   const analytics = useMemo(() => {
     if (!gifts.length) return null;
     const total = gifts.length;
@@ -39,11 +39,11 @@ export default function GiftAnalytics({ gifts }: { gifts: any[] }) {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="bg-white border border-gray-200 rounded-xl p-3 text-center">
-          <span className="text-xl font-extrabold block">{formatINR(analytics.totalAmount)}</span>
+          <span className="text-xl font-extrabold block">{formatCurrency(analytics.totalAmount, wedding.currency)}</span>
           <span className="text-[0.65rem] text-gray-500">Total Received</span>
         </div>
         <div className="bg-white border border-gray-200 rounded-xl p-3 text-center">
-          <span className="text-xl font-extrabold text-green block">{formatINR(analytics.avgAmount)}</span>
+          <span className="text-xl font-extrabold text-green block">{formatCurrency(analytics.avgAmount, wedding.currency)}</span>
           <span className="text-[0.65rem] text-gray-500">Average Gift</span>
         </div>
         <div className="bg-white border border-gray-200 rounded-xl p-3 text-center">
@@ -66,7 +66,7 @@ export default function GiftAnalytics({ gifts }: { gifts: any[] }) {
                 <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div className="h-full rounded-full bg-gradient-to-r from-maroon to-gold" style={{ width: `${(stats.amount / analytics.totalAmount) * 100}%` }} />
                 </div>
-                <span className="text-xs font-bold w-20 text-right">{formatINR(stats.amount)}</span>
+                <span className="text-xs font-bold w-20 text-right">{formatCurrency(stats.amount, wedding.currency)}</span>
                 <span className="text-[0.6rem] text-gray-400 w-16 text-right">{stats.count} gifts</span>
               </div>
             ))}
@@ -84,8 +84,8 @@ export default function GiftAnalytics({ gifts }: { gifts: any[] }) {
       {analytics.maxAmount > 0 && (
         <div className="text-xs text-gray-500 bg-gray-50 rounded-lg p-2.5">
           <i className="fas fa-info-circle mr-1" />
-          Gift range: {formatINR(analytics.minAmount)} to {formatINR(analytics.maxAmount)}
-          {analytics.cashGifts > 0 && ` • ${analytics.cashGifts} cash gifts totalling ${formatINR(analytics.totalCash)}`}
+          Gift range: {formatCurrency(analytics.minAmount, wedding.currency)} to {formatCurrency(analytics.maxAmount, wedding.currency)}
+          {analytics.cashGifts > 0 && ` • ${analytics.cashGifts} cash gifts totalling ${formatCurrency(analytics.totalCash, wedding.currency)}`}
         </div>
       )}
     </div>

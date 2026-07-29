@@ -3,52 +3,148 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-const SECTIONS = [
-  {
-    id: "planning",
-    title: "Planning",
-    icon: "fa-clipboard-list",
-    items: [
-      { id: "overview", icon: "fa-home", label: "Overview" },
-      { id: "budget", icon: "fa-rupee-sign", label: "Budget" },
-      { id: "vendors", icon: "fa-store", label: "Vendors" },
-      { id: "guests", icon: "fa-users", label: "Guests" },
-      { id: "events", icon: "fa-calendar-alt", label: "Events" },
-      { id: "tasks", icon: "fa-tasks", label: "Tasks" },
-    ],
-  },
-  {
-    id: "logistics",
-    title: "Logistics",
-    icon: "fa-hotel",
-    items: [
-      { id: "seating", icon: "fa-th-large", label: "Seating" },
-      { id: "rooms", icon: "fa-bed", label: "Rooms" },
-      { id: "timeline", icon: "fa-clock", label: "Timeline" },
-      { id: "gifts", icon: "fa-gift", label: "Gift Tracker" },
-      { id: "outfits", icon: "fa-shirt", label: "Outfit Planner" },
-      { id: "invites", icon: "fa-envelope-open-text", label: "Invites" },
-    ],
-  },
-  {
-    id: "checklists",
-    title: "Checklists",
-    icon: "fa-clipboard-check",
-    items: [
+interface ChecklistItem {
+  id: string;
+  icon: string;
+  label: string;
+}
+
+interface SidebarSection {
+  id: string;
+  title: string;
+  icon: string;
+  items: Array<{ id: string; icon: string; label: string }>;
+}
+
+function getChecklistItems(wedding: any): ChecklistItem[] {
+  const religion = wedding?.religion || "hindu";
+  const country = wedding?.country || "india";
+
+  const checklistsByReligion: Record<string, ChecklistItem[]> = {
+    hindu: [
       { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
       { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
       { id: "vidaai", icon: "fa-heart-crack", label: "Vidaai Essentials" },
     ],
-  },
-  {
-    id: "fun",
-    title: "Fun",
-    icon: "fa-wand-magic-sparkles",
-    items: [
-      { id: "hashtags", icon: "fa-hashtag", label: "Hashtag Generator" },
+    muslim: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "nikah-prep", icon: "fa-book-open", label: "Nikah Preparation" },
+      { id: "walima-essentials", icon: "fa-utensils", label: "Walima Essentials" },
     ],
-  },
-];
+    sikh: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "gurdwara-req", icon: "fa-landmark", label: "Gurdwara Requirements" },
+      { id: "anand-karaj", icon: "fa-music", label: "Anand Karaj Essentials" },
+      { id: "langar-plan", icon: "fa-bowl-food", label: "Langar Planning" },
+    ],
+    jain: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "jain-catering", icon: "fa-leaf", label: "Jain Catering Rules" },
+      { id: "ceremony-essentials", icon: "fa-fire", label: "Ceremony Essentials" },
+    ],
+    christian: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "church-req", icon: "fa-church", label: "Church Requirements" },
+      { id: "roce-ceremony", icon: "fa-droplet", label: "Roce Ceremony" },
+    ],
+    buddhist: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "poruwa-prep", icon: "fa-torii-gate", label: "Poruwa Preparation" },
+      { id: "nekath-plan", icon: "fa-star", label: "Nekath Planning" },
+    ],
+  };
+
+  const checklistsByCountry: Record<string, ChecklistItem[]> = {
+    pakistan: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "dholki-essentials", icon: "fa-drum", label: "Dholki Essentials" },
+      { id: "baraat-plan", icon: "fa-horse", label: "Baraat Planning" },
+      { id: "nikah-prep", icon: "fa-book-open", label: "Nikah Preparation" },
+    ],
+    bangladesh: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "gaye-holud", icon: "fa-sun", label: "Gaye Holud Essentials" },
+      { id: "nikah-prep", icon: "fa-book-open", label: "Nikah Preparation" },
+    ],
+    sri_lanka: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "poruwa-prep", icon: "fa-torii-gate", label: "Poruwa Preparation" },
+      { id: "nekath-plan", icon: "fa-star", label: "Nekath Planning" },
+    ],
+    nepal: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "janti-plan", icon: "fa-music", label: "Janti Planning" },
+      { id: "dubo-mala", icon: "fa-seedling", label: "Dubo Ko Mala" },
+    ],
+    maldives: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "henna-night", icon: "fa-hand-sparkles", label: "Henna Night" },
+      { id: "nikah-prep", icon: "fa-book-open", label: "Nikah Preparation" },
+      { id: "resort-coord", icon: "fa-umbrella-beach", label: "Resort Coordination" },
+    ],
+    afghanistan: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "khwara-essentials", icon: "fa-ring", label: "Khwara Essentials" },
+      { id: "nikah-prep", icon: "fa-book-open", label: "Nikah Preparation" },
+      { id: "attan-dance", icon: "fa-music", label: "Attan Dance Planning" },
+      { id: "mahr-docs", icon: "fa-file-contract", label: "Mahr Documentation" },
+    ],
+  };
+
+  // Country-specific overrides take precedence for non-Indian weddings
+  if (country !== "india" && checklistsByCountry[country]) {
+    return checklistsByCountry[country];
+  }
+
+  return checklistsByReligion[religion] || checklistsByReligion.hindu;
+}
+
+function getSections(wedding: any): SidebarSection[] {
+  const checklistItems = getChecklistItems(wedding);
+
+  return [
+    {
+      id: "planning",
+      title: "Planning",
+      icon: "fa-clipboard-list",
+      items: [
+        { id: "overview", icon: "fa-home", label: "Overview" },
+        { id: "budget", icon: "fa-coins", label: "Budget" },
+        { id: "vendors", icon: "fa-store", label: "Vendors" },
+        { id: "guests", icon: "fa-users", label: "Guests" },
+        { id: "events", icon: "fa-calendar-alt", label: "Events" },
+        { id: "tasks", icon: "fa-tasks", label: "Tasks" },
+      ],
+    },
+    {
+      id: "logistics",
+      title: "Logistics",
+      icon: "fa-hotel",
+      items: [
+        { id: "seating", icon: "fa-th-large", label: "Seating" },
+        { id: "rooms", icon: "fa-bed", label: "Rooms" },
+        { id: "timeline", icon: "fa-clock", label: "Timeline" },
+        { id: "gifts", icon: "fa-gift", label: "Gift Tracker" },
+        { id: "outfits", icon: "fa-shirt", label: "Outfit Planner" },
+        { id: "invites", icon: "fa-envelope-open-text", label: "Invites" },
+      ],
+    },
+    {
+      id: "checklists",
+      title: "Checklists",
+      icon: "fa-clipboard-check",
+      items: checklistItems,
+    },
+    {
+      id: "fun",
+      title: "Fun",
+      icon: "fa-wand-magic-sparkles",
+      items: [
+        { id: "hashtags", icon: "fa-hashtag", label: "Hashtag Generator" },
+      ],
+    },
+  ];
+}
 
 const STORAGE_KEY = "shaadisheet-sidebar-sections";
 
@@ -57,10 +153,12 @@ interface Props {
   onViewChange: (view: string) => void;
   mobileOpen: boolean;
   onMobileClose: () => void;
+  wedding?: any;
 }
 
-export default function Sidebar({ activeView, onViewChange, mobileOpen, onMobileClose }: Props) {
+export default function Sidebar({ activeView, onViewChange, mobileOpen, onMobileClose, wedding }: Props) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const SECTIONS = getSections(wedding);
 
   useEffect(() => {
     try {

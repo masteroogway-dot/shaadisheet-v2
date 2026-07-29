@@ -92,6 +92,8 @@ export default function WeddingDashboardPage() {
     try {
       await updateWedding({
         weddingId,
+        country: data.country,
+        currency: data.currency,
         religion: data.religion,
         region: data.region,
         budget: data.budget,
@@ -138,6 +140,33 @@ export default function WeddingDashboardPage() {
     }
   };
 
+  const CHECKLIST_VIEW_MAP: Record<string, string> = {
+    "emergency-kit": "Emergency Kit",
+    "priest-req": "Priest Requirements",
+    "vidaai": "Vidaai Essentials",
+    "nikah-prep": "Nikah Preparation",
+    "walima-essentials": "Walima Essentials",
+    "gurdwara-req": "Gurdwara Requirements",
+    "anand-karaj": "Anand Karaj Essentials",
+    "langar-plan": "Langar Planning",
+    "jain-catering": "Jain Catering Rules",
+    "ceremony-essentials": "Ceremony Essentials",
+    "church-req": "Church Requirements",
+    "roce-ceremony": "Roce Ceremony",
+    "poruwa-prep": "Poruwa Preparation",
+    "nekath-plan": "Nekath Planning",
+    "dholki-essentials": "Dholki Essentials",
+    "baraat-plan": "Baraat Planning",
+    "gaye-holud": "Gaye Holud Essentials",
+    "janti-plan": "Janti Planning",
+    "dubo-mala": "Dubo Ko Mala",
+    "henna-night": "Henna Night",
+    "resort-coord": "Resort Coordination",
+    "khwara-essentials": "Khwara Essentials",
+    "attan-dance": "Attan Dance Planning",
+    "mahr-docs": "Mahr Documentation",
+  };
+
   const renderView = () => {
     const canEdit = userRole === "owner" || userRole === "co-owner" || userRole === "editor";
     switch (activeView) {
@@ -153,11 +182,14 @@ export default function WeddingDashboardPage() {
       case "gifts": return <GiftTrackerView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "outfits": return <OutfitPlannerView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "invites": return <InviteDetailsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
-      case "emergency-kit": return <CulturalChecklistsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} initialTab="Emergency Kit" />;
-      case "priest-req": return <CulturalChecklistsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} initialTab="Priest Requirements" />;
-      case "vidaai": return <CulturalChecklistsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} initialTab="Vidaai Essentials" />;
       case "hashtags": return <HashtagGeneratorView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
-      default: return <OverviewView wedding={wedding} onUpdate={refreshWedding} userRole={userRole} onToast={addToast} />;
+      default:
+        // Handle dynamic checklist views
+        const checklistTab = CHECKLIST_VIEW_MAP[activeView];
+        if (checklistTab) {
+          return <CulturalChecklistsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} initialTab={checklistTab} />;
+        }
+        return <OverviewView wedding={wedding} onUpdate={refreshWedding} userRole={userRole} onToast={addToast} />;
     }
   };
 
@@ -214,7 +246,7 @@ export default function WeddingDashboardPage() {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar activeView={activeView} onViewChange={setActiveView} mobileOpen={sidebarOpen} onMobileClose={() => setSidebarOpen(false)} />
+        <Sidebar activeView={activeView} onViewChange={setActiveView} mobileOpen={sidebarOpen} onMobileClose={() => setSidebarOpen(false)} wedding={wedding} />
         <main className="flex-1 overflow-y-auto p-4 md:p-8" key={activeView}>
           <div className="animate-[fadeIn_0.2s_ease-out]">
             {renderView()}

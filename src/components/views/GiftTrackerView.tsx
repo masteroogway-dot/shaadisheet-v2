@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import confetti from "canvas-confetti";
 import { createGift, updateGift, deleteGift, bulkDeleteGifts, bulkUpdateGifts, batchCreateGifts, bulkAddGifts } from "@/lib/actions";
-import { formatINR } from "@/lib/format";
+import { formatCurrency, getCurrencySymbol } from "@/lib/format";
 import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
 import CurrencyInput from "@/components/CurrencyInput";
@@ -249,10 +249,10 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
       {totalCount > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
           {[
-            { value: formatINR(totalReceived), label: "Total Received", color: "text-gray-900" },
+            { value: formatCurrency(totalReceived, wedding.currency), label: "Total Received", color: "text-gray-900" },
             { value: totalCount.toString(), label: "Gifts", color: "text-blue-600" },
             { value: pendingThankYou.toString(), label: "Pending Thank-Yous", color: pendingThankYou > 0 ? "text-yellow" : "text-gray-900", pulse: pendingThankYou > 0 },
-            { value: formatINR(avgGift), label: "Average Gift", color: "text-green" },
+            { value: formatCurrency(avgGift, wedding.currency), label: "Average Gift", color: "text-green" },
           ].map((s, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="bg-white border border-gray-200 rounded-xl p-4 text-center hover:shadow-md transition-shadow">
               <span className={`text-2xl font-extrabold block mb-1 ${s.color} ${s.pulse ? "animate-pulse" : ""}`}>{s.value}</span>
@@ -283,7 +283,7 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
                       transition={{ duration: 0.6, ease: "easeOut" }}
                     />
                   </div>
-                  <span className="text-xs font-bold text-gray-600 w-24 text-right shrink-0">{formatINR(s.total)}</span>
+                  <span className="text-xs font-bold text-gray-600 w-24 text-right shrink-0">{formatCurrency(s.total, wedding.currency)}</span>
                   <span className="text-[10px] text-gray-400 w-10 text-right shrink-0">{s.count} gifts</span>
                 </div>
               );
@@ -316,7 +316,7 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
         </div>
       )}
 
-      {totalCount > 0 && <GiftAnalytics gifts={gifts} />}
+      {totalCount > 0 && <GiftAnalytics gifts={gifts} wedding={wedding} />}
 
       {/* Filters */}
       {totalCount > 0 && (
@@ -445,7 +445,7 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
                     {isEditing ? (
                       <CurrencyInput value={editData.amount ?? 0} onChange={(val) => setEditData({ ...editData, amount: val })} />
                     ) : (
-                      <p className="text-sm font-semibold">{formatINR(g.amount)}</p>
+                      <p className="text-sm font-semibold">{formatCurrency(g.amount, wedding.currency)}</p>
                     )}
                   </div>
                   <div>
@@ -517,10 +517,10 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[150] bg-black/50 flex items-center justify-center p-4" onClick={() => setThankYouModal(null)}>
             <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
               <h3 className="font-bold text-lg mb-1">Send Thank You</h3>
-              <p className="text-sm text-gray-500 mb-4">Choose a template for <strong>{thankYouModal.name}</strong> ({formatINR(thankYouModal.amount)})</p>
+              <p className="text-sm text-gray-500 mb-4">Choose a template for <strong>{thankYouModal.name}</strong> ({formatCurrency(thankYouModal.amount, wedding.currency)})</p>
               <div className="space-y-2 mb-4">
                 {THANK_YOU_TEMPLATES.map((t, i) => {
-                  const msg = t.text.replace("{name}", thankYouModal.name).replace("{amount}", formatINR(thankYouModal.amount));
+                  const msg = t.text.replace("{name}", thankYouModal.name).replace("{amount}", formatCurrency(thankYouModal.amount, wedding.currency));
                   return (
                     <button key={i} onClick={() => setSelectedTemplate(i)} className={`w-full text-left p-3 rounded-xl border-2 text-sm transition-all ${selectedTemplate === i ? "border-maroon bg-maroon/5" : "border-gray-200 hover:border-gray-300"}`}>
                       <span className="font-semibold text-xs text-gray-500 uppercase">{t.label}</span>
@@ -533,7 +533,7 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={() => {
-                    const msg = THANK_YOU_TEMPLATES[selectedTemplate].text.replace("{name}", thankYouModal.name).replace("{amount}", formatINR(thankYouModal.amount));
+                    const msg = THANK_YOU_TEMPLATES[selectedTemplate].text.replace("{name}", thankYouModal.name).replace("{amount}", formatCurrency(thankYouModal.amount, wedding.currency));
                     navigator.clipboard.writeText(msg);
                     setCopiedTY(true);
                     setTimeout(() => setCopiedTY(false), 2000);

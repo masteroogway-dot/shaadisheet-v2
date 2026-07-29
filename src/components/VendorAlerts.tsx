@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { formatINR } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 
 const VENDOR_BOOKING_WINDOWS: Record<string, number> = {
   "venue": 365, "photographer": 180, "videographer": 180,
@@ -10,7 +10,7 @@ const VENDOR_BOOKING_WINDOWS: Record<string, number> = {
   "decoration": 90, "florist": 90, "clothing": 150, "outfit": 150,
 };
 
-export default function VendorAlerts({ vendors, weddingDate }: { vendors: any[]; weddingDate?: string }) {
+export default function VendorAlerts({ vendors, weddingDate, wedding }: { vendors: any[]; weddingDate?: string; wedding?: any }) {
   const [showComparison, setShowComparison] = useState(false);
   const [compareIds, setCompareIds] = useState<string[]>([]);
 
@@ -52,7 +52,7 @@ export default function VendorAlerts({ vendors, weddingDate }: { vendors: any[];
     const totalQuote = vendors.reduce((s: number, v: any) => s + (v.quote || 0), 0);
     const totalPaid = vendors.reduce((s: number, v: any) => s + (v.paid || 0), 0);
     if (totalQuote > 0 && totalPaid < totalQuote * 0.3) {
-      result.push({ type: "tip", icon: "fa-receipt", text: `Only ${formatINR(totalPaid)} of ${formatINR(totalQuote)} total quoted (${Math.round((totalPaid / totalQuote) * 100)}%) paid`, color: "text-gray-700 bg-gray-50 border-gray-200" });
+      result.push({ type: "tip", icon: "fa-receipt", text: `Only ${formatCurrency(totalPaid, wedding?.currency)} of ${formatCurrency(totalQuote, wedding?.currency)} total quoted (${Math.round((totalPaid / totalQuote) * 100)}%) paid`, color: "text-gray-700 bg-gray-50 border-gray-200" });
     }
 
     return result;
@@ -102,8 +102,8 @@ export default function VendorAlerts({ vendors, weddingDate }: { vendors: any[];
                     </tr></thead>
                     <tbody>
                       <tr className="border-b border-gray-50"><td className="px-4 py-2 text-xs font-medium text-gray-500">Category</td>{comparisonVendors.map((v) => <td key={v.id} className="px-4 py-2 text-xs">{v.category}</td>)}</tr>
-                      <tr className="border-b border-gray-50"><td className="px-4 py-2 text-xs font-medium text-gray-500">Quote</td>{comparisonVendors.map((v) => <td key={v.id} className="px-4 py-2 text-xs font-bold">{formatINR(v.quote)}</td>)}</tr>
-                      <tr className="border-b border-gray-50"><td className="px-4 py-2 text-xs font-medium text-gray-500">Paid</td>{comparisonVendors.map((v) => <td key={v.id} className="px-4 py-2 text-xs text-green">{formatINR(v.paid)}</td>)}</tr>
+                      <tr className="border-b border-gray-50"><td className="px-4 py-2 text-xs font-medium text-gray-500">Quote</td>{comparisonVendors.map((v) => <td key={v.id} className="px-4 py-2 text-xs font-bold">{formatCurrency(v.quote, wedding?.currency)}</td>)}</tr>
+                      <tr className="border-b border-gray-50"><td className="px-4 py-2 text-xs font-medium text-gray-500">Paid</td>{comparisonVendors.map((v) => <td key={v.id} className="px-4 py-2 text-xs text-green">{formatCurrency(v.paid, wedding?.currency)}</td>)}</tr>
                       <tr className="border-b border-gray-50"><td className="px-4 py-2 text-xs font-medium text-gray-500">Rating</td>{comparisonVendors.map((v) => <td key={v.id} className="px-4 py-2 text-xs">{v.rating || "Not rated"}</td>)}</tr>
                       <tr className="border-b border-gray-50"><td className="px-4 py-2 text-xs font-medium text-gray-500">Contract</td>{comparisonVendors.map((v) => <td key={v.id} className="px-4 py-2"><span className={`px-2 py-0.5 rounded-full text-[0.65rem] font-semibold ${v.contract === "Signed" ? "bg-green-100 text-green-700" : v.contract === "Completed" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}>{v.contract}</span></td>)}</tr>
                       <tr><td className="px-4 py-2 text-xs font-medium text-gray-500">Notes</td>{comparisonVendors.map((v) => <td key={v.id} className="px-4 py-2 text-xs text-gray-500 max-w-[150px] truncate">{v.notes || "—"}</td>)}</tr>

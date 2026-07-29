@@ -7,7 +7,7 @@ import {
   clearAiMessages,
   correctInteraction,
 } from "@/lib/actions";
-import { formatINR } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 
 function renderMarkdown(text: string): React.ReactNode {
   const lines = text.split("\n");

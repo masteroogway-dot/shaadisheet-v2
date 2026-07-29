@@ -6,11 +6,86 @@ import confetti from "canvas-confetti";
 import { createChecklistItem, updateChecklistItem, deleteChecklistItem, bulkDeleteChecklistItems, bulkUpdateChecklistItems, batchCreateChecklistItems, bulkAddChecklistItems } from "@/lib/actions";
 import ImportModal from "@/components/ImportModal";
 
-const TABS = [
-  { id: "Emergency Kit", icon: "fa-kit-medical", label: "Emergency Kit" },
-  { id: "Priest Requirements", icon: "fa-om", label: "Priest Requirements" },
-  { id: "Vidaai Essentials", icon: "fa-heart-crack", label: "Vidaai Essentials" },
-];
+function getTabsForWedding(wedding: any) {
+  const religion = wedding?.religion || "hindu";
+  const country = wedding?.country || "india";
+
+  const tabsByReligion: Record<string, Array<{ id: string; icon: string; label: string }>> = {
+    hindu: [
+      { id: "Emergency Kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "Priest Requirements", icon: "fa-om", label: "Priest Requirements" },
+      { id: "Vidaai Essentials", icon: "fa-heart-crack", label: "Vidaai Essentials" },
+    ],
+    muslim: [
+      { id: "Emergency Kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "Nikah Preparation", icon: "fa-book-open", label: "Nikah Preparation" },
+      { id: "Walima Essentials", icon: "fa-utensils", label: "Walima Essentials" },
+    ],
+    sikh: [
+      { id: "Emergency Kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "Gurdwara Requirements", icon: "fa-landmark", label: "Gurdwara Requirements" },
+      { id: "Anand Karaj Essentials", icon: "fa-music", label: "Anand Karaj Essentials" },
+      { id: "Langar Planning", icon: "fa-bowl-food", label: "Langar Planning" },
+    ],
+    jain: [
+      { id: "Emergency Kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "Jain Catering Rules", icon: "fa-leaf", label: "Jain Catering Rules" },
+      { id: "Ceremony Essentials", icon: "fa-fire", label: "Ceremony Essentials" },
+    ],
+    christian: [
+      { id: "Emergency Kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "Church Requirements", icon: "fa-church", label: "Church Requirements" },
+      { id: "Roce Ceremony", icon: "fa-droplet", label: "Roce Ceremony" },
+    ],
+    buddhist: [
+      { id: "Emergency Kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "Poruwa Preparation", icon: "fa-torii-gate", label: "Poruwa Preparation" },
+      { id: "Nekath Planning", icon: "fa-star", label: "Nekath Planning" },
+    ],
+  };
+
+  const tabsByCountry: Record<string, Array<{ id: string; icon: string; label: string }>> = {
+    pakistan: [
+      { id: "Emergency Kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "Dholki Essentials", icon: "fa-drum", label: "Dholki Essentials" },
+      { id: "Baraat Planning", icon: "fa-horse", label: "Baraat Planning" },
+      { id: "Nikah Preparation", icon: "fa-book-open", label: "Nikah Preparation" },
+    ],
+    bangladesh: [
+      { id: "Emergency Kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "Gaye Holud Essentials", icon: "fa-sun", label: "Gaye Holud Essentials" },
+      { id: "Nikah Preparation", icon: "fa-book-open", label: "Nikah Preparation" },
+    ],
+    sri_lanka: [
+      { id: "Emergency Kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "Poruwa Preparation", icon: "fa-torii-gate", label: "Poruwa Preparation" },
+      { id: "Nekath Planning", icon: "fa-star", label: "Nekath Planning" },
+    ],
+    nepal: [
+      { id: "Emergency Kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "Janti Planning", icon: "fa-music", label: "Janti Planning" },
+      { id: "Dubo Ko Mala", icon: "fa-seedling", label: "Dubo Ko Mala" },
+    ],
+    maldives: [
+      { id: "Emergency Kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "Henna Night", icon: "fa-hand-sparkles", label: "Henna Night" },
+      { id: "Nikah Preparation", icon: "fa-book-open", label: "Nikah Preparation" },
+      { id: "Resort Coordination", icon: "fa-umbrella-beach", label: "Resort Coordination" },
+    ],
+    afghanistan: [
+      { id: "Emergency Kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "Khwara Essentials", icon: "fa-ring", label: "Khwara Essentials" },
+      { id: "Nikah Preparation", icon: "fa-book-open", label: "Nikah Preparation" },
+      { id: "Attan Dance Planning", icon: "fa-music", label: "Attan Dance Planning" },
+      { id: "Mahr Documentation", icon: "fa-file-contract", label: "Mahr Documentation" },
+    ],
+  };
+
+  if (country !== "india" && tabsByCountry[country]) {
+    return tabsByCountry[country];
+  }
+  return tabsByReligion[religion] || tabsByReligion.hindu;
+}
 
 const DEFAULTS: Record<string, string[]> = {
   "Emergency Kit": [
@@ -59,17 +134,205 @@ const DEFAULTS: Record<string, string[]> = {
     "Toiletries for travel",
     "Snacks for journey",
   ],
+  "Nikah Preparation": [
+    "Nikah-nama (marriage contract) printed",
+    "Mahr amount decided and documented",
+    "Two male Muslim witnesses confirmed",
+    "Qazi (officiant) booked",
+    "Quran for Aarsi Mushaf ceremony",
+    "Venue booking confirmed",
+    "Catering arranged (halal)",
+    "Stage decoration planned",
+  ],
+  "Walima Essentials": [
+    "Catering booking confirmed",
+    "Stage decoration finalized",
+    "Lighting and sound arranged",
+    "Guest seating planned",
+    "Welcome desk setup",
+    "Photography/videography booked",
+    "Gifts for guests arranged",
+  ],
+  "Gurdwara Requirements": [
+    "Gurdwara booking confirmed",
+    "Head coverings for all guests arranged",
+    "Kirpan for groom",
+    "Chooda set (21 bangles) bought",
+    "Rumala (cloth for Guru Granth Sahib)",
+    "Karah Prashad ingredients",
+    "Flower decorations for Palki Sahib",
+  ],
+  "Anand Karaj Essentials": [
+    "Granthi (priest) confirmed",
+    "Laavan hymns booklets printed",
+    "Flower decorations for Palki Sahib",
+    "Floor seating for guests arranged",
+    "Musicians (Rababi) booked",
+    "Langar kitchen coordination done",
+  ],
+  "Langar Planning": [
+    "Langar menu decided",
+    "Volunteer cooks confirmed",
+    "Langar hall booking confirmed",
+    "Utensils and plates arranged",
+    "Washing area setup",
+    "Food serving volunteers briefed",
+  ],
+  "Jain Catering Rules": [
+    "No root vegetables confirmed with caterer",
+    "Jain caterer booked",
+    "Kitchen purity maintained",
+    "Separate utensils for Jain food",
+    "No onion/garlic in any dish verified",
+    "Fruit-based sweets only",
+  ],
+  "Ceremony Essentials": [
+    "Mada Mandap decorated",
+    "Sacred fire arranged",
+    "Mangal Pheras setup ready",
+    "Granthi Bandhan (tying the knot) items",
+    "Saptapadi items prepared",
+    "Ashirwad (blessings) plan finalized",
+  ],
+  "Church Requirements": [
+    "Church booking confirmed",
+    "Pastor/priest confirmed",
+    "Pre-marriage counseling completed",
+    "Banns announced",
+    "Church decoration planned",
+    "Music/choir arranged",
+  ],
+  "Roce Ceremony": [
+    "Turmeric paste prepared",
+    "Coconut milk arranged",
+    "Roce outfit for bride/groom ready",
+    "Guest arrangements confirmed",
+    "Music playlist prepared",
+    "Photography booked",
+  ],
+  "Poruwa Preparation": [
+    "Poruwa (wooden platform) constructed",
+    "Platform decorated with flowers",
+    "Astrologer consultation (Nekath) done",
+    "Betel leaves for elders arranged",
+    "Gold thread for Nalangu prepared",
+    "Oil lamp for ceremony arranged",
+  ],
+  "Nekath Planning": [
+    "Astrologer consulted for auspicious times",
+    "Nekath (astrological requirements) documented",
+    "Poruwa construction timeline set",
+    "Traditional items list prepared",
+    "Blessings ceremony安排 confirmed",
+  ],
+  "Dholki Essentials": [
+    "Dholak (drum) arranged",
+    "Song list prepared",
+    "Guest snacks arranged",
+    "Seating arrangement done",
+    "Microphone/speaker arranged",
+  ],
+  "Baraat Planning": [
+    "Horse/car booking for groom confirmed",
+    "Dhol (drum) players booked",
+    "Baraat route planned",
+    "Joota Chupai plan (sisters hide shoes) ready",
+    "Doodh Pilai arrangement done",
+    "Welcome refreshments planned",
+  ],
+  "Gaye Holud Essentials": [
+    "Turmeric paste prepared",
+    "Sweets and gifts from groom's family arranged",
+    "Decorated rohu fish prepared",
+    "Yellow theme decorations done",
+    "Folk music (dhol, ektara) arranged",
+    "Guest seating planned",
+  ],
+  "Janti Planning": [
+    "Panche Baja musicians booked",
+    "Groom's horse/car decorated",
+    "Baraat route planned",
+    "Welcome refreshments arranged",
+    "Flower garlands for groom ready",
+  ],
+  "Dubo Ko Mala": [
+    "Bermuda grass garlands prepared (never wilt)",
+    "Garlands for bride and groom ready",
+    "Symbolic of long marriage — explained to family",
+    "Backup artificial garlands arranged",
+  ],
+  "Henna Night": [
+    "Henna artist booked",
+    "Bridal henna design decided",
+    "Guest henna arrangements made",
+    "Yellow/green theme decorations",
+    "Traditional music arranged",
+    "Refreshments planned",
+  ],
+  "Resort Coordination": [
+    "Resort booking confirmed",
+    "Guest travel arrangements made",
+    "Accommodation for guests arranged",
+    "Catering menu finalized",
+    "Decor and lighting planned",
+    "Photography/videography booked",
+  ],
+  "Khwara Essentials": [
+    "Engagement gifts exchanged",
+    "Mahr (bride price) negotiated",
+    "Families formally introduced",
+    "Date for Nikah set",
+    "Traditional sweets served",
+  ],
+  "Attan Dance Planning": [
+    "Attan musicians booked",
+    "Dance circle space arranged",
+    "Traditional drums (tabla/zirbaghali) arranged",
+    "Guest participation encouraged",
+    "Performance area cleared",
+    "Music playlist prepared",
+  ],
+  "Mahr Documentation": [
+    "Mahr amount agreed upon",
+    "Written contract prepared",
+    "Witnesses signed",
+    "Mahr items prepared",
+    "Family consent documented",
+    "Gifts for bride listed",
+  ],
 };
 
 const TAB_ICONS: Record<string, string> = {
-  "Emergency Kit": "🏥",
-  "Priest Requirements": "🙏",
-  "Vidaai Essentials": "💔",
+  "Emergency Kit": "\uD83C\uDFE5",
+  "Priest Requirements": "\uD83D\uDE4F",
+  "Vidaai Essentials": "\uD83D\uDC94",
+  "Nikah Preparation": "\uD83D\uDCD6",
+  "Walima Essentials": "\uD83C\uDF7D",
+  "Gurdwara Requirements": "\uD83C\uDFDB",
+  "Anand Karaj Essentials": "\uD83C\uDFB5",
+  "Langar Planning": "\uD83C\uDF72",
+  "Jain Catering Rules": "\uD83C\uDF3F",
+  "Ceremony Essentials": "\uD83D\uDD25",
+  "Church Requirements": "\u26EA",
+  "Roce Ceremony": "\uD83D\uDCA7",
+  "Poruwa Preparation": "\u26E9",
+  "Nekath Planning": "\u2B50",
+  "Dholki Essentials": "\uD83E\uDD41",
+  "Baraat Planning": "\uD83D\uDC34",
+  "Gaye Holud Essentials": "\u2600",
+  "Janti Planning": "\uD83C\uDFB6",
+  "Dubo Ko Mala": "\uD83C\uDF31",
+  "Henna Night": "\uD83E\uDDC4",
+  "Resort Coordination": "\uD83C\uDFD6",
+  "Khwara Essentials": "\uD83D\uDC8D",
+  "Attan Dance Planning": "\uD83C\uDFB5",
+  "Mahr Documentation": "\uD83D\uDCC4",
 };
 
 export default function CulturalChecklistsView({ wedding, weddingId, onUpdate, onToast, canEdit, initialTab }: any) {
   const allItems: any[] = wedding.checklistItems || [];
-  const [activeTab, setActiveTab] = useState(initialTab || "Emergency Kit");
+  const TABS = getTabsForWedding(wedding);
+  const [activeTab, setActiveTab] = useState(initialTab || TABS[0]?.id || "Emergency Kit");
   const [newItemText, setNewItemText] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showImport, setShowImport] = useState(false);

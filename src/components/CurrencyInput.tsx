@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { getCurrencySymbol } from "@/lib/format";
 
 interface CurrencyInputProps {
   value: number;
@@ -8,6 +9,7 @@ interface CurrencyInputProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  currency?: string;
 }
 
 export default function CurrencyInput({
@@ -16,11 +18,13 @@ export default function CurrencyInput({
   placeholder = "0",
   className = "",
   disabled = false,
+  currency = "INR",
 }: CurrencyInputProps) {
   const [focused, setFocused] = useState(false);
   const [typed, setTyped] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const symbol = getCurrencySymbol(currency);
   const formatted = value > 0 ? value.toLocaleString("en-IN") : "";
   const showValue = focused ? typed : formatted;
 
@@ -42,7 +46,7 @@ export default function CurrencyInput({
 
   return (
     <div className={`input-currency ${className}`}>
-      <span className="currency-symbol">₹</span>
+      <span className="currency-symbol">{symbol}</span>
       <input
         ref={inputRef}
         type="text"

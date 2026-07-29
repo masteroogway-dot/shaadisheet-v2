@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { formatINR } from "@/lib/format";
+import { formatCurrency, getCurrencySymbol } from "@/lib/format";
 
 function renderMarkdown(text: string): string {
   return text
@@ -52,28 +52,29 @@ export default function VendorPriceAdvisor({ vendor, wedding, weddingId, onClose
     setLoading(true);
     setAnalysis("");
     try {
+      const currencySymbol = getCurrencySymbol(wedding.currency);
       const question = `Analyze this vendor quote. Be precise with math.
 
 VENDOR: ${vendor.name}
 CATEGORY: ${vendor.category}
-QUOTED PRICE: ₹${quote} (total for ${guestCount} guests)
-PRICE PER PLATE: ₹${perPlate} per person
+QUOTED PRICE: ${currencySymbol}${quote} (total for ${guestCount} guests)
+PRICE PER PLATE: ${currencySymbol}${perPlate} per person
 CITY: ${wedding.weddingCity || "Not specified"}
-WEDDING BUDGET: ₹${wedding.budget || 0}
+WEDDING BUDGET: ${currencySymbol}${wedding.budget || 0}
 GUEST COUNT: ${guestCount}
 CONTRACT STATUS: ${vendor.contract}
 
-IMPORTANT: The quoted price ₹${quote} is the TOTAL amount. There are ${guestCount} guests. So per plate = ₹${quote} ÷ ${guestCount} = ₹${perPlate} per plate.
+IMPORTANT: The quoted price ${currencySymbol}${quote} is the TOTAL amount. There are ${guestCount} guests. So per plate = ${currencySymbol}${quote} ÷ ${guestCount} = ${currencySymbol}${perPlate} per plate.
 
 Provide your analysis in this EXACT format (no markdown, no **, no pipe tables):
 
 PRICE ASSESSMENT
-[One clear sentence: Fair / Overpriced / Good deal. State the per-plate cost clearly as ₹X,XXX per plate]
+[One clear sentence: Fair / Overpriced / Good deal. State the per-plate cost clearly as ${currencySymbol}X,XXX per plate]
 
 MARKET RANGE FOR ${vendor.category?.toUpperCase()} IN ${wedding.weddingCity?.toUpperCase() || "INDIA"}
-Budget: ₹X,XXX-X,XXX per plate | ₹X,XX,XXX-X,XX,XXX total
-Mid-Range: ₹X,XXX-X,XXX per plate | ₹X,XX,XXX-X,XX,XXX total  
-Premium: ₹X,XXX-X,XXX per plate | ₹X,XX,XXX-X,XX,XXX total
+Budget: ${currencySymbol}X,XXX-X,XXX per plate | ${currencySymbol}X,XX,XXX-X,XX,XXX total
+Mid-Range: ${currencySymbol}X,XXX-X,XXX per plate | ${currencySymbol}X,XX,XXX-X,XX,XXX total  
+Premium: ${currencySymbol}X,XXX-X,XXX per plate | ${currencySymbol}X,XX,XXX-X,XX,XXX total
 
 NEGOTIATION POINTS
 • [Specific thing to say]
@@ -140,7 +141,7 @@ FINAL RECOMMENDATION
           <div className="grid grid-cols-3 gap-4">
             <div>
               <span className="text-xs text-gray-500">Quote</span>
-              <p className="text-lg font-bold text-maroon">{formatINR(vendor.quote)}</p>
+              <p className="text-lg font-bold text-maroon">{formatCurrency(vendor.quote, wedding.currency)}</p>
             </div>
             <div>
               <span className="text-xs text-gray-500">Status</span>
@@ -167,7 +168,7 @@ FINAL RECOMMENDATION
               <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6 max-w-sm mx-auto">
                 <p className="text-xs text-amber-700">
                   <i className="fas fa-calculator mr-1" />
-                  {formatINR(quote)} ÷ {guestCount} guests = <strong>{formatINR(perPlate)}/plate</strong>
+                  {formatCurrency(quote, wedding.currency)} ÷ {guestCount} guests = <strong>{formatCurrency(perPlate, wedding.currency)}/plate</strong>
                 </p>
               </div>
               <button
@@ -195,7 +196,7 @@ FINAL RECOMMENDATION
               <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 mb-4">
                 <p className="text-sm text-green-800 font-medium">
                   <i className="fas fa-calculator mr-2" />
-                  {formatINR(quote)} ÷ {guestCount} guests = <strong>{formatINR(perPlate)}/plate</strong>
+                  {formatCurrency(quote, wedding.currency)} ÷ {guestCount} guests = <strong>{formatCurrency(perPlate, wedding.currency)}/plate</strong>
                 </p>
               </div>
               <div

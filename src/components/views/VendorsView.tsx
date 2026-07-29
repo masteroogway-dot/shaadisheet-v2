@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { updateVendor, createVendor, deleteVendor, batchCreateVendors, bulkDeleteVendors, bulkAddVendors } from "@/lib/actions";
-import { formatINR } from "@/lib/format";
+import { formatCurrency, getCurrencySymbol } from "@/lib/format";
 import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
 import CurrencyInput from "@/components/CurrencyInput";
@@ -286,7 +286,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
         </div>
       </div>
 
-      <VendorAlerts vendors={vendors} weddingDate={wedding.weddingDate} />
+      <VendorAlerts vendors={vendors} weddingDate={wedding.weddingDate} wedding={wedding} />
 
       {vendors.length > 0 && (
         <>
@@ -300,11 +300,11 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
             <span className="text-xs text-gray-500">Booked</span>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className="text-2xl font-extrabold block">{formatINR(totalQuote)}</span>
+            <span className="text-2xl font-extrabold block">{formatCurrency(totalQuote, wedding.currency)}</span>
             <span className="text-xs text-gray-500">Total Quote</span>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <span className="text-2xl font-extrabold text-green block">{formatINR(totalPaid)}</span>
+            <span className="text-2xl font-extrabold text-green block">{formatCurrency(totalPaid, wedding.currency)}</span>
             <span className="text-xs text-gray-500">Total Paid</span>
           </div>
         </div>
@@ -491,7 +491,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
                     {isEditing ? (
                       <CurrencyInput value={editData.quote ?? 0} onChange={(val) => setEditData({ ...editData, quote: val })} />
                     ) : (
-                      <p className="text-sm font-semibold">{formatINR(v.quote)}</p>
+                      <p className="text-sm font-semibold">{formatCurrency(v.quote, wedding.currency)}</p>
                     )}
                   </div>
                   <div>
@@ -499,7 +499,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
                     {isEditing ? (
                       <CurrencyInput value={editData.paid ?? 0} onChange={(val) => setEditData({ ...editData, paid: val })} />
                     ) : (
-                      <p className="text-sm font-semibold text-green">{formatINR(v.paid)}</p>
+                      <p className="text-sm font-semibold text-green">{formatCurrency(v.paid, wedding.currency)}</p>
                     )}
                   </div>
                 </div>
@@ -507,7 +507,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Balance</label>
-                    <p className={`text-sm font-bold ${balance > 0 ? "text-yellow" : "text-green"}`}>{formatINR(balance)}</p>
+                    <p className={`text-sm font-bold ${balance > 0 ? "text-yellow" : "text-green"}`}>{formatCurrency(balance, wedding.currency)}</p>
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Rating</label>

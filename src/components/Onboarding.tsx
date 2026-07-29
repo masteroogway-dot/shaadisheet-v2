@@ -2,30 +2,55 @@
 
 import { useState, useRef, useEffect } from "react";
 import DatePicker from "@/components/DatePicker";
+import { COUNTRIES, CITIES_BY_COUNTRY, RELIGIONS_BY_COUNTRY, WEDDING_TEMPLATES } from "@/lib/weddingTemplates";
 
-const REGIONS: Record<string, string[]> = {
-  hindu: ["North Indian", "South Indian", "Bengali", "Gujarati", "Maharashtrian", "Rajput", "Punjabi"],
-  muslim: ["Sunni", "Shia", "Bohra", "Sufi"],
-  sikh: ["Jat Sikh", "Khatri Sikh", "Other"],
-  christian: ["Kerala (Nasrani)", "Goan", "Northeast", "North Indian"],
-  jain: ["Digambar", "Shwetambar"],
-};
+function formatBudgetDisplay(value: number, currency?: string): string {
+  const cfg = (COUNTRIES as any).find((c: any) => c.currency === currency) || { symbol: "\u20B9", currency: "INR" };
+  const symbol = getSymbol(currency);
 
-const EVENTS: Record<string, string[]> = {
-  hindu: ["Roka", "Engagement", "Mehendi", "Sangeet", "Haldi", "Wedding", "Reception"],
-  muslim: ["Mangni", "Mehendi", "Nikah", "Walima"],
-  sikh: ["Kurmai", "Mehendi", "Sangeet", "Anand Karaj", "Langar", "Reception"],
-  christian: ["Engagement", "Roce Ceremony", "Church Wedding", "Reception"],
-  jain: ["Roka", "Engagement", "Mehendi", "Sangeet", "Wedding", "Reception"],
-};
-
-function formatBudgetDisplay(value: number): string {
-  if (value >= 10000000) {
-    const c = value / 10000000;
-    return c % 1 === 0 ? `\u20B9${c} Crore` : `\u20B9${c.toFixed(1)} Crore`;
+  if (["INR", "PKR", "NPR", "BDT"].includes(currency || "INR")) {
+    if (value >= 10000000) {
+      const c = value / 10000000;
+      return c % 1 === 0 ? `${symbol}${c} Crore` : `${symbol}${c.toFixed(1)} Crore`;
+    }
+    const l = value / 100000;
+    return l % 1 === 0 ? `${symbol}${l} Lakh` : `${symbol}${l.toFixed(1)} Lakh`;
   }
-  const l = value / 100000;
-  return l % 1 === 0 ? `\u20B9${l} Lakh` : `\u20B9${l.toFixed(1)} Lakh`;
+
+  if (value >= 1000000) {
+    const m = value / 1000000;
+    return m % 1 === 0 ? `${symbol}${m}M` : `${symbol}${m.toFixed(1)}M`;
+  }
+  if (value >= 1000) {
+    const k = value / 1000;
+    return k % 1 === 0 ? `${symbol}${k}K` : `${symbol}${k.toFixed(1)}K`;
+  }
+  return `${symbol}${value}`;
+}
+
+function getSymbol(currency?: string): string {
+  switch (currency) {
+    case "PKR": return "\u20A8";
+    case "BDT": return "\u09F3";
+    case "LKR": return "Rs ";
+    case "NPR": return "\u20A8";
+    case "MVR": return "Rf ";
+    case "AFN": return "\u060B";
+    default: return "\u20B9";
+  }
+}
+
+function getBudgetRange(currency?: string): { min: number; max: number; step: number } {
+  switch (currency) {
+    case "INR": return { min: 100000, max: 50000000, step: 50000 };
+    case "PKR": return { min: 1500000, max: 50000000, step: 500000 };
+    case "BDT": return { min: 300000, max: 20000000, step: 100000 };
+    case "LKR": return { min: 500000, max: 20000000, step: 100000 };
+    case "NPR": return { min: 500000, max: 10000000, step: 100000 };
+    case "MVR": return { min: 50000, max: 10000000, step: 10000 };
+    case "AFN": return { min: 300000, max: 50000000, step: 100000 };
+    default: return { min: 100000, max: 50000000, step: 50000 };
+  }
 }
 
 interface Props {
@@ -37,6 +62,7 @@ export default function Onboarding({ onComplete }: Props) {
   const [toast, setToast] = useState("");
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [data, setData] = useState({
+    country: "",
     religion: "",
     region: "",
     budget: 1000000,
@@ -52,8 +78,11 @@ export default function Onboarding({ onComplete }: Props) {
   const [guestInput, setGuestInput] = useState("200");
   const [daysInput, setDaysInput] = useState("1");
 
-  const totalSteps = 7;
+  const totalSteps = 8;
   const progress = (step / totalSteps) * 100;
+
+  const currency = COUNTRIES.find((c) => c.id === data.country)?.currency || "INR";
+  const budgetRange = getBudgetRange(currency);
 
   useEffect(() => {
     return () => { if (toastTimer.current) clearTimeout(toastTimer.current); };
@@ -67,13 +96,14 @@ export default function Onboarding({ onComplete }: Props) {
 
   const canContinue = (): boolean => {
     switch (step) {
-      case 1: return !!data.religion;
-      case 2: return !!data.region;
-      case 3: return data.budget >= 1000000;
-      case 4: return data.guestCount >= 50;
-      case 5: return data.weddingDays >= 1;
-      case 6: return data.selectedEvents.length > 0;
-      case 7: return true;
+      case 1: return !!data.country;
+      case 2: return !!data.religion;
+      case 3: return !!data.region;
+      case 4: return data.budget >= budgetRange.min;
+      case 5: return data.guestCount >= 10;
+      case 6: return data.weddingDays >= 1;
+      case 7: return data.selectedEvents.length > 0;
+      case 8: return true;
       default: return false;
     }
   };
@@ -86,8 +116,44 @@ export default function Onboarding({ onComplete }: Props) {
     setStep(step + 1);
   };
 
+  const selectCountry = (countryId: string) => {
+    const country = COUNTRIES.find((c) => c.id === countryId);
+    const newCurrency = country?.currency || "INR";
+    const range = getBudgetRange(newCurrency);
+    setData({
+      ...data,
+      country: countryId,
+      religion: "",
+      region: "",
+      selectedEvents: [],
+      budget: range.min,
+      weddingCity: "",
+    });
+    setBudgetInput(range.min.toString());
+  };
+
   const selectReligion = (r: string) => {
-    setData({ ...data, religion: r, region: "", selectedEvents: EVENTS[r] || [] });
+    const religions = RELIGIONS_BY_COUNTRY[data.country] || [];
+    const religionData = religions.find((rel) => rel.id === r);
+
+    // Auto-populate events from template
+    const templates = WEDDING_TEMPLATES.filter(
+      (t) => t.country === data.country && t.religion === r
+    );
+    const defaultTemplate = templates[0];
+    const events = defaultTemplate ? defaultTemplate.events.map((e) => e.name) : [];
+
+    setData({ ...data, religion: r, region: "", selectedEvents: events });
+  };
+
+  const selectRegion = (r: string) => {
+    // Find the template for this combination and update events
+    const template = WEDDING_TEMPLATES.find(
+      (t) => t.country === data.country && t.religion === data.religion && t.region === r
+    );
+    const events = template ? template.events.map((e) => e.name) : data.selectedEvents;
+
+    setData({ ...data, region: r, selectedEvents: events });
   };
 
   const toggleEvent = (e: string) => {
@@ -100,7 +166,7 @@ export default function Onboarding({ onComplete }: Props) {
   };
 
   const handleBudgetChange = (value: number) => {
-    const clamped = Math.max(1000000, Math.min(100000000, value));
+    const clamped = Math.max(budgetRange.min, Math.min(budgetRange.max, value));
     setData({ ...data, budget: clamped });
     setBudgetInput(clamped.toString());
   };
@@ -109,13 +175,13 @@ export default function Onboarding({ onComplete }: Props) {
     setBudgetInput(val);
     const num = parseInt(val.replace(/[^\d]/g, ""), 10);
     if (!isNaN(num)) {
-      const clamped = Math.max(1000000, Math.min(100000000, num));
+      const clamped = Math.max(budgetRange.min, Math.min(budgetRange.max, num));
       setData({ ...data, budget: clamped });
     }
   };
 
   const handleGuestChange = (value: number) => {
-    const clamped = Math.max(50, Math.min(5000, value));
+    const clamped = Math.max(10, Math.min(5000, value));
     setData({ ...data, guestCount: clamped });
     setGuestInput(clamped.toString());
   };
@@ -124,7 +190,7 @@ export default function Onboarding({ onComplete }: Props) {
     setGuestInput(val);
     const num = parseInt(val.replace(/[^\d]/g, ""), 10);
     if (!isNaN(num)) {
-      const clamped = Math.max(50, Math.min(5000, num));
+      const clamped = Math.max(10, Math.min(5000, num));
       setData({ ...data, guestCount: clamped });
     }
   };
@@ -134,6 +200,41 @@ export default function Onboarding({ onComplete }: Props) {
     setData({ ...data, weddingDays: clamped });
     setDaysInput(clamped.toString());
   };
+
+  const religions = RELIGIONS_BY_COUNTRY[data.country] || [];
+  const regions: Record<string, string[]> = {
+    hindu: data.country === "india"
+      ? ["North Indian", "South Indian", "Bengali", "Gujarati", "Maharashtrian", "Rajput", "Punjabi"]
+      : data.country === "bangladesh"
+        ? ["Bengali"]
+        : data.country === "nepal"
+          ? ["Nepali", "Newari"]
+          : data.country === "sri_lanka"
+            ? ["Tamil"]
+            : [],
+    muslim: data.country === "pakistan"
+      ? ["Sunni"]
+      : data.country === "bangladesh"
+        ? ["Bengali"]
+        : data.country === "maldives"
+          ? ["Maldivian"]
+          : data.country === "afghanistan"
+            ? ["Pashtun"]
+            : ["Indian"],
+    sikh: ["Punjabi"],
+    buddhist: ["Sinhalese"],
+    christian: ["Indian"],
+    jain: ["Indian"],
+  };
+
+  // Get events for current selection
+  const template = WEDDING_TEMPLATES.find(
+    (t) => t.country === data.country && t.religion === data.religion && t.region === data.region
+  );
+  const availableEvents = template ? template.events.map((e) => e.name) : [];
+
+  // Get cities for selected country
+  const cities = CITIES_BY_COUNTRY[data.country] || [];
 
   return (
     <div className="min-h-screen bg-cream flex flex-col relative">
@@ -157,37 +258,51 @@ export default function Onboarding({ onComplete }: Props) {
 
       <div className="flex-1 flex items-center justify-center px-4 md:px-6">
         <div className="w-full max-w-[720px]">
+
+          {/* STEP 1: Country */}
           {step === 1 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
-              <h2 className="text-xl md:text-3xl font-bold mb-2">What type of wedding are you planning?</h2>
-              <p className="text-gray-500 mb-6 md:mb-8 text-sm md:text-base">This helps us load the right rituals, templates, and budget categories.</p>
+              <h2 className="text-xl md:text-3xl font-bold mb-2">Where is your wedding?</h2>
+              <p className="text-gray-500 mb-6 md:mb-8 text-sm md:text-base">Select your country to get the right traditions, currency, and planning defaults.</p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-                {[
-                  { id: "hindu", label: "Hindu Wedding", icon: <DiyaIcon /> },
-                  { id: "muslim", label: "Muslim Wedding", icon: <CrescentIcon /> },
-                  { id: "sikh", label: "Sikh Wedding", icon: <KhandaIcon /> },
-                  { id: "christian", label: "Christian Wedding", icon: <CrossIcon /> },
-                  { id: "jain", label: "Jain Wedding", icon: <AhimsaIcon /> },
-                ].map((r) => (
-                  <button key={r.id} onClick={() => selectReligion(r.id)}
-                    className={`flex flex-col items-center gap-2 md:gap-3 p-4 md:p-7 bg-white border-2 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md ${data.religion === r.id ? "border-maroon shadow-[0_0_0_3px_rgba(139,0,0,0.1)] bg-gradient-to-br from-maroon/5 to-gold/5" : "border-gray-200"}`}>
-                    <div className={`w-10 h-10 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-colors ${data.religion === r.id ? "bg-maroon text-white" : "bg-gradient-to-br from-maroon/10 to-gold/10 text-maroon"}`}>
-                      {r.icon}
-                    </div>
-                    <span className="font-semibold text-xs md:text-sm">{r.label}</span>
+                {COUNTRIES.map((c) => (
+                  <button key={c.id} onClick={() => selectCountry(c.id)}
+                    className={`flex flex-col items-center gap-2 md:gap-3 p-4 md:p-7 bg-white border-2 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md ${data.country === c.id ? "border-maroon shadow-[0_0_0_3px_rgba(139,0,0,0.1)] bg-gradient-to-br from-maroon/5 to-gold/5" : "border-gray-200"}`}>
+                    <span className="text-3xl md:text-5xl">{c.flag}</span>
+                    <span className="font-semibold text-xs md:text-sm">{c.name}</span>
                   </button>
                 ))}
               </div>
             </div>
           )}
 
+          {/* STEP 2: Religion */}
           {step === 2 && (
+            <div className="animate-[fadeInUp_0.4s_ease]">
+              <h2 className="text-xl md:text-3xl font-bold mb-2">What type of wedding are you planning?</h2>
+              <p className="text-gray-500 mb-6 md:mb-8 text-sm md:text-base">This helps us load the right rituals, templates, and budget categories.</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                {religions.map((r) => (
+                  <button key={r.id} onClick={() => selectReligion(r.id)}
+                    className={`flex flex-col items-center gap-2 md:gap-3 p-4 md:p-7 bg-white border-2 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md ${data.religion === r.id ? "border-maroon shadow-[0_0_0_3px_rgba(139,0,0,0.1)] bg-gradient-to-br from-maroon/5 to-gold/5" : "border-gray-200"}`}>
+                    <div className={`w-10 h-10 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-colors ${data.religion === r.id ? "bg-maroon text-white" : "bg-gradient-to-br from-maroon/10 to-gold/10 text-maroon"}`}>
+                      <ReligionIcon religion={r.id} />
+                    </div>
+                    <span className="font-semibold text-xs md:text-sm">{r.name} Wedding</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: Region */}
+          {step === 3 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-xl md:text-3xl font-bold mb-2">Which region/community?</h2>
               <p className="text-gray-500 mb-6 md:mb-8 text-sm md:text-base">This customizes the specific rituals and traditions.</p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-                {(REGIONS[data.religion] || REGIONS.hindu).map((r) => (
-                  <button key={r} onClick={() => setData({ ...data, region: r })}
+                {(regions[data.religion] || []).map((r) => (
+                  <button key={r} onClick={() => selectRegion(r)}
                     className={`flex flex-col items-center gap-2 md:gap-3 p-4 md:p-7 bg-white border-2 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md ${data.region === r ? "border-maroon shadow-[0_0_0_3px_rgba(139,0,0,0.1)] bg-gradient-to-br from-maroon/5 to-gold/5" : "border-gray-200"}`}>
                     <div className={`w-10 h-10 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-colors ${data.region === r ? "bg-maroon text-white" : "bg-gradient-to-br from-maroon/10 to-gold/10 text-maroon"}`}>
                       <MapPinIcon />
@@ -199,39 +314,40 @@ export default function Onboarding({ onComplete }: Props) {
             </div>
           )}
 
-          {step === 3 && (
+          {/* STEP 4: Budget */}
+          {step === 4 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-xl md:text-3xl font-bold mb-2">What&apos;s your wedding budget?</h2>
               <p className="text-gray-500 mb-1 text-sm md:text-base">This helps us suggest realistic allocations.</p>
               <p className="text-xs md:text-sm text-gray-400 mb-6 md:mb-8 italic">Can always be changed later</p>
               <div className="bg-white border border-gray-200 rounded-2xl p-5 md:p-8">
                 <div className="text-center mb-6 md:mb-8">
-                  <span className="text-3xl md:text-5xl font-extrabold text-maroon">{formatBudgetDisplay(data.budget)}</span>
+                  <span className="text-3xl md:text-5xl font-extrabold text-maroon">{formatBudgetDisplay(data.budget, currency)}</span>
                 </div>
                 <input
                   type="range"
-                  min={1000000}
-                  max={100000000}
-                  step={50000}
+                  min={budgetRange.min}
+                  max={budgetRange.max}
+                  step={budgetRange.step}
                   value={data.budget}
                   onChange={(e) => handleBudgetChange(parseInt(e.target.value))}
                   className="w-full mb-4"
                 />
                 <div className="flex justify-between text-xs text-gray-400 font-medium mb-6">
-                  <span>{"\u20B9"}10 Lakh</span>
-                  <span>{"\u20B9"}10 Crore</span>
+                  <span>{getSymbol(currency)}{budgetRange.min >= 100000 ? (budgetRange.min / 100000).toFixed(0) + " L" : budgetRange.min.toLocaleString()}</span>
+                  <span>{getSymbol(currency)}{budgetRange.max >= 10000000 ? (budgetRange.max / 10000000).toFixed(0) + " Cr" : budgetRange.max >= 100000 ? (budgetRange.max / 100000).toFixed(0) + " L" : budgetRange.max.toLocaleString()}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <label className="text-sm font-semibold text-gray-600">Or type amount:</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">{"\u20B9"}</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">{getSymbol(currency)}</span>
                     <input
                       type="text"
                       value={budgetInput}
                       onChange={(e) => handleBudgetInputChange(e.target.value)}
                       onBlur={() => {
                         const num = parseInt(budgetInput.replace(/[^\d]/g, ""), 10);
-                        handleBudgetChange(isNaN(num) ? 1000000 : Math.max(1000000, Math.min(100000000, num)));
+                        handleBudgetChange(isNaN(num) ? budgetRange.min : Math.max(budgetRange.min, Math.min(budgetRange.max, num)));
                       }}
                       className="w-48 pl-8 pr-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon transition-colors text-right font-mono"
                     />
@@ -241,7 +357,8 @@ export default function Onboarding({ onComplete }: Props) {
             </div>
           )}
 
-          {step === 4 && (
+          {/* STEP 5: Guest Count */}
+          {step === 5 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-xl md:text-3xl font-bold mb-2">How many guests are you expecting?</h2>
               <p className="text-gray-500 mb-1 text-sm md:text-base">This affects your catering budget and venue selection.</p>
@@ -253,7 +370,7 @@ export default function Onboarding({ onComplete }: Props) {
                 </div>
                 <input
                   type="range"
-                  min={50}
+                  min={10}
                   max={5000}
                   step={10}
                   value={data.guestCount}
@@ -261,7 +378,7 @@ export default function Onboarding({ onComplete }: Props) {
                   className="w-full mb-4"
                 />
                 <div className="flex justify-between text-xs text-gray-400 font-medium mb-6">
-                  <span>50</span>
+                  <span>10</span>
                   <span>5,000</span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -272,7 +389,7 @@ export default function Onboarding({ onComplete }: Props) {
                     onChange={(e) => handleGuestInputChange(e.target.value)}
                     onBlur={() => {
                       const num = parseInt(guestInput.replace(/[^\d]/g, ""), 10);
-                      handleGuestChange(isNaN(num) ? 50 : Math.max(50, Math.min(5000, num)));
+                      handleGuestChange(isNaN(num) ? 10 : Math.max(10, Math.min(5000, num)));
                     }}
                     className="w-32 px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:border-maroon transition-colors text-right font-mono"
                   />
@@ -281,10 +398,11 @@ export default function Onboarding({ onComplete }: Props) {
             </div>
           )}
 
-          {step === 5 && (
+          {/* STEP 6: Wedding Days */}
+          {step === 6 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-xl md:text-3xl font-bold mb-2">How many days will the main wedding span?</h2>
-              <p className="text-gray-500 mb-6 md:mb-8 text-sm md:text-base">Indian weddings often span multiple days. This helps us plan the timeline.</p>
+              <p className="text-gray-500 mb-6 md:mb-8 text-sm md:text-base">This helps us plan the timeline. Many South Asian weddings span multiple days.</p>
               <div className="bg-white border border-gray-200 rounded-2xl p-5 md:p-8">
                 <div className="text-center mb-6 md:mb-8">
                   <span className="text-3xl md:text-5xl font-extrabold text-maroon">{data.weddingDays}</span>
@@ -324,30 +442,38 @@ export default function Onboarding({ onComplete }: Props) {
             </div>
           )}
 
-          {step === 6 && (
+          {/* STEP 7: Events */}
+          {step === 7 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-xl md:text-3xl font-bold mb-2">Which events are you planning?</h2>
               <p className="text-gray-500 mb-1 text-sm md:text-base">Select all that apply. We&apos;ll create a timeline for each.</p>
               <p className="text-xs md:text-sm text-gray-400 mb-4 md:mb-6 italic">You can add more events later</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
-                {(EVENTS[data.religion] || EVENTS.hindu).map((e) => (
-                  <button key={e} onClick={() => toggleEvent(e)}
-                    className={`flex items-center gap-3 p-4 bg-white border-2 rounded-lg cursor-pointer transition-all ${data.selectedEvents.includes(e) ? "border-maroon bg-maroon/5" : "border-gray-200"}`}>
-                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${data.selectedEvents.includes(e) ? "border-maroon bg-maroon" : "border-gray-300"}`}>
-                      {data.selectedEvents.includes(e) && (
-                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </div>
-                    <span className="font-medium text-sm">{e}</span>
-                  </button>
-                ))}
-              </div>
+              {availableEvents.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
+                  {availableEvents.map((e) => (
+                    <button key={e} onClick={() => toggleEvent(e)}
+                      className={`flex items-center gap-3 p-4 bg-white border-2 rounded-lg cursor-pointer transition-all ${data.selectedEvents.includes(e) ? "border-maroon bg-maroon/5" : "border-gray-200"}`}>
+                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${data.selectedEvents.includes(e) ? "border-maroon bg-maroon" : "border-gray-300"}`}>
+                        {data.selectedEvents.includes(e) && (
+                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className="font-medium text-sm">{e}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-400">
+                  <p>Loading events for your selection...</p>
+                </div>
+              )}
             </div>
           )}
 
-          {step === 7 && (
+          {/* STEP 8: Date, City, Name */}
+          {step === 8 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-xl md:text-3xl font-bold mb-2">Almost done! When and where?</h2>
               <p className="text-gray-500 mb-6 md:mb-8 text-sm md:text-base">We&apos;ll set up reminders based on your wedding date. You can always change this later.</p>
@@ -361,7 +487,7 @@ export default function Onboarding({ onComplete }: Props) {
                   <select value={data.weddingCity} onChange={(e) => setData({ ...data, weddingCity: e.target.value })}
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-maroon transition-colors bg-white">
                     <option value="">Select your city</option>
-                    {["Mumbai", "Delhi NCR", "Bangalore", "Hyderabad", "Pune", "Nashik", "Jaipur", "Ahmedabad", "Kolkata", "Chennai", "Other"].map((c) => (
+                    {cities.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
@@ -401,7 +527,7 @@ export default function Onboarding({ onComplete }: Props) {
                 </svg>
               </button>
             ) : (
-              <button onClick={() => onComplete(data)}
+              <button onClick={() => onComplete({ ...data, currency })}
                 className="flex items-center gap-2 px-5 md:px-8 py-2.5 md:py-4 text-sm md:text-lg font-bold text-white bg-gradient-to-br from-maroon to-maroon-light rounded-lg shadow-[0_4px_15px_rgba(139,0,0,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(139,0,0,0.4)] transition-all cursor-pointer">
                 Create My Wedding Plan
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -416,101 +542,88 @@ export default function Onboarding({ onComplete }: Props) {
   );
 }
 
-function DiyaIcon() {
-  return (
-    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      {/* Temple dome */}
-      <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
-      <path d="M4 18h16" />
-      <path d="M5 18v-4h14v4" />
-      <path d="M7 14v-3h10v3" />
-      <path d="M8 11V8h8v3" />
-      {/* Dome */}
-      <path d="M9 8c0-3 1.5-5 3-5s3 2 3 5" />
-      {/* Kalash on top */}
-      <circle cx="12" cy="2.5" r="1" fill="currentColor" opacity="0.3" />
-      <path d="M11.5 3.5v1" />
-      {/* Pillars */}
-      <line x1="7" y1="14" x2="7" y2="18" />
-      <line x1="17" y1="14" x2="17" y2="18" />
-    </svg>
-  );
-}
-
-function CrescentIcon() {
-  return (
-    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      {/* Mosque dome */}
-      <path d="M3 18h18v2H3z" fill="currentColor" opacity="0.15" />
-      <path d="M3 18h18" />
-      <path d="M5 18v-5h14v5" />
-      <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
-      {/* Minarets */}
-      <line x1="4" y1="8" x2="4" y2="18" />
-      <line x1="20" y1="8" x2="20" y2="18" />
-      <circle cx="4" cy="7.5" r="0.8" fill="currentColor" opacity="0.3" />
-      <circle cx="20" cy="7.5" r="0.8" fill="currentColor" opacity="0.3" />
-      {/* Crescent on top */}
-      <path d="M11 4.5a1.5 1.5 0 1 0 2 0 1.5 1.5 0 0 0-2 0" fill="currentColor" opacity="0.4" />
-    </svg>
-  );
-}
-
-function KhandaIcon() {
-  return (
-    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      {/* Gurdwara dome structure */}
-      <path d="M3 18h18v2H3z" fill="currentColor" opacity="0.15" />
-      <path d="M3 18h18" />
-      <path d="M6 18v-4h12v4" />
-      {/* Main dome */}
-      <path d="M8 14c0-4 2-7 4-7s4 3 4 7" />
-      {/* Small dome on top */}
-      <path d="M10.5 7c0-1.5.7-3 1.5-3s1.5 1.5 1.5 3" />
-      {/* Khanda symbol on dome */}
-      <line x1="12" y1="5" x2="12" y2="3" />
-      <circle cx="12" cy="2.5" r="0.6" fill="currentColor" />
-    </svg>
-  );
-}
-
-function CrossIcon() {
-  return (
-    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      {/* Church building */}
-      <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
-      <path d="M4 18h16" />
-      <path d="M6 18v-6h12v6" />
-      {/* Steeple */}
-      <path d="M10 12V7l2-4 2 4v5" />
-      {/* Cross on top */}
-      <line x1="12" y1="1" x2="12" y2="3" />
-      <line x1="11" y1="2" x2="13" y2="2" />
-      {/* Door */}
-      <path d="M10.5 18v-3h3v3" />
-      {/* Window */}
-      <circle cx="12" cy="14.5" r="1" />
-    </svg>
-  );
-}
-
-function AhimsaIcon() {
-  return (
-    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      {/* Jain temple / Ahimsa hand */}
-      <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
-      <path d="M4 18h16" />
-      <path d="M6 18v-5h12v5" />
-      {/* Dome */}
-      <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
-      {/* Ahimsa hand (palm with wheel) */}
-      <circle cx="12" cy="12" r="2.5" />
-      <circle cx="12" cy="12" r="1" fill="currentColor" opacity="0.3" />
-      {/* Small spire on top */}
-      <line x1="12" y1="6" x2="12" y2="4" />
-      <circle cx="12" cy="3.5" r="0.5" fill="currentColor" opacity="0.4" />
-    </svg>
-  );
+function ReligionIcon({ religion }: { religion: string }) {
+  switch (religion) {
+    case "hindu":
+      return (
+        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+          <path d="M4 18h16" />
+          <path d="M5 18v-4h14v4" />
+          <path d="M7 14v-3h10v3" />
+          <path d="M8 11V8h8v3" />
+          <path d="M9 8c0-3 1.5-5 3-5s3 2 3 5" />
+          <circle cx="12" cy="2.5" r="1" fill="currentColor" opacity="0.3" />
+          <line x1="7" y1="14" x2="7" y2="18" />
+          <line x1="17" y1="14" x2="17" y2="18" />
+        </svg>
+      );
+    case "muslim":
+      return (
+        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 18h18v2H3z" fill="currentColor" opacity="0.15" />
+          <path d="M3 18h18" />
+          <path d="M5 18v-5h14v5" />
+          <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
+          <line x1="4" y1="8" x2="4" y2="18" />
+          <line x1="20" y1="8" x2="20" y2="18" />
+          <circle cx="4" cy="7.5" r="0.8" fill="currentColor" opacity="0.3" />
+          <circle cx="20" cy="7.5" r="0.8" fill="currentColor" opacity="0.3" />
+        </svg>
+      );
+    case "sikh":
+      return (
+        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 18h18v2H3z" fill="currentColor" opacity="0.15" />
+          <path d="M3 18h18" />
+          <path d="M6 18v-4h12v4" />
+          <path d="M8 14c0-4 2-7 4-7s4 3 4 7" />
+          <path d="M10.5 7c0-1.5.7-3 1.5-3s1.5 1.5 1.5 3" />
+          <line x1="12" y1="5" x2="12" y2="3" />
+          <circle cx="12" cy="2.5" r="0.6" fill="currentColor" />
+        </svg>
+      );
+    case "christian":
+      return (
+        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+          <path d="M4 18h16" />
+          <path d="M6 18v-6h12v6" />
+          <path d="M10 12V7l2-4 2 4v5" />
+          <line x1="12" y1="1" x2="12" y2="3" />
+          <line x1="11" y1="2" x2="13" y2="2" />
+          <circle cx="12" cy="14.5" r="1" />
+        </svg>
+      );
+    case "jain":
+      return (
+        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+          <path d="M4 18h16" />
+          <path d="M6 18v-5h12v5" />
+          <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
+          <circle cx="12" cy="12" r="2.5" />
+          <circle cx="12" cy="12" r="1" fill="currentColor" opacity="0.3" />
+          <line x1="12" y1="6" x2="12" y2="4" />
+          <circle cx="12" cy="3.5" r="0.5" fill="currentColor" opacity="0.4" />
+        </svg>
+      );
+    case "buddhist":
+      return (
+        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+          <path d="M4 18h16" />
+          <path d="M6 18v-5h12v5" />
+          <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
+          <circle cx="12" cy="12" r="2" />
+          <circle cx="12" cy="12" r="0.8" fill="currentColor" opacity="0.3" />
+          <line x1="12" y1="6" x2="12" y2="4" />
+          <circle cx="12" cy="3" r="0.5" fill="currentColor" />
+        </svg>
+      );
+    default:
+      return <MapPinIcon />;
+  }
 }
 
 function MapPinIcon() {

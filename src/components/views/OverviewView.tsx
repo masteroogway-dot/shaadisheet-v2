@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import CountUp from "@/components/animations/CountUp";
 import { updateWedding } from "@/lib/actions";
-import { formatINR, formatINRAbbrev } from "@/lib/format";
+import { formatCurrency, formatCurrencyAbbrev, getCurrencySymbol } from "@/lib/format";
 import InviteModal from "@/components/InviteModal";
 import WeddingWebsiteModal from "@/components/WeddingWebsiteModal";
 import WeddingQuestionnaire from "@/components/WeddingQuestionnaire";
@@ -56,7 +56,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
   const handleSaveBudget = async () => {
     const val = parseInt(editBudget) || 0;
     if (val < BUDGET_MIN || val > BUDGET_MAX) {
-      addToast("Budget must be between ₹10 Lakh and ₹10 Crore", "error");
+      addToast(`Budget must be between ${getCurrencySymbol(wedding.currency)}10 Lakh and ${getCurrencySymbol(wedding.currency)}10 Crore`, "error");
       return;
     }
     setSaving(true);
@@ -341,12 +341,12 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
               {[
-                { label: "Total Budget", numVal: totalBudget, prefix: totalBudget > 0 ? "₹" : "", suffix: "", formatFn: totalBudget > 0 ? formatINRAbbrev : undefined, sub: totalSpent > 0 ? `₹${formatINR(totalSpent)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
+                { label: "Total Budget", numVal: totalBudget, prefix: totalBudget > 0 ? getCurrencySymbol(wedding.currency) : "", suffix: "", formatFn: totalBudget > 0 ? (v: number) => formatCurrencyAbbrev(v, wedding.currency) : undefined, sub: totalSpent > 0 ? `${getCurrencySymbol(wedding.currency)}${formatCurrency(totalSpent, wedding.currency)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
                 { label: "Guests", numVal: totalGuests, prefix: "", suffix: "", formatFn: undefined, sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : floating > 0 ? `${floating} local/floating` : "No RSVPs yet", icon: "fa-users", gradient: "from-green to-green/80" },
                 { label: "Vendors", numVal: vendorsBooked, prefix: "", suffix: totalVendors > 0 ? ` / ${totalVendors}` : "", formatFn: undefined, sub: totalVendors > 0 ? `${totalVendors - vendorsBooked} remaining` : "No vendors added", icon: "fa-store", gradient: "from-blue to-blue/80" },
                 { label: "Tasks", numVal: tasksDone, prefix: "", suffix: totalTasks > 0 ? ` / ${totalTasks}` : "", formatFn: undefined, sub: totalTasks > 0 ? `${totalTasks - tasksDone} remaining` : "No tasks yet", icon: "fa-tasks", gradient: "from-orange-600 to-red-700" },
                 { label: "Rooms", numVal: totalRooms, prefix: "", suffix: "", formatFn: undefined, sub: roomsOccupied > 0 ? `${roomsOccupied} checked in` : needsRoom > 0 ? `${needsRoom} guests need rooms` : totalRooms > 0 ? "None checked in" : "No rooms allocated", icon: "fa-bed", gradient: "from-purple-600 to-purple-800" },
-                { label: "Gifts", numVal: totalGiftAmount, prefix: totalGiftAmount > 0 ? "₹" : "", suffix: "", formatFn: totalGiftAmount > 0 ? formatINRAbbrev : undefined, sub: totalGifts > 0 ? `${totalGifts} gifts${pendingThankYous > 0 ? ` \u2022 ${pendingThankYous} pending thank-yous` : ""}` : "No gifts tracked", icon: "fa-gift", gradient: "from-pink-500 to-rose-600" },
+                { label: "Gifts", numVal: totalGiftAmount, prefix: totalGiftAmount > 0 ? getCurrencySymbol(wedding.currency) : "", suffix: "", formatFn: totalGiftAmount > 0 ? (v: number) => formatCurrencyAbbrev(v, wedding.currency) : undefined, sub: totalGifts > 0 ? `${totalGifts} gifts${pendingThankYous > 0 ? ` \u2022 ${pendingThankYous} pending thank-yous` : ""}` : "No gifts tracked", icon: "fa-gift", gradient: "from-pink-500 to-rose-600" },
               ].map((s, i) => (
                 <div key={i} className="bg-white rounded-xl p-5 md:p-6 border border-gray-200 flex items-center gap-4 hover:shadow-lg transition-all duration-300 hover:border-gray-300 group">
                   <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${s.gradient} flex items-center justify-center text-white shrink-0 shadow-sm group-hover:scale-105 transition-transform`}>
@@ -405,7 +405,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                         onChange={(val) => setEditBudget(String(val))}
                         placeholder={String(wedding.budget || "")}
                       />
-                      <p className="text-[0.65rem] text-gray-400 mt-1">Min: ₹10 Lakh, Max: ₹10 Crore</p>
+                      <p className="text-[0.65rem] text-gray-400 mt-1">Min: {getCurrencySymbol(wedding.currency)}10 Lakh, Max: {getCurrencySymbol(wedding.currency)}10 Crore</p>
                       <div className="flex gap-2 mt-3">
                         <button onClick={handleSaveBudget} disabled={saving} className="px-3 py-1.5 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
                           {saving ? "Saving..." : "Save"}
@@ -418,7 +418,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                   ) : (
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-lg font-extrabold text-gray-900 truncate">
-                        {totalBudget > 0 ? formatINR(totalBudget) : "Not set"}
+                        {totalBudget > 0 ? formatCurrency(totalBudget, wedding.currency) : "Not set"}
                       </p>
                       {canEditBudget && (
                         <button onClick={() => { setEditBudget(String(wedding.budget || "")); setEditingBudget(true); }} className="px-2.5 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer shrink-0">
@@ -786,7 +786,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                         <div key={cat}>
                           <div className="flex justify-between text-sm mb-1.5 gap-2">
                             <span className="font-medium truncate min-w-0">{cat}</span>
-                            <span className="text-gray-500 whitespace-nowrap shrink-0">{formatINR(spent)} / {formatINR(budget)}</span>
+                            <span className="text-gray-500 whitespace-nowrap shrink-0">{formatCurrency(spent, wedding.currency)} / {formatCurrency(budget, wedding.currency)}</span>
                           </div>
                           <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
                             <div className={`h-full bg-gradient-to-r ${colors[i % colors.length]} rounded-full transition-all duration-700`} style={{ width: `${pct}%` }} />

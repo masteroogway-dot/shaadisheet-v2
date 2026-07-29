@@ -3,7 +3,8 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { createOutfit, updateOutfit, deleteOutfit, bulkDeleteOutfits, batchCreateOutfits, bulkAddOutfits } from "@/lib/actions";
-import { formatINR } from "@/lib/format";
+import { formatCurrency, getCurrencySymbol } from "@/lib/format";
+import CurrencyInput from "@/components/CurrencyInput";
 import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
 
@@ -281,7 +282,7 @@ export default function OutfitPlannerView({ wedding, weddingId, onUpdate, onToas
       <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between">
         <div>
           <span className="text-sm text-gray-500">Total Outfit Cost</span>
-          <div className="text-xl font-bold text-gray-900">{formatINR(totalCost)}</div>
+          <div className="text-xl font-bold text-gray-900">{formatCurrency(totalCost, wedding.currency)}</div>
         </div>
         <div className="text-right">
           <span className="text-sm text-gray-500">Events Covered</span>
@@ -368,7 +369,7 @@ export default function OutfitPlannerView({ wedding, weddingId, onUpdate, onToas
                             <div className={`inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${statusColor(o.status)}`}>
                               {statusIcon(o.status)} {o.status}
                             </div>
-                            {o.cost ? <div className="text-gray-400 mt-0.5">{formatINR(o.cost)}</div> : null}
+                            {o.cost ? <div className="text-gray-400 mt-0.5">{formatCurrency(o.cost, wedding.currency)}</div> : null}
                           </div>
                         ) : (
                           <span className="text-gray-300">—</span>
@@ -441,7 +442,7 @@ export default function OutfitPlannerView({ wedding, weddingId, onUpdate, onToas
                   <select value={editData.status || "Shopping"} onChange={(e) => setEditData({ ...editData, status: e.target.value })} className="px-3 py-2 text-sm border rounded-lg bg-white">
                     {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
-                  <input type="number" placeholder="Cost (₹)" value={editData.cost || ""} onChange={(e) => setEditData({ ...editData, cost: parseInt(e.target.value) || 0 })} className="px-3 py-2 text-sm border rounded-lg" />
+                  <CurrencyInput value={editData.cost ?? 0} onChange={(val) => setEditData({ ...editData, cost: val })} currency={wedding.currency} />
                   <input type="text" placeholder="Jewelry Pairing" value={editData.jewelryPairing || ""} onChange={(e) => setEditData({ ...editData, jewelryPairing: e.target.value })} className="px-3 py-2 text-sm border rounded-lg" />
                   <input type="text" placeholder="Notes" value={editData.notes || ""} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} className="px-3 py-2 text-sm border rounded-lg" />
                   <div className="flex gap-2 col-span-full">
@@ -463,7 +464,7 @@ export default function OutfitPlannerView({ wedding, weddingId, onUpdate, onToas
                     {o.description && <div className="text-sm text-gray-500 mt-1">{o.description}</div>}
                     <div className="flex flex-wrap gap-3 mt-1 text-xs text-gray-400">
                       {o.designer && <span><i className="fas fa-palette mr-1" />{o.designer}</span>}
-                      {o.cost ? <span><i className="fas fa-rupee-sign mr-1" />{formatINR(o.cost)}</span> : null}
+                      {o.cost ? <span><i className="fas fa-rupee-sign mr-1" />{formatCurrency(o.cost, wedding.currency)}</span> : null}
                       {o.jewelryPairing && <span><i className="fas fa-gem mr-1" />{o.jewelryPairing}</span>}
                     </div>
                   </div>
