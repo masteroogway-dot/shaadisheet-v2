@@ -74,13 +74,52 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
     if (bulkCount < 1) return;
     try {
       await bulkAddSeatingTables(weddingId, bulkCount);
-      setShowBulkInput(false);
-      setBulkCount(1);
-      onUpdate();
-      onToast(`${bulkCount} table${bulkCount > 1 ? "s" : ""} added`, "success");
-    } catch {
-      onToast("Failed to add tables", "error");
+      setShowBulkInput(false); setBulkCount(1); onUpdate(); onToast(`${bulkCount} table${bulkCount > 1 ? "s" : ""} added`, "success");
+    } catch { onToast("Failed to add tables", "error"); }
+  };
+
+  const handleAutoAssign = async () => {
+    if (tables.length === 0 || unassignedGuests.length === 0) return;
+    const brideTables = tables.filter((t: any) => {
+      let g: string[] = [];
+      try { g = JSON.parse(t.guests || "[]"); } catch { g = []; }
+      return g.length < (t.capacity || 8);
+    });
+    if (brideTables.length === 0) { onToast("No tables with space available", "error"); return; }
+
+    let assigned = 0;
+    for (const guest of unassignedGuests) {
+      const side = guest.side === "Bride" ? "Bride" : guest.side === "Groom" ? "Groom" : "Both";
+      let targetTable = brideTables.find((t: any) => {
+        let g: string[] = [];
+        try { g = JSON.parse(t.guests || "[]"); } catch { g = []; }
+        if (g.length >= (t.capacity || 8)) return false;
+        const tableName = (t.name || "").toLowerCase();
+        if (side === "Bride" && (tableName.includes("bride") || tableName.includes("family"))) return true;
+        if (side === "Groom" && (tableName.includes("groom") || tableName.includes("family"))) return true;
+        return true;
+      });
+      if (!targetTable) targetTable = brideTables.find((t: any) => {
+        let g: string[] = [];
+        try { g = JSON.parse(t.guests || "[]"); } catch { g = []; }
+        return g.length < (t.capacity || 8);
+      });
+      if (!targetTable) break;
+
+      let currentGuests: string[] = [];
+      try { currentGuests = JSON.parse(targetTable.guests || "[]"); } catch { currentGuests = []; }
+      currentGuests.push(guest.name);
+      await updateSeatingTable(weddingId, targetTable.id, { guests: JSON.stringify(currentGuests) });
+      assigned++;
+      let g: string[] = [];
+      try { g = JSON.parse(targetTable.guests || "[]"); } catch { g = []; }
+      if (g.length >= (targetTable.capacity || 8)) {
+        const idx = brideTables.indexOf(targetTable);
+        if (idx > -1) brideTables.splice(idx, 1);
+      }
     }
+    if (assigned > 0) { onUpdate(); onToast(`Auto-assigned ${assigned} guest${assigned > 1 ? "s" : ""}`, "success"); }
+    else { onToast("Could not auto-assign guests", "error"); }
   };
 
   const handleAddTable = async () => {
@@ -194,6 +233,11 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
               </div>
             </>
           )}
+          {canEdit && unassignedGuests.length > 0 && tables.length > 0 && (
+            <button onClick={handleAutoAssign} className="px-4 py-2 bg-green-50 text-green-700 border border-green-200 rounded-lg text-sm font-semibold hover:bg-green-100 transition-colors">
+              <i className="fas fa-wand-magic-sparkles mr-1.5" /> Auto-Assign
+            </button>
+          )}
           {canEdit && (
             <button onClick={handleAddTable} className="btn-maroon">
               <i className="fas fa-plus" /> Add Table
@@ -300,6 +344,25 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
                 </div>
               </div>
 
+              {/* Dietary breakdown */}
+              {tableGuests.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {(() => {
+                    const counts: Record<string, number> = {};
+                    tableGuests.forEach((gn: string) => {
+                      const gObj = guests.find((g: any) => g.name === gn);
+                      const d = gObj?.dietary || "Veg";
+                      counts[d] = (counts[d] || 0) + 1;
+                    });
+                    return Object.entries(counts).map(([diet, count]) => (
+                      <span key={diet} className={`text-[0.55rem] font-semibold px-1.5 py-0.5 rounded-full ${diet === "Veg" ? "bg-green-100 text-green-700" : diet === "Non-Veg" ? "bg-red-100 text-red-700" : diet === "Jain" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>
+                        {count} {diet}
+                      </span>
+                    ));
+                  })()}
+                </div>
+              )}
+
               {/* Guest tags */}
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {tableGuests.length > 0 ? (
@@ -345,7 +408,7 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
                               onClick={() => { setNewGuestName(g.name); setGuestSearch(g.name); }}
                             >
                               <span className="truncate">{g.name}</span>
-                              <span className="text-[0.6rem] text-gray-400 shrink-0">{g.rsvpStatus || "pending"}</span>
+                              <span className="text-[0.6rem] text-gray-400 shrink-0">{g.rsvp || "pending"}</span>
                             </button>
                           ))}
                         {guests.filter((g: any) => g.name.toLowerCase().includes(guestSearch.toLowerCase())).length === 0 && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { updateGuest, createGuest, deleteGuest, batchCreateGuests, bulkDeleteGuests, bulkAddGuests, getRsvpToken } from "@/lib/actions";
 import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
@@ -163,16 +163,34 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
   const handleBulkMarkAccommodation = async (value: string) => {
     if (selected.size === 0) return;
     try {
-      for (const id of selected) {
-        await updateGuest(weddingId, id, { accommodation: value });
-      }
-      setSelected(new Set());
-      onUpdate();
-      onToast(`${selected.size} guest(s) marked as ${value}`, "success");
-    } catch {
-      onToast("Failed to update guests", "error");
-    }
+      for (const id of selected) { await updateGuest(weddingId, id, { accommodation: value }); }
+      setSelected(new Set()); onUpdate(); onToast(`${selected.size} guest(s) marked as ${value}`, "success");
+    } catch { onToast("Failed to update guests", "error"); }
   };
+
+  const handleBulkUpdateField = async (field: string, value: string) => {
+    if (selected.size === 0) return;
+    try {
+      for (const id of selected) { await updateGuest(weddingId, id, { [field]: value }); }
+      setSelected(new Set()); onUpdate(); onToast(`${selected.size} guest(s) updated`, "success");
+    } catch { onToast("Failed to update guests", "error"); }
+  };
+
+  const [sortBy, setSortBy] = useState("name");
+  const sortedGuests = useMemo(() => {
+    const list = [...filteredGuests];
+    list.sort((a: any, b: any) => {
+      switch (sortBy) {
+        case "side": return a.side.localeCompare(b.side);
+        case "rsvp": return (a.rsvp || "Pending").localeCompare(b.rsvp || "Pending");
+        case "dietary": return (a.dietary || "").localeCompare(b.dietary || "");
+        case "table": return (a.tableNum || 0) - (b.tableNum || 0);
+        case "gift": return (a.giftGiven === "Yes" ? 1 : 0) - (b.giftGiven === "Yes" ? 1 : 0);
+        default: return a.name.localeCompare(b.name);
+      }
+    });
+    return list;
+  }, [filteredGuests, sortBy]);
 
   const handleShareRsvp = async () => {
     try {
@@ -297,7 +315,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
               </button>
             )}
           </div>
-          {showFilters && (
+            {showFilters && (
             <div className="flex flex-wrap gap-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
               <select value={filterSide} onChange={(e) => setFilterSide(e.target.value)} className="py-2 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-maroon">
                 <option value="All">All Sides</option>
@@ -324,6 +342,14 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
                 <option value="Local / Floating">Local / Floating</option>
                 <option value="--">Not Set</option>
               </select>
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="py-2 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-maroon">
+                <option value="name">Sort: Name</option>
+                <option value="side">Sort: Side</option>
+                <option value="rsvp">Sort: RSVP</option>
+                <option value="dietary">Sort: Dietary</option>
+                <option value="table">Sort: Table</option>
+                <option value="gift">Sort: Gift Status</option>
+              </select>
             </div>
           )}
         </div>
@@ -332,15 +358,16 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
       {selected.size > 0 && canEdit && (
         <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 bg-maroon/5 border border-maroon/20 rounded-lg">
           <span className="text-sm font-medium">{selected.size} selected</span>
-          <button onClick={handleBulkDelete} className="btn-delete text-xs py-2 px-3">
-            <i className="fas fa-trash mr-1" /> Delete
-          </button>
-          <button onClick={() => handleBulkMarkAccommodation("Room Needed")} className="btn-edit text-xs py-2 px-3">
-            <i className="fas fa-bed mr-1" /> Mark Room Needed
-          </button>
-          <button onClick={() => handleBulkMarkAccommodation("Local / Floating")} className="btn-edit text-xs py-2 px-3">
-            <i className="fas fa-home mr-1" /> Mark Local/Floating
-          </button>
+          <button onClick={handleBulkDelete} className="btn-delete text-xs py-2 px-3"><i className="fas fa-trash mr-1" /> Delete</button>
+          <button onClick={() => handleBulkUpdateField("rsvp", "Yes")} className="btn-edit text-xs py-2 px-3"><i className="fas fa-check mr-1" /> RSVP Yes</button>
+          <button onClick={() => handleBulkUpdateField("rsvp", "Pending")} className="btn-edit text-xs py-2 px-3"><i className="fas fa-clock mr-1" /> RSVP Pending</button>
+          <button onClick={() => handleBulkUpdateField("rsvp", "Declined")} className="btn-edit text-xs py-2 px-3 text-red-600 border-red-200"><i className="fas fa-times mr-1" /> RSVP Declined</button>
+          <select onChange={(e) => { if (e.target.value) handleBulkUpdateField("dietary", e.target.value); e.target.value = ""; }} className="px-2 py-1.5 text-xs border border-gray-300 rounded-lg bg-white cursor-pointer">
+            <option value="">Set Dietary...</option>
+            <option value="Veg">Veg</option><option value="Non-Veg">Non-Veg</option><option value="Vegan">Vegan</option><option value="Jain">Jain</option>
+          </select>
+          <button onClick={() => handleBulkMarkAccommodation("Room Needed")} className="btn-edit text-xs py-2 px-3"><i className="fas fa-bed mr-1" /> Room Needed</button>
+          <button onClick={() => handleBulkMarkAccommodation("Local / Floating")} className="btn-edit text-xs py-2 px-3"><i className="fas fa-home mr-1" /> Local</button>
           <button onClick={() => setSelected(new Set())} className="text-xs text-gray-500 hover:text-gray-700 cursor-pointer">Clear</button>
         </div>
       )}
@@ -371,7 +398,7 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
         <div className="space-y-3">
           {filteredGuests.length === 0 ? (
             <div className="text-center py-8 text-gray-400 text-sm">No guests match your filters</div>
-          ) : filteredGuests.map((g: any, idx: number) => {
+          ) : sortedGuests.map((g: any, idx: number) => {
             const isEditing = editing === g.id;
             const isSelected = selected.has(g.id);
 
@@ -465,6 +492,43 @@ export default function GuestsView({ wedding, weddingId, onUpdate, onToast, canE
                     )}
                   </div>
                 </div>
+
+                {/* Table, Gift, Thank-you row */}
+                {(isEditing || g.tableNum || g.giftGiven === "Yes" || g.thankYou === "Yes") && (
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                    {g.tableNum > 0 && !isEditing && (
+                      <span className="text-[0.65rem] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700"><i className="fas fa-chair mr-1" />Table {g.tableNum}</span>
+                    )}
+                    {isEditing && (
+                      <div className="flex items-center gap-1">
+                        <label className="text-[0.65rem] font-semibold text-gray-500 uppercase">Table</label>
+                        <input type="number" min={0} value={editData.tableNum ?? g.tableNum ?? 0} onChange={(e) => setEditData({ ...editData, tableNum: parseInt(e.target.value) || 0 })} className="w-16 px-2 py-1 border rounded text-xs text-center" />
+                      </div>
+                    )}
+                    {isEditing ? (
+                      <>
+                        <div className="flex items-center gap-1">
+                          <label className="text-[0.65rem] font-semibold text-gray-500 uppercase">Gift</label>
+                          <select value={editData.giftGiven ?? g.giftGiven ?? "No"} onChange={(e) => setEditData({ ...editData, giftGiven: e.target.value })} className="px-2 py-1 border rounded text-xs bg-white">
+                            <option value="No">No</option><option value="Yes">Yes</option>
+                          </select>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <label className="text-[0.65rem] font-semibold text-gray-500 uppercase">Thank You</label>
+                          <select value={editData.thankYou ?? g.thankYou ?? "No"} onChange={(e) => setEditData({ ...editData, thankYou: e.target.value })} className="px-2 py-1 border rounded text-xs bg-white">
+                            <option value="No">No</option><option value="Yes">Yes</option>
+                          </select>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {g.giftGiven === "Yes" && <span className="text-[0.65rem] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700"><i className="fas fa-gift mr-1" />Gift Received</span>}
+                        {g.thankYou === "Yes" && <span className="text-[0.65rem] font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700"><i className="fas fa-heart mr-1" />Thank You Sent</span>}
+                        {g.thankYou === "No" && g.giftGiven === "Yes" && <span className="text-[0.65rem] font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-600"><i className="fas fa-exclamation mr-1" />Pending Thank You</span>}
+                      </>
+                    )}
+                  </div>
+                )}
 
                 {(isEditing || g.notes) && (
                   <div className="mt-3">

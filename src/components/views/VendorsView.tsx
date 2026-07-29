@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { updateVendor, createVendor, deleteVendor, batchCreateVendors, bulkDeleteVendors, bulkAddVendors } from "@/lib/actions";
 import { formatINR } from "@/lib/format";
 import { exportToCSV } from "@/lib/export";
@@ -41,6 +41,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
   const [filterContract, setFilterContract] = useState("All");
   const [showFilters, setShowFilters] = useState(false);
   const [priceAdvisorVendor, setPriceAdvisorVendor] = useState<any>(null);
+  const [sortBy, setSortBy] = useState("urgency");
 
   const vendors: any[] = wedding.vendors ?? [];
   const weddingDate = wedding.weddingDate ? new Date(wedding.weddingDate) : null;
@@ -87,6 +88,27 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
     if (filterContract !== "All" && v.contract !== filterContract) return false;
     return true;
   });
+
+  const sortedVendors = useMemo(() => {
+    const list = [...filteredVendors];
+    list.sort((a: any, b: any) => {
+      switch (sortBy) {
+        case "quote-desc": return (b.quote || 0) - (a.quote || 0);
+        case "quote-asc": return (a.quote || 0) - (b.quote || 0);
+        case "rating": return (b.rating || "").split("\u2605").length - (a.rating || "").split("\u2605").length;
+        case "name": return (a.name || "").localeCompare(b.name || "");
+        case "category": return (a.category || "").localeCompare(b.category || "");
+        case "urgency":
+        default: {
+          const urgencyOrder: Record<string, number> = { overdue: 0, urgent: 1, soon: 2, booked: 3, ok: 4, none: 5 };
+          const ua = getUrgency(a);
+          const ub = getUrgency(b);
+          return (urgencyOrder[ua.level] ?? 5) - (urgencyOrder[ub.level] ?? 5);
+        }
+      }
+    });
+    return list;
+  }, [filteredVendors, sortBy]);
 
   const handleSave = async (id: string) => {
     const data = { ...editData };
@@ -264,6 +286,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
       </div>
 
       {vendors.length > 0 && (
+        <>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
             <span className="text-2xl font-extrabold block">{vendors.length}</span>
@@ -282,6 +305,16 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
             <span className="text-xs text-gray-500">Total Paid</span>
           </div>
         </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-gray-500">Booking Progress</span>
+            <span className="text-xs font-bold text-maroon">{booked} of {vendors.length} booked ({vendors.length > 0 ? Math.round((booked / vendors.length) * 100) : 0}%)</span>
+          </div>
+          <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-full rounded-full bg-gradient-to-r from-green to-green-600 transition-all" style={{ width: `${vendors.length > 0 ? (booked / vendors.length) * 100 : 0}%` }} />
+          </div>
+        </div>
+        </>
       )}
 
       {vendors.length > 0 && (
@@ -329,6 +362,14 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
                 <option value="Signed">Signed</option>
                 <option value="Completed">Completed</option>
               </select>
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="py-2 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-maroon">
+                <option value="urgency">Sort: Urgency</option>
+                <option value="quote-desc">Sort: Highest Quote</option>
+                <option value="quote-asc">Sort: Lowest Quote</option>
+                <option value="rating">Sort: Rating</option>
+                <option value="name">Sort: Name</option>
+                <option value="category">Sort: Category</option>
+              </select>
             </div>
           )}
         </div>
@@ -372,7 +413,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
         <div className="space-y-3">
           {filteredVendors.length === 0 ? (
             <div className="text-center py-8 text-gray-400 text-sm">No vendors match your filters</div>
-          ) : filteredVendors.map((v: any, idx: number) => {
+          ) : sortedVendors.map((v: any, idx: number) => {
             const isEditing = editing === v.id;
             const isSelected = selected.has(v.id);
             const quote = isEditing ? (editData.quote ?? v.quote) : v.quote;

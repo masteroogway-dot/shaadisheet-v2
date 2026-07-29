@@ -154,6 +154,23 @@ export default function TimelineView({ wedding, weddingId, canEdit = true }: { w
 
   const overlapCount = overlaps.size;
 
+  const handleExportTimeline = () => {
+    const lines = items.map((item) => {
+      const time = formatTime(item.startTime);
+      const end = formatTime(getEndTimeStr(item.startTime, item.duration));
+      const dur = formatDuration(item.duration);
+      const hl = item.isHighlight ? " ★" : "";
+      return `${time} - ${end} (${dur}) ${item.title}${hl}${item.description ? ` — ${item.description}` : ""}`;
+    });
+    const text = `WEDDING DAY TIMELINE\n${"=".repeat(40)}\n\n${lines.join("\n")}`;
+    navigator.clipboard.writeText(text);
+  };
+
+  const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+  const currentHour = new Date().getHours();
+  const currentMinute = new Date().getMinutes();
+  const currentFormatted = `${currentHour % 12 || 12}:${String(currentMinute).padStart(2, "0")} ${currentHour >= 12 ? "PM" : "AM"}`;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -169,14 +186,23 @@ export default function TimelineView({ wedding, weddingId, canEdit = true }: { w
           <h2 className="text-2xl font-bold">Wedding Day Timeline</h2>
           <p className="text-gray-500 text-sm">Minute-by-minute schedule for your big day</p>
         </div>
-        {canEdit && (
-          <button
-            onClick={handleAdd}
-            className="px-4 py-2 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer"
-          >
-            <i className="fas fa-plus mr-1.5" /> Add Item
-          </button>
-        )}
+        <div className="flex gap-2 items-center flex-wrap">
+          {items.length > 0 && (
+            <span className="px-3 py-1.5 text-xs font-semibold bg-gray-100 text-gray-600 rounded-lg">
+              <i className="fas fa-clock mr-1" /> {currentFormatted}
+            </span>
+          )}
+          {items.length > 0 && (
+            <button onClick={handleExportTimeline} className="px-3 py-2 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">
+              <i className="fas fa-copy mr-1.5" /> Copy Timeline
+            </button>
+          )}
+          {canEdit && (
+            <button onClick={handleAdd} className="px-4 py-2 text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-light transition-colors cursor-pointer">
+              <i className="fas fa-plus mr-1.5" /> Add Item
+            </button>
+          )}
+        </div>
       </div>
 
       {overlapCount > 0 && (
@@ -206,6 +232,24 @@ export default function TimelineView({ wedding, weddingId, canEdit = true }: { w
       ) : (
         <div className="relative pl-10">
           <div className="absolute left-[15px] top-0 bottom-0 w-[3px] bg-gradient-to-b from-maroon to-gold rounded-full" />
+
+          {/* Current time indicator */}
+          {items.length > 0 && (() => {
+            const firstStart = timeToMinutes(items[0].startTime);
+            const lastEnd = Math.max(...items.map((i) => timeToMinutes(i.startTime) + i.duration));
+            const range = lastEnd - firstStart || 1;
+            if (nowMinutes >= firstStart && nowMinutes <= lastEnd) {
+              const topPct = ((nowMinutes - firstStart) / range) * 100;
+              return (
+                <div className="absolute left-0 right-0 z-20 pointer-events-none" style={{ top: `${topPct}%` }}>
+                  <div className="absolute left-[10px] w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow" />
+                  <div className="absolute left-[24px] -top-2 text-[0.6rem] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{currentFormatted}</div>
+                  <div className="absolute left-[24px] top-0 right-0 h-[2px] bg-blue-400 opacity-40" />
+                </div>
+              );
+            }
+            return null;
+          })()}
 
           {items.map((item) => {
             const isEditing = editing === item.id;
