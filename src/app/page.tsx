@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import BlurText from "@/components/animations/BlurText";
 import ShinyText from "@/components/animations/ShinyText";
-import RotatingText from "@/components/animations/RotatingText";
 import ScrollReveal from "@/components/animations/ScrollReveal";
 import SpotlightCard from "@/components/animations/SpotlightCard";
 import { StaggerContainer, StaggerItem } from "@/components/animations/StaggerChildren";
@@ -181,152 +180,11 @@ function MarigoldGarland({ side }: { side: "left" | "right" }) {
 }
 
 /* ─────────────────────────────────────────────
-    WEDDING SCENE CAROUSEL - FULL BACKGROUND
-   ───────────────────────────────────────────── */
-
-const SCENES = [
-  {
-    key: "hindu",
-    label: "Hindu Wedding",
-    gradient: "linear-gradient(135deg, #3B1A08 0%, #5C2E0E 50%, #8B4513 100%)",
-    image: "/weddings/hindu.jpg",
-    mobilePos: "center 30%",
-  },
-  {
-    key: "muslim",
-    label: "Muslim Wedding",
-    gradient: "linear-gradient(135deg, #0A2E12 0%, #1B5E20 50%, #2E7D32 100%)",
-    image: "/weddings/muslim.jpg",
-    mobileImage: "/weddings/muslim-mobile.jpg",
-    mobilePos: "center 45%",
-  },
-  {
-    key: "sikh",
-    label: "Sikh Wedding",
-    gradient: "linear-gradient(135deg, #3E1A00 0%, #7A3B00 50%, #E65100 100%)",
-    image: "/weddings/sikh.jpg",
-    mobileImage: "/weddings/sikh-mobile.jpg",
-    mobilePos: "center 40%",
-  },
-  {
-    key: "pakistani",
-    label: "Pakistani Wedding",
-    gradient: "linear-gradient(135deg, #1A3A1A 0%, #2E5E2E 50%, #4CAF50 100%)",
-    image: "/weddings/pakistani.jpg",
-    mobilePos: "center 30%",
-  },
-  {
-    key: "bangladeshi",
-    label: "Bangladeshi Wedding",
-    gradient: "linear-gradient(135deg, #2E1A0A 0%, #5C3A1E 50%, #8D6E63 100%)",
-    image: "/weddings/bangladeshi.jpg",
-    mobilePos: "center 30%",
-  },
-  {
-    key: "srilankan",
-    label: "Sri Lankan Wedding",
-    gradient: "linear-gradient(135deg, #1A0A2E 0%, #4A148C 50%, #7B1FA2 100%)",
-    image: "/weddings/srilankan.jpg",
-    mobilePos: "center 30%",
-  },
-  {
-    key: "nepali",
-    label: "Nepali Wedding",
-    gradient: "linear-gradient(135deg, #3E1A00 0%, #8B4513 50%, #D4A574 100%)",
-    image: "/weddings/nepali.jpg",
-    mobilePos: "center 30%",
-  },
-  {
-    key: "christian",
-    label: "Christian Wedding",
-    gradient: "linear-gradient(135deg, #0D1B3E 0%, #1A3A6B 50%, #1565C0 100%)",
-    image: "/weddings/christian.jpg",
-    mobilePos: "center 30%",
-  },
-  {
-    key: "jain",
-    label: "Jain Wedding",
-    gradient: "linear-gradient(135deg, #1A0A2E 0%, #4A148C 50%, #6A1B9A 100%)",
-    image: "/weddings/jain.jpg",
-    mobilePos: "center 30%",
-  },
-];
-
-function HeroBackground({ active, onActiveChange }: { active: number; onActiveChange: (i: number) => void }) {
-  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    const timer = setInterval(() => onActiveChange((active + 1) % SCENES.length), 4500);
-    return () => clearInterval(timer);
-  }, [active, onActiveChange]);
-
-  return (
-    <div className="absolute inset-0 z-0 w-full">
-      {SCENES.map((scene, i) => {
-        const showImage = scene.image && !imgErrors[scene.key];
-        return (
-          <div
-            key={scene.key}
-            className="absolute inset-0 transition-opacity duration-[1500ms] ease-in-out"
-            style={{ opacity: i === active ? 1 : 0, zIndex: i === active ? 1 : 0 }}
-          >
-            <div className="absolute inset-0" style={{ background: scene.gradient }} />
-            {showImage && (
-              <picture>
-                {scene.mobileImage && (
-                  <source
-                    media="(max-width: 767px)"
-                    srcSet={scene.mobileImage}
-                  />
-                )}
-                <img
-                  src={scene.image}
-                  alt={scene.label}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  style={{ objectPosition: scene.mobilePos || "center 30%" }}
-                  onError={() => setImgErrors((prev) => ({ ...prev, [scene.key]: true }))}
-                />
-              </picture>
-            )}
-          </div>
-        );
-      })}
-
-      {/* Dark overlay for text readability */}
-      <div className="absolute inset-0 z-[2]" style={{
-        background: "linear-gradient(135deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.25) 70%, rgba(0,0,0,0.15) 100%)"
-      }} />
-
-      {/* Bottom label */}
-      <div className="absolute bottom-8 left-0 right-0 text-center z-[3]">
-        <span className="inline-block px-6 py-2.5 bg-white/15 backdrop-blur-md rounded-full text-sm font-bold tracking-wide text-white border border-white/20 shadow-2xl">
-          {SCENES[active].label}
-        </span>
-      </div>
-
-      {/* Dots */}
-      <div className="absolute bottom-20 left-0 right-0 flex justify-center gap-3 z-[3]">
-        {SCENES.map((scene, i) => (
-          <button
-            key={scene.key}
-            onClick={() => onActiveChange(i)}
-            className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
-              i === active ? "w-8 bg-white" : "w-2.5 bg-white/40 hover:bg-white/60"
-            }`}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────
    MAIN LANDING PAGE
    ───────────────────────────────────────────── */
 export default function Home() {
   const [petalKey, setPetalKey] = useState(0);
   const [scrolled, setScrolled] = useState(false);
-  const [activeScene, setActiveScene] = useState(0);
 
   useEffect(() => {
     setPetalKey(1);
@@ -360,8 +218,17 @@ export default function Home() {
 
       {/* HERO - FULL BACKGROUND */}
       <section className="relative w-full min-h-[85vh] md:min-h-[92vh] flex items-center overflow-hidden">
-        {/* Full-background image carousel */}
-        <HeroBackground active={activeScene} onActiveChange={setActiveScene} />
+        {/* Static background image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/hero.jpg"
+            alt="South Asian Wedding"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0" style={{
+            background: "linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0.15) 100%)"
+          }} />
+        </div>
 
         {/* Marigold Garlands - hidden on mobile */}
         <div className="relative z-[4] opacity-50 hidden md:block">
@@ -378,13 +245,7 @@ export default function Home() {
             </div>
             <h1 className="text-[2rem] md:text-4xl lg:text-[3.5rem] font-extrabold leading-[1.08] mb-4 md:mb-6 tracking-tight text-white drop-shadow-lg">
               Plan Your{" "}
-              <RotatingText
-                texts={["Hindu", "Muslim", "Sikh", "Pakistani", "Bangladeshi", "Sri Lankan", "Nepali", "Christian", "Jain"]}
-                rotationInterval={4500}
-                auto={false}
-                currentIndex={activeScene}
-                className="text-[#FFD54F]"
-              />{" "}
+              <span className="text-[#FFD54F]">South Asian</span>{" "}
               Wedding
               <br />
               <ShinyText
