@@ -368,7 +368,7 @@ export const WEDDING_TEMPLATES: WeddingTemplateData[] = [
       type: "non_vegetarian",
       staples: ["Bengali"],
       keyDishes: ["Fish curry", "Hilsa", "Biryani", "Rasgulla", "Sandesh", "Kebabs"],
-      restrictions: ["No pork", "Fish is central to Bengali cuisine"],
+      restrictions: ["No pork", "Fish is central to Bengali cuisine", "No alcohol"],
     },
     checklistItems: [
       { category: "Gaye Holud Essentials", items: ["Turmeric paste prepared", "Sweets and gifts from groom's family", "Decorated rohu fish", "Yellow theme decorations", "Folk music (dhol, ektara)", "Guest seating"] },
@@ -436,9 +436,9 @@ export const WEDDING_TEMPLATES: WeddingTemplateData[] = [
       { name: "Reception", description: "Post-wedding celebration", startTime: "19:00", duration: 240, isRitual: false, dayOffset: 0 },
     ],
     budgetRanges: {
-      budget: { min: 3000, max: 5000, label: "$3,000–$5,000" },
-      mid: { min: 6000, max: 15000, label: "$6,000–$15,000" },
-      luxury: { min: 30000, max: 80000, label: "$30,000–$80,000" },
+      budget: { min: 500000, max: 1500000, label: "Rs5–15 Lakh" },
+      mid: { min: 2000000, max: 5000000, label: "Rs20–50 Lakh" },
+      luxury: { min: 8000000, max: 25000000, label: "Rs80 Lakh–2.5 Crore" },
     },
     dressCodes: {
       bride: "Kandyan saree in white/gold/cream",
@@ -477,9 +477,9 @@ export const WEDDING_TEMPLATES: WeddingTemplateData[] = [
       { name: "Reception", description: "Post-wedding celebration", startTime: "19:00", duration: 240, isRitual: false, dayOffset: 0 },
     ],
     budgetRanges: {
-      budget: { min: 5000, max: 10000, label: "$5,000–$10,000" },
-      mid: { min: 10000, max: 20000, label: "$10,000–$20,000" },
-      luxury: { min: 20000, max: 30000, label: "$20,000–$30,000" },
+      budget: { min: 500000, max: 1500000, label: "Rs5–15 Lakh" },
+      mid: { min: 1500000, max: 4000000, label: "Rs15–40 Lakh" },
+      luxury: { min: 5000000, max: 10000000, label: "Rs50 Lakh–1 Crore" },
     },
     dressCodes: {
       bride: "Kanchipuram gold silk saree",
@@ -613,7 +613,7 @@ export const WEDDING_TEMPLATES: WeddingTemplateData[] = [
       guests: "Modest attire; long dresses/skirts for women; long pants and shirts for men",
     },
     foodDefaults: {
-      type: "halal",
+      type: "non_vegetarian",
       staples: ["Maldivian"],
       keyDishes: ["Rice", "Fish curries", "Grilled seafood", "Garudhiya (fish broth)", "Hedhika (sweet snacks)"],
       restrictions: ["No pork", "No alcohol", "All food must be halal"],
@@ -669,6 +669,460 @@ export const WEDDING_TEMPLATES: WeddingTemplateData[] = [
     guestRange: { min: 300, typical: 500, max: 1000 },
     planningMonths: 6,
   },
+
+  // ═══════════════════════════════════════════════════════════════
+  // INDIA — HINDU BENGALI
+  // ═══════════════════════════════════════════════════════════════
+  {
+    name: "Hindu Bengali",
+    slug: "hindu-indian-bengali",
+    country: "india",
+    religion: "hindu",
+    region: "Bengali",
+    currency: "INR",
+    events: [
+      { name: "Aiburobhat", description: "Farewell meal for bride before wedding", startTime: "12:00", duration: 120, isRitual: false, dayOffset: -2 },
+      { name: "Gaye Holud", description: "Turmeric ceremony (bride's side)", startTime: "16:00", duration: 180, isRitual: false, dayOffset: -1 },
+      { name: "Dodhi Mangal", description: "Auspicious first look at dawn", startTime: "06:00", duration: 60, isRitual: true, dayOffset: 0 },
+      { name: "Shubho Drishti", description: "Bride carried in, first glance at groom", startTime: "08:00", duration: 60, isRitual: true, dayOffset: 0 },
+      { name: "Mangal Pheras", description: "Seven rounds around sacred fire", startTime: "10:00", duration: 120, isRitual: true, dayOffset: 0 },
+      { name: "Sindoor Daan", description: "Groom applies vermilion", startTime: "12:00", duration: 30, isRitual: true, dayOffset: 0 },
+      { name: "Bou Bhat", description: "Reception by groom's family (bride serves first meal)", startTime: "19:00", duration: 240, isRitual: false, dayOffset: 1 },
+    ],
+    budgetRanges: {
+      budget: { min: 500000, max: 1500000, label: "₹5–15 Lakh" },
+      mid: { min: 2000000, max: 5000000, label: "₹20–50 Lakh" },
+      luxury: { min: 10000000, max: 25000000, label: "₹1–2.5 Crore" },
+    },
+    dressCodes: {
+      bride: "White saree with red border (Lal Paar) for main ceremony; red Banarasi for reception",
+      groom: "Dhoti-kurta with Uttariya (upper cloth) or sherwani",
+      guests: "Traditional Bengali attire; sarees for women, dhoti-kurta or panjabi for men",
+    },
+    foodDefaults: {
+      type: "mixed",
+      staples: ["Bengali"],
+      keyDishes: ["Fish curry (Machher Jhol)", "Luchi-Alur Dom", "Chingri Malai Curry", "Rasgulla", "Sandesh", "Mishti doi"],
+      restrictions: [],
+    },
+    checklistItems: [
+      { category: "Emergency Kit", items: ["Safety pins", "Sewing kit", "Pain relievers", "Tissues", "Sindoor", "Phone charger"] },
+      { category: "Priest Requirements", items: ["Priest booking confirmed", "Puja samagri", "Sacred fire materials", "Flowers and garlands", "Mangal Pheras items", "Sindoor for Daan"] },
+      { category: "Bengali Traditions", items: ["Dhol-dhak players booked", "Shankha-Pola (bangles) for bride", "Topor (conical headgear) for groom", "Mangal coconut (kola agun)", "Bridal palanquin (palki)", "Aiburobhat meal arranged"] },
+    ],
+    guestRange: { min: 200, typical: 400, max: 800 },
+    planningMonths: 12,
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // INDIA — HINDU GUJARATI
+  // ═══════════════════════════════════════════════════════════════
+  {
+    name: "Hindu Gujarati",
+    slug: "hindu-indian-gujarati",
+    country: "india",
+    religion: "hindu",
+    region: "Gujarati",
+    currency: "INR",
+    events: [
+      { name: "Gol Dhana", description: "Engagement with coriander seeds and jaggery", startTime: "11:00", duration: 120, isRitual: true, dayOffset: -5 },
+      { name: "Mehendi", description: "Henna application", startTime: "16:00", duration: 180, isRitual: false, dayOffset: -2 },
+      { name: "Sangeet", description: "Garba and dance night", startTime: "19:00", duration: 240, isRitual: false, dayOffset: -1 },
+      { name: "Pithi", description: "Turmeric paste ceremony", startTime: "08:00", duration: 120, isRitual: true, dayOffset: 0 },
+      { name: "Wedding", description: "Mangal Pheras, Jaimala, Kanyadaan", startTime: "10:00", duration: 180, isRitual: true, dayOffset: 0 },
+      { name: "Reception", description: "Grand celebration and dinner", startTime: "19:00", duration: 240, isRitual: false, dayOffset: 0 },
+    ],
+    budgetRanges: {
+      budget: { min: 500000, max: 1500000, label: "₹5–15 Lakh" },
+      mid: { min: 2000000, max: 5000000, label: "₹20–50 Lakh" },
+      luxury: { min: 10000000, max: 30000000, label: "₹1–3 Crore" },
+    },
+    dressCodes: {
+      bride: "Chaniya choli (flared skirt + blouse) with heavy silver/gold jewelry, matha patti",
+      groom: "Kediyu (flared kurta) with dhoti and safo (turban)",
+      guests: "Colorful chaniya cholis for women; kediyu or kurta for men",
+    },
+    foodDefaults: {
+      type: "vegetarian",
+      staples: ["Gujarati"],
+      keyDishes: ["Dhokla", "Khandvi", "Undhiyu", "Khichdi Kadhi", "Thepla", "Jalebi", "Mohanthal"],
+      restrictions: ["No onion/garlic in religious ceremonies"],
+    },
+    checklistItems: [
+      { category: "Emergency Kit", items: ["Safety pins", "Sewing kit", "Pain relievers", "Tissues", "Phone charger", "Cash for tips"] },
+      { category: "Priest Requirements", items: ["Priest booking confirmed", "Puja samagri", "Havan kund", "Sacred fire materials", "Flowers and garlands", "Gol Dhana items"] },
+      { category: "Garba Night", items: ["Dhol player booked", "Garba music playlist", "Chaniya cholis for guests", "Lighting setup", "Refreshments", "Photography"] },
+    ],
+    guestRange: { min: 200, typical: 500, max: 1000 },
+    planningMonths: 12,
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // INDIA — HINDU MAHARASHTRIAN
+  // ═══════════════════════════════════════════════════════════════
+  {
+    name: "Hindu Maharashtrian",
+    slug: "hindu-indian-maharashtrian",
+    country: "india",
+    religion: "hindu",
+    region: "Maharashtrian",
+    currency: "INR",
+    events: [
+      { name: "Sakhar Puda", description: "Engagement with sugar exchange", startTime: "11:00", duration: 120, isRitual: true, dayOffset: -3 },
+      { name: "Mehendi", description: "Henna application", startTime: "16:00", duration: 120, isRitual: false, dayOffset: -1 },
+      { name: "Haldi Kumkum", description: "Turmeric-vermilion ceremony for women", startTime: "09:00", duration: 120, isRitual: false, dayOffset: 0 },
+      { name: "Wedding", description: "Antarpat, Lajahom, Saptapadi", startTime: "10:00", duration: 180, isRitual: true, dayOffset: 0 },
+      { name: "Reception", description: "Post-wedding celebration", startTime: "19:00", duration: 240, isRitual: false, dayOffset: 0 },
+    ],
+    budgetRanges: {
+      budget: { min: 300000, max: 1000000, label: "₹3–10 Lakh" },
+      mid: { min: 1500000, max: 4000000, label: "₹15–40 Lakh" },
+      luxury: { min: 8000000, max: 20000000, label: "₹80 Lakh–2 Crore" },
+    },
+    dressCodes: {
+      bride: "Nauvari (9-yard) saree in green or Paithani saree with traditional jewelry (thushi, choker, vajra)",
+      groom: "Dhoti-kurta with Pheta (turban) and shela (stole)",
+      guests: "Nauvari sarees or half-sarees for women; dhoti-kurta for men",
+    },
+    foodDefaults: {
+      type: "vegetarian",
+      staples: ["Maharashtrian"],
+      keyDishes: ["Puran Poli", "Misal Pav", "Vada Pav", "Bharli Vangi", "Shrikhand", "Puran Poli"],
+      restrictions: [],
+    },
+    checklistItems: [
+      { category: "Emergency Kit", items: ["Safety pins", "Sewing kit", "Pain relievers", "Tissues", "Phone charger", "Cash for tips"] },
+      { category: "Priest Requirements", items: ["Priest booking confirmed", "Puja samagri", "Havan kund", "Antarpat cloth", "Lajahom rice", "Flowers and garlands"] },
+      { category: "Maharashtrian Traditions", items: ["Gajra (flower garland) for bride", "Banana stem for ceremony", "Coconut for Kalash", "Turmeric and kumkum", "Wedding mandap decor", "Seating for pheras"] },
+    ],
+    guestRange: { min: 150, typical: 300, max: 600 },
+    planningMonths: 10,
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // INDIA — HINDU RAJPUT
+  // ═══════════════════════════════════════════════════════════════
+  {
+    name: "Hindu Rajput",
+    slug: "hindu-indian-rajput",
+    country: "india",
+    religion: "hindu",
+    region: "Rajput",
+    currency: "INR",
+    events: [
+      { name: "Sagai", description: "Engagement with exchange of sweets and gifts", startTime: "11:00", duration: 120, isRitual: true, dayOffset: -5 },
+      { name: "Mehendi", description: "Henna application", startTime: "16:00", duration: 180, isRitual: false, dayOffset: -2 },
+      { name: "Sangeet", description: "Music and dance night", startTime: "19:00", duration: 240, isRitual: false, dayOffset: -1 },
+      { name: "Haldi", description: "Turmeric ceremony", startTime: "08:00", duration: 120, isRitual: true, dayOffset: 0 },
+      { name: "Baraat", description: "Groom's grand procession with sword and horse", startTime: "10:00", duration: 180, isRitual: false, dayOffset: 0 },
+      { name: "Wedding", description: "Mangal Pheras, Jaimala, Kanyadaan at palace/fort venue", startTime: "12:00", duration: 180, isRitual: true, dayOffset: 0 },
+      { name: "Reception", description: "Grand palace celebration", startTime: "19:00", duration: 240, isRitual: false, dayOffset: 0 },
+    ],
+    budgetRanges: {
+      budget: { min: 1000000, max: 3000000, label: "₹10–30 Lakh" },
+      mid: { min: 3000000, max: 8000000, label: "₹30–80 Lakh" },
+      luxury: { min: 15000000, max: 50000000, label: "₹1.5–5 Crore" },
+    },
+    dressCodes: {
+      bride: "Red/gold lehenga with Kundan/Polki jewelry, borla (matha patti), nath (nose ring)",
+      groom: "Bandhgala sherwani with safa (turban), sword (kirpan), and mojari shoes",
+      guests: "Royal Rajasthani attire; lehengas for women, kurta-pyjama or bandhgala for men",
+    },
+    foodDefaults: {
+      type: "mixed",
+      staples: ["Rajasthani", "Mughlai"],
+      keyDishes: ["Dal Baati Churma", "Laal Maas", "Gatte ki Sabzi", "Ker Sangri", "Ghevar", "Malpua"],
+      restrictions: [],
+    },
+    checklistItems: [
+      { category: "Emergency Kit", items: ["Safety pins", "Sewing kit", "Pain relievers", "Tissues", "Phone charger", "Cash for tips"] },
+      { category: "Priest Requirements", items: ["Priest booking confirmed", "Puja samagri", "Havan kund", "Sacred fire materials", "Flowers and garlands", "Mangal items"] },
+      { category: "Rajput Traditions", items: ["Groom's horse decorated", "Sword for groom", "Palace/fort venue confirmed", "Rajasthani musicians", "Camel/horse for baraat", "Royal seating arrangement"] },
+    ],
+    guestRange: { min: 300, typical: 600, max: 1500 },
+    planningMonths: 12,
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // INDIA — HINDU PUNJABI
+  // ═══════════════════════════════════════════════════════════════
+  {
+    name: "Hindu Punjabi",
+    slug: "hindu-indian-punjabi",
+    country: "india",
+    religion: "hindu",
+    region: "Punjabi",
+    currency: "INR",
+    events: [
+      { name: "Roka", description: "Families formally agree to the match", startTime: "11:00", duration: 120, isRitual: true, dayOffset: -7 },
+      { name: "Kurmai", description: "Engagement with exchange of gifts and sweets", startTime: "11:00", duration: 120, isRitual: true, dayOffset: -4 },
+      { name: "Mehendi", description: "Henna application", startTime: "16:00", duration: 180, isRitual: false, dayOffset: -2 },
+      { name: "Sangeet", description: "Music, dance, and dhol night", startTime: "19:00", duration: 240, isRitual: false, dayOffset: -1 },
+      { name: "Haldi", description: "Turmeric paste ceremony", startTime: "08:00", duration: 120, isRitual: true, dayOffset: 0 },
+      { name: "Wedding", description: "Baraat, Jaimala, Mangal Pheras, Kanyadaan", startTime: "10:00", duration: 240, isRitual: true, dayOffset: 0 },
+      { name: "Reception", description: "Grand evening celebration", startTime: "19:00", duration: 240, isRitual: false, dayOffset: 0 },
+    ],
+    budgetRanges: {
+      budget: { min: 1000000, max: 2500000, label: "₹10–25 Lakh" },
+      mid: { min: 3000000, max: 7000000, label: "₹30–70 Lakh" },
+      luxury: { min: 10000000, max: 30000000, label: "₹1–3 Crore" },
+    },
+    dressCodes: {
+      bride: "Red/maroon lehenga with heavy gold jewelry, chooda (bangles), kaleere",
+      groom: "Sherwani with turban (pagri), sehra, kalgi, and mojari",
+      guests: "Bright Punjabi attire; salwar kameez for women, kurta-pajama for men",
+    },
+    foodDefaults: {
+      type: "mixed",
+      staples: ["Punjabi"],
+      keyDishes: ["Butter chicken", "Sarson ka saag", "Makki ki roti", "Dal makhani", "Chole bhature", "Gulab jamun"],
+      restrictions: [],
+    },
+    checklistItems: [
+      { category: "Emergency Kit", items: ["Safety pins", "Sewing kit", "Pain relievers", "Tissues", "Phone charger", "Cash for tips"] },
+      { category: "Priest Requirements", items: ["Pandit ji confirmed", "Puja samagri", "Havan kund", "Sacred fire materials", "Flowers and garlands", "Mangal items"] },
+      { category: "Baraat Planning", items: ["Horse/car for groom", "Dhol players booked", "Baraat route planned", "Joota Chupai plan", "Welcome refreshments", "Seating for baraatis"] },
+    ],
+    guestRange: { min: 250, typical: 500, max: 1000 },
+    planningMonths: 12,
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // PAKISTAN — HINDU
+  // ═══════════════════════════════════════════════════════════════
+  {
+    name: "Hindu Pakistani",
+    slug: "hindu-pakistani-pakistani",
+    country: "pakistan",
+    religion: "hindu",
+    region: "Pakistani",
+    currency: "PKR",
+    events: [
+      { name: "Kanyadaan", description: "Families formally agree to the match", startTime: "11:00", duration: 120, isRitual: true, dayOffset: -3 },
+      { name: "Mehendi", description: "Henna application", startTime: "16:00", duration: 180, isRitual: false, dayOffset: -1 },
+      { name: "Wedding", description: "Mangal Pheras, Jaimala, Kanyadaan", startTime: "10:00", duration: 180, isRitual: true, dayOffset: 0 },
+      { name: "Vidaai", description: "Bride's farewell ceremony", startTime: "14:00", duration: 60, isRitual: true, dayOffset: 0 },
+      { name: "Reception", description: "Post-wedding celebration", startTime: "19:00", duration: 240, isRitual: false, dayOffset: 0 },
+    ],
+    budgetRanges: {
+      budget: { min: 500000, max: 1500000, label: "₨5–15 Lakh" },
+      mid: { min: 2000000, max: 5000000, label: "₨20–50 Lakh" },
+      luxury: { min: 8000000, max: 20000000, label: "₨80 Lakh–2 Crore" },
+    },
+    dressCodes: {
+      bride: "Red lehenga with gold jewelry and chooda",
+      groom: "Sherwani with turban",
+      guests: "Traditional Pakistani Hindu attire",
+    },
+    foodDefaults: {
+      type: "mixed",
+      staples: ["Sindhi", "Punjabi"],
+      keyDishes: ["Biryani", "Dal fry", "Paneer dishes", "Sindhi curry", "Gulab jamun", "Jalebi"],
+      restrictions: [],
+    },
+    checklistItems: [
+      { category: "Emergency Kit", items: ["Safety pins", "Sewing kit", "Pain relievers", "Tissues", "Phone charger", "Cash for tips"] },
+      { category: "Priest Requirements", items: ["Pandit booking confirmed", "Puja samagri", "Havan kund", "Sacred fire materials", "Flowers and garlands", "Mangal items"] },
+    ],
+    guestRange: { min: 200, typical: 400, max: 800 },
+    planningMonths: 10,
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // PAKISTAN — CHRISTIAN
+  // ═══════════════════════════════════════════════════════════════
+  {
+    name: "Christian Pakistani",
+    slug: "christian-pakistani-pakistani",
+    country: "pakistan",
+    religion: "christian",
+    region: "Pakistani",
+    currency: "PKR",
+    events: [
+      { name: "Engagement", description: "Formal engagement ceremony", startTime: "19:00", duration: 120, isRitual: true, dayOffset: -2 },
+      { name: "Mehendi", description: "Henna night (cultural)", startTime: "16:00", duration: 120, isRitual: false, dayOffset: -1 },
+      { name: "Church Wedding", description: "Wedding ceremony at church with vows", startTime: "10:00", duration: 120, isRitual: true, dayOffset: 0 },
+      { name: "Walima", description: "Reception celebration", startTime: "19:00", duration: 240, isRitual: false, dayOffset: 0 },
+    ],
+    budgetRanges: {
+      budget: { min: 500000, max: 1500000, label: "₨5–15 Lakh" },
+      mid: { min: 2000000, max: 5000000, label: "₨20–50 Lakh" },
+      luxury: { min: 8000000, max: 20000000, label: "₨80 Lakh–2 Crore" },
+    },
+    dressCodes: {
+      bride: "White gown with veil or traditional Pakistani formal wear",
+      groom: "Formal suit or tuxedo",
+      guests: "Formal/smart attire",
+    },
+    foodDefaults: {
+      type: "mixed",
+      staples: ["Pakistani", "Continental"],
+      keyDishes: ["Biryani", "Kebabs", "Pulao", "Cake", "Pastries", "Roasted chicken"],
+      restrictions: [],
+    },
+    checklistItems: [
+      { category: "Church Requirements", items: ["Church booking confirmed", "Pastor/priest confirmed", "Pre-marriage counseling completed", "Church decoration", "Music/choir arranged", "Wedding bands"] },
+    ],
+    guestRange: { min: 200, typical: 400, max: 800 },
+    planningMonths: 10,
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // NEPAL — BUDDHIST
+  // ═══════════════════════════════════════════════════════════════
+  {
+    name: "Buddhist Nepali",
+    slug: "buddhist-nepali-nepali",
+    country: "nepal",
+    religion: "buddhist",
+    region: "Nepali",
+    currency: "NPR",
+    events: [
+      { name: "Kura Thapne", description: "Engagement ceremony", startTime: "11:00", duration: 120, isRitual: true, dayOffset: -3 },
+      { name: "Haldi", description: "Turmeric ceremony", startTime: "09:00", duration: 120, isRitual: false, dayOffset: -1 },
+      { name: "Wedding", description: "Buddhist ceremony with monks chanting, exchange of garlands", startTime: "10:00", duration: 120, isRitual: true, dayOffset: 0 },
+      { name: "Reception", description: "Post-wedding feast", startTime: "19:00", duration: 240, isRitual: false, dayOffset: 0 },
+    ],
+    budgetRanges: {
+      budget: { min: 3000, max: 8000, label: "$3,000–$8,000" },
+      mid: { min: 10000, max: 25000, label: "$10,000–$25,000" },
+      luxury: { min: 30000, max: 50000, label: "$30,000–$50,000" },
+    },
+    dressCodes: {
+      bride: "Red or white saree with traditional Nepali jewelry",
+      groom: "Daura Suruwal with topi (Nepali cap)",
+      guests: "Traditional Nepali attire",
+    },
+    foodDefaults: {
+      type: "mixed",
+      staples: ["Nepali"],
+      keyDishes: ["Dal bhat", "Momos", "Sel roti", "Sekuwa", "Chatamari", "Newari sweets"],
+      restrictions: [],
+    },
+    checklistItems: [
+      { category: "Emergency Kit", items: ["Safety pins", "Sewing kit", "Pain relievers", "Tissues", "Phone charger", "Cash for tips"] },
+      { category: "Buddhist Ceremony", items: ["Monk/priest confirmed", "Buddhist prayer items", "Incense and candles", "Flowers for offering", "Buddha statue for altar", "Chanting books"] },
+    ],
+    guestRange: { min: 100, typical: 200, max: 400 },
+    planningMonths: 8,
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // NEPAL — MUSLIM
+  // ═══════════════════════════════════════════════════════════════
+  {
+    name: "Muslim Nepali",
+    slug: "muslim-nepali-nepali",
+    country: "nepal",
+    religion: "muslim",
+    region: "Nepali",
+    currency: "NPR",
+    events: [
+      { name: "Mangni", description: "Engagement ceremony", startTime: "11:00", duration: 120, isRitual: true, dayOffset: -3 },
+      { name: "Mehendi", description: "Henna night", startTime: "16:00", duration: 180, isRitual: false, dayOffset: -1 },
+      { name: "Nikah", description: "Islamic marriage contract", startTime: "10:00", duration: 120, isRitual: true, dayOffset: 0 },
+      { name: "Walima", description: "Post-wedding reception", startTime: "19:00", duration: 240, isRitual: true, dayOffset: 1 },
+    ],
+    budgetRanges: {
+      budget: { min: 3000, max: 8000, label: "$3,000–$8,000" },
+      mid: { min: 10000, max: 25000, label: "$10,000–$25,000" },
+      luxury: { min: 25000, max: 40000, label: "$25,000–$40,000" },
+    },
+    dressCodes: {
+      bride: "Red/gold lehenga or sharara with heavy jewelry",
+      groom: "Sherwani or Perahan Tunban with turban",
+      guests: "Formal Nepali Muslim attire",
+    },
+    foodDefaults: {
+      type: "non_vegetarian",
+      staples: ["Nepali", "Mughlai"],
+      keyDishes: ["Biryani", "Kebabs", "Dal bhat", "Momos", "Sheer khurma", "Gulab jamun"],
+      restrictions: ["No pork", "No alcohol", "Halal only"],
+    },
+    checklistItems: [
+      { category: "Nikah Preparation", items: ["Nikah-nama (marriage contract)", "Mahr amount decided", "Two male Muslim witnesses", "Qazi (officiant) confirmed", "Quran for ceremony", "Venue booking"] },
+    ],
+    guestRange: { min: 100, typical: 250, max: 500 },
+    planningMonths: 10,
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // SRI LANKA — CHRISTIAN (CATHOLIC)
+  // ═══════════════════════════════════════════════════════════════
+  {
+    name: "Sri Lankan Catholic",
+    slug: "christian-sri_lankan-sri_lankan",
+    country: "sri_lanka",
+    religion: "christian",
+    region: "Sri Lankan",
+    currency: "LKR",
+    events: [
+      { name: "Engagement", description: "Formal engagement ceremony", startTime: "19:00", duration: 120, isRitual: true, dayOffset: -2 },
+      { name: "Poruwa Blessing", description: "Optional: Buddhist-style blessing adapted for Christian ceremony", startTime: "09:00", duration: 60, isRitual: false, dayOffset: 0 },
+      { name: "Church Wedding", description: "Catholic wedding ceremony with mass", startTime: "10:00", duration: 90, isRitual: true, dayOffset: 0 },
+      { name: "Reception", description: "Post-wedding celebration", startTime: "19:00", duration: 240, isRitual: false, dayOffset: 0 },
+    ],
+    budgetRanges: {
+      budget: { min: 3000, max: 6000, label: "Rs3,000–6,000" },
+      mid: { min: 8000, max: 20000, label: "Rs8,000–20,000" },
+      luxury: { min: 25000, max: 60000, label: "Rs25,000–60,000" },
+    },
+    dressCodes: {
+      bride: "White wedding gown with veil",
+      groom: "Formal suit or tuxedo",
+      guests: "Formal/smart attire; avoid white",
+    },
+    foodDefaults: {
+      type: "mixed",
+      staples: ["Sri Lankan", "Continental"],
+      keyDishes: ["Rice and curry", "Fish ambul thiyal", "Watalappan", "Love cake", "Roasted chicken", "Hoppers"],
+      restrictions: [],
+    },
+    checklistItems: [
+      { category: "Church Requirements", items: ["Church booking confirmed", "Priest confirmed", "Pre-marriage counseling completed", "Banns announced", "Church decoration", "Music/choir arranged"] },
+    ],
+    guestRange: { min: 100, typical: 200, max: 500 },
+    planningMonths: 10,
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // SRI LANKA — MUSLIM
+  // ═══════════════════════════════════════════════════════════════
+  {
+    name: "Sri Lankan Muslim",
+    slug: "muslim-sri_lankan-sri_lankan",
+    country: "sri_lanka",
+    religion: "muslim",
+    region: "Sri Lankan",
+    currency: "LKR",
+    events: [
+      { name: "Mangni", description: "Engagement ceremony", startTime: "11:00", duration: 120, isRitual: true, dayOffset: -3 },
+      { name: "Mehendi", description: "Henna night", startTime: "16:00", duration: 180, isRitual: false, dayOffset: -1 },
+      { name: "Nikah", description: "Islamic marriage contract", startTime: "10:00", duration: 120, isRitual: true, dayOffset: 0 },
+      { name: "Walima", description: "Post-wedding reception", startTime: "19:00", duration: 240, isRitual: true, dayOffset: 1 },
+    ],
+    budgetRanges: {
+      budget: { min: 3000, max: 6000, label: "Rs3,000–6,000" },
+      mid: { min: 8000, max: 20000, label: "Rs8,000–20,000" },
+      luxury: { min: 25000, max: 50000, label: "Rs25,000–50,000" },
+    },
+    dressCodes: {
+      bride: "Red/gold lehenga or saree with heavy jewelry",
+      groom: "Sherwani or formal suit with kufi cap",
+      guests: "Formal Sri Lankan Muslim attire",
+    },
+    foodDefaults: {
+      type: "non_vegetarian",
+      staples: ["Sri Lankan", "Mughlai"],
+      keyDishes: ["Biryani", "Kebabs", "Rice and curry", "Watalappan", "Sheer khurma", "Samosas"],
+      restrictions: ["No pork", "No alcohol", "Halal only"],
+    },
+    checklistItems: [
+      { category: "Nikah Preparation", items: ["Nikah-nama (marriage contract)", "Mahr amount decided", "Two male Muslim witnesses", "Qazi (officiant) confirmed", "Quran for ceremony", "Venue booking"] },
+    ],
+    guestRange: { min: 150, typical: 300, max: 600 },
+    planningMonths: 10,
+  },
 ];
 
 // ═══════════════════════════════════════════════════════════════
@@ -705,6 +1159,8 @@ export const RELIGIONS_BY_COUNTRY: Record<string, Array<{ id: string; name: stri
   ],
   pakistan: [
     { id: "muslim", name: "Muslim" },
+    { id: "hindu", name: "Hindu" },
+    { id: "christian", name: "Christian" },
   ],
   bangladesh: [
     { id: "muslim", name: "Muslim" },
@@ -713,9 +1169,13 @@ export const RELIGIONS_BY_COUNTRY: Record<string, Array<{ id: string; name: stri
   sri_lanka: [
     { id: "buddhist", name: "Buddhist" },
     { id: "hindu", name: "Hindu" },
+    { id: "christian", name: "Christian (Catholic)" },
+    { id: "muslim", name: "Muslim" },
   ],
   nepal: [
     { id: "hindu", name: "Hindu" },
+    { id: "buddhist", name: "Buddhist" },
+    { id: "muslim", name: "Muslim" },
   ],
   maldives: [
     { id: "muslim", name: "Muslim" },

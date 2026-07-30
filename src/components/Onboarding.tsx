@@ -211,7 +211,9 @@ export default function Onboarding({ onComplete }: Props) {
           ? ["Nepali", "Newari"]
           : data.country === "sri_lanka"
             ? ["Tamil"]
-            : [],
+            : data.country === "pakistan"
+              ? ["Pakistani"]
+              : [],
     muslim: data.country === "pakistan"
       ? ["Sunni"]
       : data.country === "bangladesh"
@@ -220,10 +222,22 @@ export default function Onboarding({ onComplete }: Props) {
           ? ["Maldivian"]
           : data.country === "afghanistan"
             ? ["Pashtun"]
-            : ["Indian"],
+            : data.country === "nepal"
+              ? ["Nepali"]
+              : data.country === "sri_lanka"
+                ? ["Sri Lankan"]
+                : ["Indian"],
     sikh: ["Punjabi"],
-    buddhist: ["Sinhalese"],
-    christian: ["Indian"],
+    buddhist: data.country === "sri_lanka"
+      ? ["Sinhalese"]
+      : data.country === "nepal"
+        ? ["Nepali"]
+        : ["Sinhalese"],
+    christian: data.country === "pakistan"
+      ? ["Pakistani"]
+      : data.country === "sri_lanka"
+        ? ["Sri Lankan"]
+        : ["Indian"],
     jain: ["Indian"],
   };
 

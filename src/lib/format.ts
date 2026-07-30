@@ -16,7 +16,7 @@ const CURRENCY_MAP: Record<CurrencyCode, CurrencyConfig> = {
   PKR: { symbol: "\u20A8", code: "PKR", locale: "en-PK", decimals: 0 },
   BDT: { symbol: "\u09F3", code: "BDT", locale: "bn-BD", decimals: 0 },
   LKR: { symbol: "Rs", code: "LKR", locale: "si-LK", decimals: 0 },
-  NPR: { symbol: "\u20A8", code: "NPR", locale: "ne-NP", decimals: 0 },
+  NPR: { symbol: "Rs", code: "NPR", locale: "ne-NP", decimals: 0 },
   MVR: { symbol: "Rf", code: "MVR", locale: "dv-MV", decimals: 0 },
   AFN: { symbol: "\u060B", code: "AFN", locale: "fa-AF", decimals: 0 },
 };
