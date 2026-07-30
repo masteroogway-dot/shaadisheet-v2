@@ -2468,3 +2468,19 @@ export async function getWebsiteData(weddingId: string) {
     weddingCity: wedding.weddingCity,
   };
 }
+
+export async function getWeddingTemplateBudgetRanges(weddingId: string) {
+  const wedding = await getCurrentWedding(weddingId);
+  if (!wedding) return null;
+
+  const dbTemplate = await prisma.weddingTemplate.findFirst({
+    where: { country: wedding.country || "india", religion: wedding.religion || "hindu", region: wedding.region || "", isActive: true },
+  });
+  if (!dbTemplate) return null;
+
+  try {
+    return JSON.parse(dbTemplate.budgetRanges || "{}");
+  } catch {
+    return null;
+  }
+}

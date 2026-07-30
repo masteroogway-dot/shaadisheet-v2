@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { updateBudgetItem, createBudgetItem, deleteBudgetItem, batchCreateBudgetItems, bulkDeleteBudgetItems, bulkAddBudgetItems } from "@/lib/actions";
+import { useState, useMemo, useEffect } from "react";
+import { updateBudgetItem, createBudgetItem, deleteBudgetItem, batchCreateBudgetItems, bulkDeleteBudgetItems, bulkAddBudgetItems, getWeddingTemplateBudgetRanges } from "@/lib/actions";
 import { formatCurrency, getCurrencySymbol } from "@/lib/format";
 import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
@@ -22,6 +22,12 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canE
   const [filterStatus, setFilterStatus] = useState("All");
   const [sortBy, setSortBy] = useState("category");
   const [viewMode, setViewMode] = useState<"list" | "grouped">("grouped");
+  const [templateRanges, setTemplateRanges] = useState<any>(null);
+  const [showRanges, setShowRanges] = useState(false);
+
+  useEffect(() => {
+    getWeddingTemplateBudgetRanges(weddingId).then(setTemplateRanges).catch(() => {});
+  }, [weddingId]);
 
   const items = wedding.budgetItems || [];
   const today = new Date().toISOString().split("T")[0];
@@ -238,6 +244,38 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canE
               <div className="h-full rounded-full bg-gradient-to-r from-green to-green-600" style={{ width: `${paidPercent}%` }} />
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Template Budget Ranges */}
+      {templateRanges && Object.keys(templateRanges).length > 0 && (
+        <div className="mb-6">
+          <button onClick={() => setShowRanges(!showRanges)} className="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-maroon transition-colors mb-3">
+            <i className={`fas fa-${showRanges ? "chevron-down" : "chevron-right"} text-xs`} />
+            <i className="fas fa-chart-pie text-maroon" />
+            Typical Budget Ranges for Your Wedding Style
+          </button>
+          {showRanges && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {(["budget", "mid", "luxury"] as const).map((tier) => {
+                const r = templateRanges[tier];
+                if (!r) return null;
+                const labels = { budget: "Budget", mid: "Mid-Range", luxury: "Luxury" };
+                const colors = { budget: "from-green to-green-600", mid: "from-blue-500 to-blue-600", luxury: "from-purple-500 to-purple-600" };
+                return (
+                  <div key={tier} className={`bg-gradient-to-br ${colors[tier]} rounded-xl p-4 text-white`}>
+                    <div className="text-xs font-bold uppercase tracking-wider opacity-80 mb-1">{labels[tier]}</div>
+                    <div className="text-lg font-extrabold">{r.label}</div>
+                    {totalBudget > 0 && (
+                      <div className="text-xs opacity-70 mt-1">
+                        {totalBudget >= r.min && totalBudget <= r.max ? "✓ Your budget is in this range" : totalBudget < r.min ? `↑ ${formatCurrency(r.min - totalBudget, wedding.currency)} below` : `↓ ${formatCurrency(totalBudget - r.max, wedding.currency)} above`}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </motion.div>
+          )}
         </div>
       )}
 

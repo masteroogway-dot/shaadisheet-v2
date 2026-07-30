@@ -19,46 +19,228 @@ interface SidebarSection {
 function getChecklistItems(wedding: any): ChecklistItem[] {
   const religion = wedding?.religion || "hindu";
   const country = wedding?.country || "india";
+  const region = wedding?.region || "";
 
-  const checklistsByReligion: Record<string, ChecklistItem[]> = {
-    hindu: [
+  // Region-specific overrides for Indian weddings
+  const checklistsByRegion: Record<string, ChecklistItem[]> = {
+    "North Indian": [
       { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
       { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
       { id: "vidaai", icon: "fa-heart-crack", label: "Vidaai Essentials" },
     ],
-    muslim: [
+    "South Indian": [
       { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
-      { id: "nikah-prep", icon: "fa-book-open", label: "Nikah Preparation" },
-      { id: "walima-essentials", icon: "fa-utensils", label: "Walima Essentials" },
+      { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
+      { id: "kanyadaanam", icon: "fa-ring", label: "Kanyadaanam Essentials" },
     ],
-    sikh: [
+    "Bengali": [
       { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
-      { id: "gurdwara-req", icon: "fa-landmark", label: "Gurdwara Requirements" },
-      { id: "anand-karaj", icon: "fa-music", label: "Anand Karaj Essentials" },
-      { id: "langar-plan", icon: "fa-bowl-food", label: "Langar Planning" },
+      { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
+      { id: "gaye-holud", icon: "fa-sun", label: "Gaye Holud Essentials" },
+      { id: "shubho-drishti", icon: "fa-eye", label: "Shubho Drishti" },
     ],
-    jain: [
+    "Gujarati": [
       { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
-      { id: "jain-catering", icon: "fa-leaf", label: "Jain Catering Rules" },
-      { id: "ceremony-essentials", icon: "fa-fire", label: "Ceremony Essentials" },
+      { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
+      { id: "jaimala", icon: "fa-necklace", label: "Jaimala Essentials" },
     ],
-    christian: [
+    "Maharashtrian": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
+      { id: "sakhar-puda", icon: "fa-candy-cane", label: "Sakhar Puda" },
+    ],
+    "Rajput": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
+      { id: "pithi", icon: "fa-paint-brush", label: "Pithi Ceremony" },
+      { id: "baraat", icon: "fa-horse", label: "Baraat Planning" },
+    ],
+    "Punjabi": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
+      { id: "chunni", icon: "fa scarf", label: "Chunni Ceremony" },
+      { id: "jaggo", icon: "fa-fire", label: "Jaggo Night" },
+    ],
+    "Kashmiri": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
+      { id: "lagan", icon: "fa-ring", label: "Lagan Ceremony" },
+    ],
+    "Assamese": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
+      { id: "jur-phool", icon: "fa-spa", label: "Jur Phool" },
+    ],
+    "Odia": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
+      { id: "chhurakan", icon: "fa-water", label: "Chhurakan" },
+    ],
+    "Bihari": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
+      { id: "sakora", icon: "fa-leaf", label: "Sakora" },
+    ],
+    "Malayali": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
+      { id: "thaali", icon: "fa-gem", label: "Thaali Tying" },
+    ],
+    "Sindhi": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
+      { id: "lada", icon: "fa-candy-cane", label: "Lada Ceremony" },
+    ],
+    "Ladakhi": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "buddhist-req", icon: "fa-dharmachakra", label: "Buddhist Priest Requirements" },
+      { id: "khabzod", icon: "fa-fire", label: "Khabzod Ceremony" },
+    ],
+    "Indian Christian": [
       { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
       { id: "church-req", icon: "fa-church", label: "Church Requirements" },
       { id: "roce-ceremony", icon: "fa-droplet", label: "Roce Ceremony" },
     ],
-    buddhist: [
+    "Goan Christian": [
       { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
-      { id: "poruwa-prep", icon: "fa-torii-gate", label: "Poruwa Preparation" },
-      { id: "nekath-plan", icon: "fa-star", label: "Nekath Planning" },
+      { id: "church-req", icon: "fa-church", label: "Church Requirements" },
+      { id: "soropotel", icon: "fa-utensils", label: "Soro-potel Prep" },
     ],
-    parsi: [
+    "Kerala Christian": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "church-req", icon: "fa-church", label: "Church Requirements" },
+      { id: "minnukettu", icon: "fa-lightbulb", label: "Minnukettu Prep" },
+    ],
+    "Northeast Christian": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "church-req", icon: "fa-church", label: "Church Requirements" },
+      { id: "traditional-feast", icon: "fa-drum", label: "Traditional Feast" },
+    ],
+    "Indian Buddhist": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "buddhist-req", icon: "fa-dharmachakra", label: "Buddhist Priest Requirements" },
+      { id: "poruwa-prep", icon: "fa-torii-gate", label: "Poruwa Preparation" },
+    ],
+    "Indian Jain": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "jain-catering", icon: "fa-leaf", label: "Jain Catering Rules" },
+      { id: "ceremony-essentials", icon: "fa-fire", label: "Ceremony Essentials" },
+    ],
+    "Indian Parsi": [
       { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
       { id: "priest-req", icon: "fa-fire", label: "Priest Requirements" },
       { id: "fire-ceremony", icon: "fa-fire-flame-curved", label: "Fire Ceremony" },
     ],
+    "Sunni": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "nikah-prep", icon: "fa-book-open", label: "Nikah Preparation" },
+      { id: "walima-essentials", icon: "fa-utensils", label: "Walima Essentials" },
+    ],
+    "Sindhi Muslim": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "dholki-essentials", icon: "fa-drum", label: "Dholki Essentials" },
+      { id: "nikah-prep", icon: "fa-book-open", label: "Nikah Preparation" },
+    ],
+    "Baloch": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "nikah-prep", icon: "fa-book-open", label: "Nikah Preparation" },
+      { id: "attan-dance", icon: "fa-music", label: "Attan Dance Planning" },
+    ],
+    "Kashmiri Muslim": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "wazwan-plan", icon: "fa-utensils", label: "Wazwan Planning" },
+      { id: "nikah-prep", icon: "fa-book-open", label: "Nikah Preparation" },
+    ],
+    "Pashtun": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "khwara-essentials", icon: "fa-ring", label: "Khwara Essentials" },
+      { id: "nikah-prep", icon: "fa-book-open", label: "Nikah Preparation" },
+      { id: "attan-dance", icon: "fa-music", label: "Attan Dance Planning" },
+    ],
+    "Tajik": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "nikah-prep", icon: "fa-book-open", label: "Nikah Preparation" },
+      { id: "mahr-docs", icon: "fa-file-contract", label: "Mahr Documentation" },
+    ],
+    "Hazara": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "nikah-prep", icon: "fa-book-open", label: "Nikah Preparation" },
+      { id: "mahr-docs", icon: "fa-file-contract", label: "Mahr Documentation" },
+    ],
+    "Uzbek": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "nikah-prep", icon: "fa-book-open", label: "Nikah Preparation" },
+      { id: "mahr-docs", icon: "fa-file-contract", label: "Mahr Documentation" },
+    ],
+    "Tamang": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "buddhist-req", icon: "fa-dharmachakra", label: "Buddhist Requirements" },
+      { id: "janti-plan", icon: "fa-music", label: "Janti Planning" },
+    ],
+    "Newari": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
+      { id: "ihi-prep", icon: "fa-ring", label: "Ihi Prep" },
+    ],
+    "Sherpa": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "buddhist-req", icon: "fa-dharmachakra", label: "Buddhist Requirements" },
+      { id: "dubo-mala", icon: "fa-seedling", label: "Dubo Ko Mala" },
+    ],
+    "Nepali Muslim": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "nikah-prep", icon: "fa-book-open", label: "Nikah Preparation" },
+      { id: "walima-essentials", icon: "fa-utensils", label: "Walima Essentials" },
+    ],
+    "Sinhalese": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "poruwa-prep", icon: "fa-torii-gate", label: "Poruwa Preparation" },
+      { id: "nekath-plan", icon: "fa-star", label: "Nekath Planning" },
+    ],
+    "Tamil Hindu": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
+      { id: "thaali", icon: "fa-gem", label: "Thaali Ceremony" },
+    ],
+    "Hill Country Tamil": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
+      { id: "thaali", icon: "fa-gem", label: "Thaali Ceremony" },
+    ],
+    "Chakma": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "buddhist-req", icon: "fa-dharmachakra", label: "Buddhist Requirements" },
+      { id: "ceremony-essentials", icon: "fa-fire", label: "Ceremony Essentials" },
+    ],
+    "Bangladeshi Hindu": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
+      { id: "gaye-holud", icon: "fa-sun", label: "Gaye Holud Essentials" },
+    ],
+    "Bangladeshi Buddhist": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "buddhist-req", icon: "fa-dharmachakra", label: "Buddhist Requirements" },
+      { id: "ceremony-essentials", icon: "fa-fire", label: "Ceremony Essentials" },
+    ],
+    "Maldivian": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "henna-night", icon: "fa-hand-sparkles", label: "Henna Night" },
+      { id: "nikah-prep", icon: "fa-book-open", label: "Nikah Preparation" },
+      { id: "resort-coord", icon: "fa-umbrella-beach", label: "Resort Coordination" },
+    ],
+    "Sri Lankan Muslim": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "nikah-prep", icon: "fa-book-open", label: "Nikah Preparation" },
+      { id: "walima-essentials", icon: "fa-utensils", label: "Walima Essentials" },
+    ],
+    "Sri Lankan Christian": [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "church-req", icon: "fa-church", label: "Church Requirements" },
+      { id: "roce-ceremony", icon: "fa-droplet", label: "Roce Ceremony" },
+    ],
   };
 
+  // Country-specific overrides take precedence for non-Indian weddings
   const checklistsByCountry: Record<string, ChecklistItem[]> = {
     pakistan: [
       { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
@@ -100,6 +282,51 @@ function getChecklistItems(wedding: any): ChecklistItem[] {
   if (country !== "india" && checklistsByCountry[country]) {
     return checklistsByCountry[country];
   }
+
+  // Region-specific overrides for Indian weddings
+  if (country === "india" && region && checklistsByRegion[region]) {
+    return checklistsByRegion[region];
+  }
+
+  // Religion-based fallback
+  const checklistsByReligion: Record<string, ChecklistItem[]> = {
+    hindu: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "priest-req", icon: "fa-om", label: "Priest Requirements" },
+      { id: "vidaai", icon: "fa-heart-crack", label: "Vidaai Essentials" },
+    ],
+    muslim: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "nikah-prep", icon: "fa-book-open", label: "Nikah Preparation" },
+      { id: "walima-essentials", icon: "fa-utensils", label: "Walima Essentials" },
+    ],
+    sikh: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "gurdwara-req", icon: "fa-landmark", label: "Gurdwara Requirements" },
+      { id: "anand-karaj", icon: "fa-music", label: "Anand Karaj Essentials" },
+      { id: "langar-plan", icon: "fa-bowl-food", label: "Langar Planning" },
+    ],
+    jain: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "jain-catering", icon: "fa-leaf", label: "Jain Catering Rules" },
+      { id: "ceremony-essentials", icon: "fa-fire", label: "Ceremony Essentials" },
+    ],
+    christian: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "church-req", icon: "fa-church", label: "Church Requirements" },
+      { id: "roce-ceremony", icon: "fa-droplet", label: "Roce Ceremony" },
+    ],
+    buddhist: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "poruwa-prep", icon: "fa-torii-gate", label: "Poruwa Preparation" },
+      { id: "nekath-plan", icon: "fa-star", label: "Nekath Planning" },
+    ],
+    parsi: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "priest-req", icon: "fa-fire", label: "Priest Requirements" },
+      { id: "fire-ceremony", icon: "fa-fire-flame-curved", label: "Fire Ceremony" },
+    ],
+  };
 
   return checklistsByReligion[religion] || checklistsByReligion.hindu;
 }
