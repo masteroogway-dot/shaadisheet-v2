@@ -643,7 +643,17 @@ export default function Home() {
                           <div className="mt-4 p-4 md:p-6 bg-gradient-to-br from-maroon/5 to-amber-50 rounded-xl border border-maroon/10">
                             <div className="flex items-center gap-3 mb-3">
                               <div className="w-8 h-8 rounded-lg bg-maroon/10 flex items-center justify-center">
-                                <i className="fas fa-om text-maroon text-sm" />
+                                {cat?.id === "hindu" && <i className="fas fa-om text-maroon text-sm" />}
+                                {cat?.id === "muslim" && <i className="fas fa-star-and-crescent text-maroon text-sm" />}
+                                {cat?.id === "sikh" && <i className="fas fa-wheat-awn text-maroon text-sm" />}
+                                {cat?.id === "christian" && <i className="fas fa-cross text-maroon text-sm" />}
+                                {cat?.id === "jain" && <i className="fas fa-hand-holding-heart text-maroon text-sm" />}
+                                {cat?.id === "sri_lankan" && <i className="fas fa-torii-gate text-maroon text-sm" />}
+                                {cat?.id === "nepal" && <i className="fas fa-mountain-sun text-maroon text-sm" />}
+                                {cat?.id === "pakistani" && <i className="fas fa-mosque text-maroon text-sm" />}
+                                {cat?.id === "afghanistan" && <i className="fas fa-mountain text-maroon text-sm" />}
+                                {cat?.id === "maldives" && <i className="fas fa-umbrella-beach text-maroon text-sm" />}
+                                {cat?.id === "bangladesh" && <i className="fas fa-water text-maroon text-sm" />}
                               </div>
                               <div>
                                 <h4 className="font-bold text-gray-900 text-sm md:text-base">{cat?.title} — {region.name}</h4>
