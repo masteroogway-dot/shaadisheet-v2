@@ -906,12 +906,14 @@ export async function seedWeddingEvents(weddingId: string) {
 
   // Try to get template from new WeddingTemplate table first
   let templateData: any = null;
+  let templateChecklistItems: any[] = [];
   if (wedding.country && wedding.religion && wedding.region) {
     const dbTemplate = await prisma.weddingTemplate.findFirst({
       where: { country: wedding.country, religion: wedding.religion, region: wedding.region, isActive: true },
     });
     if (dbTemplate) {
       templateData = { events: JSON.parse(dbTemplate.events || "[]") };
+      templateChecklistItems = JSON.parse(dbTemplate.checklistItems || "[]");
     }
   }
 
@@ -1068,6 +1070,25 @@ export async function seedWeddingEvents(weddingId: string) {
         isSimultaneous: t.isSimultaneous || false,
       },
     });
+  }
+
+  // Auto-load template checklist items if none exist yet
+  if (templateChecklistItems.length > 0) {
+    const existingChecklist = await prisma.checklistItem.findMany({ where: { weddingId } });
+    if (existingChecklist.length === 0) {
+      let order = 0;
+      for (const item of templateChecklistItems) {
+        await prisma.checklistItem.create({
+          data: {
+            weddingId,
+            order: order++,
+            category: item.category || "Emergency Kit",
+            text: item.text || "",
+            done: false,
+          },
+        });
+      }
+    }
   }
 }
 

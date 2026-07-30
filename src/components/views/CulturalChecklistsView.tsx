@@ -305,6 +305,14 @@ const DEFAULTS: Record<string, string[]> = {
     "Family consent documented",
     "Gifts for bride listed",
   ],
+  "Fire Ceremony": [
+    "Atash (sacred fire) arranged",
+    "Parsi priest (Mobed) confirmed",
+    "Haath Boravanu items prepared",
+    "Lagan ceremony setup",
+    "Flowers and decorations",
+    "Parsi wedding attire ready",
+  ],
 };
 
 const TAB_ICONS: Record<string, string> = {
@@ -332,6 +340,7 @@ const TAB_ICONS: Record<string, string> = {
   "Khwara Essentials": "\uD83D\uDC8D",
   "Attan Dance Planning": "\uD83C\uDFB5",
   "Mahr Documentation": "\uD83D\uDCC4",
+  "Fire Ceremony": "\uD83D\uDD25",
 };
 
 export default function CulturalChecklistsView({ wedding, weddingId, onUpdate, onToast, canEdit, initialTab }: any) {

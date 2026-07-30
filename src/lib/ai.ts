@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { prisma } from "@/lib/prisma";
+import { formatCurrency, getCurrencySymbol } from "@/lib/format";
 
 // ─── Helpers ──────────────────────────────────────────────────────
 function formatINR(n: number) {
@@ -94,15 +95,21 @@ function buildWeddingContext(summary: any): string {
     ? Math.ceil((new Date(summary.weddingDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null;
 
+  const currency = summary.currency || "INR";
+  const currSymbol = getCurrencySymbol(currency);
+  const fmt = (n: number) => formatCurrency(n, currency);
+
   return `WEDDING DATA:
 - Name: ${summary.name || "Not set"}
 - Date: ${weddingDate}${daysUntil !== null ? ` (${daysUntil} days away)` : ""}
 - City: ${summary.weddingCity || "Not set"}
+- Country: ${summary.country || "India"}
 - Religion: ${summary.religion || "Not set"}
-- Budget: ₹${formatINR(summary.budget)}
-- Budget Allocated: ₹${formatINR(summary.budgetAllocated)}
-- Budget Spent: ₹${formatINR(summary.budgetSpent)}
-- Budget Remaining: ₹${formatINR(summary.budgetRemaining)}
+- Currency: ${currency} (${currSymbol})
+- Budget: ${fmt(summary.budget)}
+- Budget Allocated: ${fmt(summary.budgetAllocated)}
+- Budget Spent: ${fmt(summary.budgetSpent)}
+- Budget Remaining: ${fmt(summary.budgetRemaining)}
 - Guests: ${summary.guestCount} total (RSVP Yes: ${summary.rsvpYes}, Pending: ${summary.rsvpPending}, Declined: ${summary.rsvpDeclined})
 - Vendors: ${summary.vendorCount} total (Booked: ${summary.vendorsBooked})
 - Tasks: ${summary.taskCount} total (Done: ${summary.tasksDone}, Remaining: ${summary.taskCount - summary.tasksDone})
@@ -207,7 +214,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
               properties: {
                 fromName: { type: "string", description: "Name of person/family who gave the gift" },
                 fromSide: { type: "string", enum: ["Paternal", "Maternal", "Groom", "Friends", "Colleagues", "Both"], description: "Which side of the family" },
-                amount: { type: "number", description: "Amount in INR (for cash gifts)" },
+                amount: { type: "number", description: "Gift amount in the wedding's currency" },
                 giftType: { type: "string", enum: ["Cash", "Gold", "Gift", "Other"], description: "Type of gift" },
                 thankYou: { type: "string", enum: ["Sent", "Pending"], description: "Thank you status" },
               },
@@ -242,7 +249,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
             properties: {
               thankYou: { type: "string", enum: ["Sent", "Pending"], description: "Update thank you status" },
               received: { type: "string", enum: ["Yes", "Pending"], description: "Update received status" },
-              amount: { type: "number", description: "Update amount in INR" },
+              amount: { type: "number", description: "Update amount in the wedding's currency" },
             },
           },
         },
@@ -287,7 +294,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
                 person: { type: "string", enum: ["Bride", "Groom", "Bride's Mother", "Groom's Mother", "Bride's Father", "Groom's Father", "Bridesmaid", "Groomsman", "Other"], description: "Who will wear this outfit" },
                 description: { type: "string", description: "Outfit description like 'Red lehenga with gold embroidery'" },
                 designer: { type: "string", description: "Designer or boutique name" },
-                cost: { type: "number", description: "Cost in INR" },
+                cost: { type: "number", description: "Cost in the wedding's currency" },
                 status: { type: "string", enum: ["Shopping", "Tailored", "Ready"], description: "Current status" },
                 jewelryPairing: { type: "string", description: "Which jewelry to pair with this outfit" },
               },
@@ -320,7 +327,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
             type: "object",
             properties: {
               status: { type: "string", enum: ["Shopping", "Tailored", "Ready"], description: "Update status" },
-              cost: { type: "number", description: "Update cost in INR" },
+              cost: { type: "number", description: "Update cost in the wedding's currency" },
               designer: { type: "string", description: "Update designer" },
               jewelryPairing: { type: "string", description: "Update jewelry pairing" },
             },
@@ -368,7 +375,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
                 designer: { type: "string", description: "Designer name" },
                 printer: { type: "string", description: "Printer name" },
                 quantity: { type: "number", description: "Number of cards" },
-                cost: { type: "number", description: "Total cost in INR" },
+                cost: { type: "number", description: "Total cost in the wedding's currency" },
                 sentDate: { type: "string", description: "Date when sent (YYYY-MM-DD)" },
                 rsvpDeadline: { type: "string", description: "RSVP deadline date" },
                 status: { type: "string", enum: ["Planning", "Designed", "Printed", "Dispatched", "Delivered"], description: "Current status" },
@@ -403,7 +410,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
               status: { type: "string", enum: ["Planning", "Designed", "Printed", "Dispatched", "Delivered"], description: "Update status" },
               sentDate: { type: "string", description: "Update sent date" },
               quantity: { type: "number", description: "Update quantity" },
-              cost: { type: "number", description: "Update cost in INR" },
+              cost: { type: "number", description: "Update cost in the wedding's currency" },
             },
           },
         },
@@ -434,7 +441,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "create_checklist_items",
-      description: "Create checklist items. Use when user mentions adding items to emergency kit, priest requirements, or vidaai essentials.",
+      description: "Create checklist items. Use when user mentions adding items to emergency kit, priest requirements, nikah prep, gurdwara requirements, poruwa prep, vidaai essentials, etc.",
       parameters: {
         type: "object",
         properties: {
@@ -443,7 +450,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
             items: {
               type: "object",
               properties: {
-                category: { type: "string", enum: ["Emergency Kit", "Priest Requirements", "Vidaai Essentials"], description: "Which checklist" },
+                category: { type: "string", description: "Checklist category (e.g. Emergency Kit, Priest Requirements, Vidaai Essentials, Nikah Preparation, Gurdwara Requirements, Poruwa Preparation, Walima Essentials, Anand Karaj Essentials, Langar Planning, Jain Catering Rules, Church Requirements, Roce Ceremony, Fire Ceremony, Dholki Essentials, Gaye Holud Essentials, etc.)" },
                 text: { type: "string", description: "Item text" },
               },
               required: ["category", "text"],
@@ -511,7 +518,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
           name: { type: "string", description: "Vendor name" },
           category: { type: "string", description: "Category like Catering, Photography, Decoration" },
           contact: { type: "string", description: "Contact phone number" },
-          quote: { type: "number", description: "Quoted price in INR" },
+          quote: { type: "number", description: "Quoted price in the wedding's currency" },
           notes: { type: "string", description: "Additional notes" },
         },
         required: ["name", "category"],
@@ -528,7 +535,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
         properties: {
           item: { type: "string", description: "Item name" },
           category: { type: "string", description: "Category like Venue, Catering, Decoration" },
-          estimated: { type: "number", description: "Estimated cost in INR" },
+          estimated: { type: "number", description: "Estimated cost in the wedding's currency" },
           notes: { type: "string", description: "Additional notes" },
         },
         required: ["item", "category", "estimated"],
@@ -970,8 +977,8 @@ const tools: OpenAI.ChatCompletionTool[] = [
           updates: {
             type: "object",
             properties: {
-              actual: { type: "number", description: "Actual cost in INR" },
-              paid: { type: "number", description: "Amount paid in INR" },
+              actual: { type: "number", description: "Actual cost in the wedding's currency" },
+              paid: { type: "number", description: "Amount paid in the wedding's currency" },
               status: { type: "string", enum: ["Pending", "Booked", "Paid"] },
               notes: { type: "string" },
             },
@@ -1001,8 +1008,8 @@ const tools: OpenAI.ChatCompletionTool[] = [
           updates: {
             type: "object",
             properties: {
-              quote: { type: "number", description: "Quoted price in INR" },
-              paid: { type: "number", description: "Amount paid in INR" },
+          quote: { type: "number", description: "Quoted price in the wedding's currency" },
+              paid: { type: "number", description: "Amount paid in the wedding's currency" },
               contract: { type: "string", enum: ["Pending", "Signed", "Completed"] },
               rating: { type: "string" },
               notes: { type: "string" },
@@ -1230,7 +1237,7 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
         received: "Yes", thankYou: g.thankYou || "Pending",
       }));
       await prisma.gift.createMany({ data });
-      return `Created ${a.gifts.length} gift(s): ${a.gifts.map((g: any) => `${g.fromName}${g.amount ? ` - ₹${formatINR(g.amount)}` : ""}`).join(", ")}.`;
+      return `Created ${a.gifts.length} gift(s): ${a.gifts.map((g: any) => `${g.fromName}${g.amount ? ` - ${formatINR(g.amount)}` : ""}`).join(", ")}.`;
     }
     case "update_gifts": {
       const { filter = {}, updates } = a;
@@ -1366,13 +1373,13 @@ async function executeTool(name: string, args: any, weddingId: string): Promise<
       await prisma.vendor.create({
         data: { weddingId, name: a.name, category: a.category, contact: a.contact, quote: a.quote, notes: a.notes, contract: "Pending" },
       });
-      return `Created vendor: ${a.name} (${a.category})${a.quote ? ` - ₹${formatINR(a.quote)}` : ""}.`;
+      return `Created vendor: ${a.name} (${a.category})${a.quote ? ` - ${formatINR(a.quote)}` : ""}.`;
     }
     case "create_budget_item": {
       await prisma.budgetItem.create({
         data: { weddingId, item: a.item, category: a.category, estimated: a.estimated, notes: a.notes },
       });
-      return `Created budget item: ${a.item} (${a.category}) - ₹${formatINR(a.estimated)}.`;
+      return `Created budget item: ${a.item} (${a.category}) - ${formatINR(a.estimated)}.`;
     }
     case "create_task": {
       await prisma.task.create({
@@ -1734,10 +1741,10 @@ Khwara → Shirni Khori → Henna Night → Nikah → Walima (with Attan dance)
 ## IMPORTANT RULES
 - Always use tools when user asks to create/update/delete data. Actually do it.
 - Never make up vendor names. Use search_vendors for real results.
-- When listing prices, use table format.
+- When listing prices, use table format. Always use the wedding's currency (shown in WEDDING DATA above).
 - If ambiguous, ask for clarification with specific options.
 - Never use horizontal rules (---).
-- INDIAN CURRENCY MATH: ₹30,00,000 = 30 lakh = 3,000,000 rupees. ₹30,00,000 ÷ 400 guests = ₹7,500 per plate (NOT ₹750). Always count zeros carefully. Lakh = 1,00,000 (5 zeros). Crore = 1,00,00,000 (7 zeros).`;
+- CURRENCY MATH: Always count zeros carefully. Use lakh/crore for INR/PKR/BDT/NPR/AFN, use K/L for MVR/LKR. Convert between systems if needed.`;
 }
 
 // ─── Destructive tool names ────────────────────────────────────────

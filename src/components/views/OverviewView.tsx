@@ -729,7 +729,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                       const day = d.getDate();
                       const month = d.toLocaleString("en-US", { month: "short" });
                       const weekday = d.toLocaleString("en-US", { weekday: "short" });
-                      const isWedding = event.name?.includes("Wedding") || event.name?.includes("Nikah") || event.name?.includes("Anand Karaj");
+                    const isWedding = ["Wedding", "Nikah", "Anand Karaj", "Poruwa Ceremony", "Church Wedding", "Ihi", "Swayamvar", "Haath Boravanu"].some(n => event.name?.includes(n));
                       const daysUntil = Math.ceil((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
                       return (
                         <div key={event.id} className={`flex items-center gap-4 p-3 rounded-lg ${isWedding ? "bg-maroon/5 border border-maroon/10" : "bg-gray-50"}`}>

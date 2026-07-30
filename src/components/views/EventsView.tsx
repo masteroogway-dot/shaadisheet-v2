@@ -104,7 +104,9 @@ export default function EventsView({ wedding, weddingId, canEdit = true }: { wed
       case "muslim": return { type: "fa" as const, className: "fas fa-star-and-crescent" };
       case "sikh": return { type: "svg" as const, svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14"><circle cx="12" cy="12" r="5" /><line x1="12" y1="2" x2="12" y2="22" /><path d="M7 4C7 4 9 8 9 12s-2 8-2 8" /><path d="M17 4c0 0-2 4-2 8s2 8 2 8" /></svg>' };
       case "christian": return { type: "fa" as const, className: "fas fa-cross" };
-      case "jain": return { type: "fa" as const, className: "fas fa-om" };
+      case "jain": return { type: "fa" as const, className: "fas fa-hand-holding-heart" };
+      case "buddhist": return { type: "fa" as const, className: "fas fa-dharmachakra" };
+      case "parsi": return { type: "fa" as const, className: "fas fa-fire" };
       default: return { type: "fa" as const, className: "fas fa-star" };
     }
   };
@@ -275,7 +277,7 @@ export default function EventsView({ wedding, weddingId, canEdit = true }: { wed
                   {dayEvents.map((event) => {
                     const isEditing = editing === event.id;
                     const isOverlapping = overlaps.has(event.id);
-                    const isWedding = event.name.includes("Wedding") || event.name.includes("Nikah") || event.name.includes("Anand Karaj");
+                    const isWedding = ["Wedding", "Nikah", "Anand Karaj", "Poruwa Ceremony", "Church Wedding", "Ihi", "Swayamvar", "Haath Boravanu"].some(n => event.name?.includes(n));
 
                     return (
                       <div

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { updateBudgetItem, createBudgetItem, deleteBudgetItem, batchCreateBudgetItems, bulkDeleteBudgetItems, bulkAddBudgetItems } from "@/lib/actions";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, getCurrencySymbol } from "@/lib/format";
 import { exportToCSV } from "@/lib/export";
 import ImportModal from "@/components/ImportModal";
 import DatePicker from "@/components/DatePicker";
@@ -190,7 +190,7 @@ export default function BudgetView({ wedding, weddingId, onUpdate, onToast, canE
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-7">
         <div>
           <h2 className="text-2xl font-bold">Budget Tracker</h2>
-          <p className="text-gray-500 text-sm">Track every rupee — from estimate to final payment</p>
+          <p className="text-gray-500 text-sm">Track every {getCurrencySymbol(wedding.currency)} — from estimate to final payment</p>
         </div>
         <div className="flex gap-2.5 items-center flex-wrap">
           {canEdit && items.length > 0 && (

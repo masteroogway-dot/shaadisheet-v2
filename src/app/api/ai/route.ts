@@ -45,6 +45,8 @@ async function getSummary(weddingId: string) {
     weddingCity: w.weddingCity,
     weddingDays: w.weddingDays,
     religion: w.religion,
+    country: w.country || "india",
+    currency: w.currency || "INR",
     events: w.events.map((e) => ({ name: e.name, date: e.date, startTime: e.startTime })),
   };
 }
