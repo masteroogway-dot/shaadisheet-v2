@@ -7,7 +7,7 @@ import html2canvas from "html2canvas";
 import { createHashtag, updateHashtag, deleteHashtag, bulkDeleteHashtags, batchCreateHashtags, bulkAddHashtags } from "@/lib/actions";
 import ImportModal from "@/components/ImportModal";
 
-const STYLES = ["All", "Romantic", "Funny", "Pun", "Traditional", "Modern"];
+const STYLES = ["All", "Romantic", "Funny", "Pun", "Traditional", "Modern", "Pop Culture", "Seasonal", "Location"];
 
 const STYLE_CONFIG: Record<string, { gradient: string; emoji: string; bg: string; text: string; border: string }> = {
   Romantic: { gradient: "from-rose-400 to-pink-500", emoji: "💕", bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
@@ -15,54 +15,74 @@ const STYLE_CONFIG: Record<string, { gradient: string; emoji: string; bg: string
   Pun: { gradient: "from-violet-400 to-purple-500", emoji: "😜", bg: "bg-violet-50", text: "text-violet-700", border: "border-violet-200" },
   Traditional: { gradient: "from-red-500 to-rose-600", emoji: "🪷", bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
   Modern: { gradient: "from-cyan-400 to-blue-500", emoji: "✨", bg: "bg-cyan-50", text: "text-cyan-700", border: "border-cyan-200" },
+  "Pop Culture": { gradient: "from-fuchsia-400 to-pink-500", emoji: "🎬", bg: "bg-fuchsia-50", text: "text-fuchsia-700", border: "border-fuchsia-200" },
+  Seasonal: { gradient: "from-emerald-400 to-teal-500", emoji: "🌿", bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
+  Location: { gradient: "from-sky-400 to-indigo-500", emoji: "📍", bg: "bg-sky-50", text: "text-sky-700", border: "border-sky-200" },
 };
+
+const VIBES = [
+  { id: "classic", label: "Classic", emoji: "💍" },
+  { id: "funny", label: "Funny", emoji: "😂" },
+  { id: "romantic", label: "Romantic", emoji: "💕" },
+  { id: "modern", label: "Modern", emoji: "⚡" },
+  { id: "desi", label: "Desi", emoji: "🪷" },
+];
 
 function getShortNames(name: string): string[] {
   const n = name.trim();
   if (!n) return [];
   const cap = n.charAt(0).toUpperCase() + n.slice(1).toLowerCase();
-  const lower = n.toLowerCase();
   const len = n.length;
   const shorts: string[] = [cap];
   if (len >= 4) shorts.push(cap.slice(0, 3));
   if (len >= 5) shorts.push(cap.slice(0, 4));
   if (len >= 3) shorts.push(cap.slice(0, 2));
-  // Vowel-ending short: drop last char if vowel-heavy
   if (len >= 4) {
     const trimmed = cap.slice(0, -1);
     if (trimmed.length >= 3) shorts.push(trimmed);
   }
-  // "ie/y" ending nickname
   if (len >= 4) {
     const nickname = cap.slice(0, -1) + "ie";
     if (nickname !== cap) shorts.push(nickname);
   }
-  // Unique only
   return [...new Set(shorts)];
 }
 
-function generateHashtags(name1: string, name2: string): { text: string; language: string; style: string }[] {
+function generateHashtags(
+  name1: string,
+  name2: string,
+  nickname1: string,
+  nickname2: string,
+  year: string,
+  city: string,
+): { text: string; language: string; style: string }[] {
   const n1 = name1.trim();
   const n2 = name2.trim();
   if (!n1 || !n2) return [];
 
   const n1Cap = n1.charAt(0).toUpperCase() + n1.slice(1).toLowerCase();
   const n2Cap = n2.charAt(0).toUpperCase() + n2.slice(1).toLowerCase();
+  const nick1 = nickname1.trim() || n1Cap;
+  const nick2 = nickname2.trim() || n2Cap;
+  const nick1Cap = nick1.charAt(0).toUpperCase() + nick1.slice(1).toLowerCase();
+  const nick2Cap = nick2.charAt(0).toUpperCase() + nick2.slice(1).toLowerCase();
   const n1Shorts = getShortNames(n1);
   const n2Shorts = getShortNames(n2);
+  const yr = year || new Date().getFullYear().toString();
+  const cityCap = city.trim() ? city.trim().charAt(0).toUpperCase() + city.trim().slice(1).toLowerCase() : "";
 
   const results: { text: string; language: string; style: string }[] = [];
   const seen = new Set<string>();
 
   const add = (text: string, language: string, style: string) => {
     const t = `#${text.replace(/^#/, "")}`;
-    if (!seen.has(t.toLowerCase())) {
+    if (!seen.has(t.toLowerCase()) && t.length > 2) {
       seen.add(t.toLowerCase());
       results.push({ text: t, language, style });
     }
   };
 
-  // ── Romantic: short+full combos ──
+  // ── Romantic ──
   for (const s1 of n1Shorts.slice(0, 3)) {
     for (const s2 of n2Shorts.slice(0, 3)) {
       if (s1 !== n1Cap || s2 !== n2Cap) {
@@ -79,56 +99,49 @@ function generateHashtags(name1: string, name2: string): { text: string; languag
   add(`${n1Cap}${n2Cap}Forever`, "English", "Romantic");
   add(`${n1Cap}Meets${n2Cap}`, "English", "Romantic");
   add(`TogetherForever${n1Cap}${n2Cap}`, "English", "Romantic");
-  // Short+full romantic
-  for (const s1 of n1Shorts.slice(0, 2)) {
-    add(`${s1}For${n2Cap}`, "English", "Romantic");
-    add(`${s1}Meets${n2Cap}`, "English", "Romantic");
-  }
-  for (const s2 of n2Shorts.slice(0, 2)) {
-    add(`${s2}For${n1Cap}`, "English", "Romantic");
-    add(`${s2}Meets${n1Cap}`, "English", "Romantic");
-  }
+  for (const s1 of n1Shorts.slice(0, 2)) add(`${s1}For${n2Cap}`, "English", "Romantic");
+  for (const s2 of n2Shorts.slice(0, 2)) add(`${s2}For${n1Cap}`, "English", "Romantic");
   add(`PyaarKaBandhan${n1Cap}${n2Cap}`, "Hindi", "Romantic");
   add(`DilKiDhadkan${n1Cap}${n2Cap}`, "Hindi", "Romantic");
   add(`IshqKaIzhaar${n1Cap}${n2Cap}`, "Hindi", "Romantic");
   add(`DilKaRishta${n1Cap}${n2Cap}`, "Hindi", "Romantic");
+  // Year variants
+  add(`${n1Cap}Loves${n2Cap}${yr}`, "English", "Romantic");
+  add(`${n1Cap}And${n2Cap}${yr}`, "English", "Romantic");
 
-  // ── Funny: short name humor ──
+  // ── Funny ──
   for (const s1 of n1Shorts.slice(0, 2)) {
-    add(`${s1}KaSaudagar`, "English", "Funny");
+    add(`${s1}KaSaudagar`, "Hindi", "Funny");
     add(`${s1}Boss`, "English", "Funny");
     add(`${s1}KiBoss`, "Hindi", "Funny");
   }
   for (const s2 of n2Shorts.slice(0, 2)) {
-    add(`${s2}KaSaudagar`, "English", "Funny");
+    add(`${s2}KaSaudagar`, "Hindi", "Funny");
     add(`${s2}Boss`, "English", "Funny");
     add(`${s2}KiBoss`, "Hindi", "Funny");
   }
   add(`CoupleGoals${n1Cap}${n2Cap}`, "English", "Funny");
-  add(`${n1Cap}Ki${n2Cap}`, "English", "Funny");
-  add(`${n2Cap}Ki${n1Cap}`, "English", "Funny");
+  add(`${n1Cap}Ki${n2Cap}`, "Hindi", "Funny");
+  add(`${n2Cap}Ki${n1Cap}`, "Hindi", "Funny");
   add(`ShaadiKaLadoo${n1Cap}${n2Cap}`, "Hindi", "Funny");
   add(`PatiParmeshwar${n1Cap}`, "Hindi", "Funny");
   add(`BiwiNo1${n2Cap}`, "Hindi", "Funny");
-  // Short+short funny
+  add(`${nick1Cap}SaidYes`, "English", "Funny");
+  add(`${nick2Cap}StoleMyHeart`, "English", "Funny");
   for (const s1 of n1Shorts.slice(0, 2)) {
     for (const s2 of n2Shorts.slice(0, 2)) {
-      if (s1.length + s2.length < n1Cap.length + n2Cap.length) {
-        add(`${s1}Ki${s2}`, "Hindi", "Funny");
-      }
+      if (s1.length + s2.length < n1Cap.length + n2Cap.length) add(`${s1}Ki${s2}`, "Hindi", "Funny");
     }
   }
 
-  // ── Pun: creative short combos ──
-  add(`${n1Cap}Weds${n2Cap}`, "English", "Pun");
-  add(`ShaadiMubarak${n1Cap}${n2Cap}`, "English", "Pun");
-  add(`JodiPakki${n1Cap}${n2Cap}`, "English", "Pun");
-  add(`DulhaDulhan${n1Cap}${n2Cap}`, "English", "Pun");
+  // ── Pun ──
+  add(`ShaadiMubarak${n1Cap}${n2Cap}`, "Hindi", "Pun");
+  add(`JodiPakki${n1Cap}${n2Cap}`, "Hindi", "Pun");
+  add(`DulhaDulhan${n1Cap}${n2Cap}`, "Hindi", "Pun");
   add(`MehendiLagaDungi`, "Hindi", "Pun");
   add(`SangeetNights`, "Hindi", "Pun");
   add(`DholAndSangeet`, "Hindi", "Pun");
   add(`BandBaaja${n1Cap}${n2Cap}`, "Hindi", "Pun");
-  // Short puns
   for (const s1 of n1Shorts.slice(0, 2)) {
     for (const s2 of n2Shorts.slice(0, 2)) {
       add(`${s1}Weds${s2}`, "English", "Pun");
@@ -139,40 +152,85 @@ function generateHashtags(name1: string, name2: string): { text: string; languag
 
   // ── Traditional ──
   add(`VivahaUtsav${n1Cap}${n2Cap}`, "English", "Traditional");
-  add(`ShubhVivaha${n1Cap}${n2Cap}`, "English", "Traditional");
-  add(`Grihastha${n1Cap}${n2Cap}`, "English", "Traditional");
-  add(`SaatPhere${n1Cap}${n2Cap}`, "English", "Traditional");
-  add(`MangalPheras`, "English", "Traditional");
+  add(`ShubhVivaha${n1Cap}${n2Cap}`, "Hindi", "Traditional");
+  add(`Grihastha${n1Cap}${n2Cap}`, "Hindi", "Traditional");
+  add(`SaatPhere${n1Cap}${n2Cap}`, "Hindi", "Traditional");
+  add(`MangalPheras`, "Hindi", "Traditional");
   add(`SindoorKiLaaj`, "Hindi", "Traditional");
   add(`Mangalsutra`, "Hindi", "Traditional");
   add(`Saptapadi`, "Hindi", "Traditional");
   add(`VivahSanskar`, "Hindi", "Traditional");
 
-  // ── Modern: short x short, vibes ──
-  add(`${n1Cap}X${n2Cap}`, "Bilingual", "Modern");
-  add(`${n2Cap}X${n1Cap}`, "Bilingual", "Modern");
-  add(`${n1Cap}${n2Cap}Wedding`, "Bilingual", "Modern");
-  add(`${n1Cap}${n2Cap}Shaadi`, "Bilingual", "Modern");
-  add(`JustMarried${n1Cap}${n2Cap}`, "Bilingual", "Modern");
-  add(`MrAndMrs${n1Cap}`, "Bilingual", "Modern");
-  add(`NewlyWed${n1Cap}${n2Cap}`, "Bilingual", "Modern");
-  add(`${n1Cap}${n2Cap}Vibes`, "Bilingual", "Modern");
-  // Short modern combos
+  // ── Modern ──
+  add(`${n1Cap}X${n2Cap}`, "English", "Modern");
+  add(`${n2Cap}X${n1Cap}`, "English", "Modern");
+  add(`${n1Cap}${n2Cap}Wedding`, "English", "Modern");
+  add(`${n1Cap}${n2Cap}Shaadi`, "Hindi", "Modern");
+  add(`JustMarried${n1Cap}${n2Cap}`, "English", "Modern");
+  add(`MrAndMrs${n1Cap}`, "English", "Modern");
+  add(`NewlyWed${n1Cap}${n2Cap}`, "English", "Modern");
+  add(`${n1Cap}${n2Cap}Vibes`, "English", "Modern");
+  add(`${n1Cap}${n2Cap}SZN`, "English", "Modern");
   for (const s1 of n1Shorts.slice(0, 3)) {
     for (const s2 of n2Shorts.slice(0, 3)) {
       if (s1 !== n1Cap || s2 !== n2Cap) {
-        add(`${s1}X${s2}`, "Bilingual", "Modern");
-        add(`${s2}X${s1}`, "Bilingual", "Modern");
+        add(`${s1}X${s2}`, "English", "Modern");
+        add(`${s2}X${s1}`, "English", "Modern");
       }
     }
   }
-  add(`${n1Cap}${n2Cap}SZN`, "Bilingual", "Modern");
-  add(`${n1Cap}Meets${n2Cap}`, "Bilingual", "Modern");
+  add(`FromFianceToForever${n1Cap}${n2Cap}`, "English", "Modern");
+  add(`MainCharacterEnergy`, "English", "Modern");
+
+  // ── Pop Culture ──
+  add(`YeJodi${n1Cap}${n2Cap}`, "Hindi", "Pop Culture");
+  add(`KabirSingh${n1Cap}${n2Cap}`, "Hindi", "Pop Culture");
+  add(`DeepVeer${n1Cap}${n2Cap}`, "Hindi", "Pop Culture");
+  add(`VirushkaVibes`, "Hindi", "Pop Culture");
+  add(`${n1Cap}Ki${n2Cap}KiKahani`, "Hindi", "Pop Culture");
+  add(`DDLJ${n1Cap}${n2Cap}`, "Hindi", "Pop Culture");
+  add(`${n1Cap}And${n2Cap}Bollywood`, "English", "Pop Culture");
+  add(`SwipedRight${n1Cap}${n2Cap}`, "English", "Pop Culture");
+  add(`NetflixAndChill${n1Cap}${n2Cap}`, "English", "Pop Culture");
+  add(`InstagramOfficial${n1Cap}${n2Cap}`, "English", "Pop Culture");
+
+  // ── Seasonal ──
+  const month = new Date().getMonth();
+  const season = month >= 2 && month <= 4 ? "Spring" : month >= 5 && month <= 7 ? "Summer" : month >= 8 && month <= 10 ? "Autumn" : "Winter";
+  const seasonEmoji = { Spring: "🌸", Summer: "☀️", Autumn: "🍂", Winter: "❄️" }[season] || "🌿";
+  add(`${season}Wedding${n1Cap}${n2Cap}`, "English", "Seasonal");
+  add(`${n1Cap}${n2Cap}${season}`, "English", "Seasonal");
+  add(`${seasonEmoji}${n1Cap}Loves${n2Cap}`, "English", "Seasonal");
+  add(`${season}Vibes${n1Cap}${n2Cap}`, "English", "Seasonal");
+  if (season === "Winter") {
+    add(`SnowInLove${n1Cap}${n2Cap}`, "English", "Seasonal");
+    add(`CozyAndCommitted`, "English", "Seasonal");
+  } else if (season === "Summer") {
+    add(`SummerLovin${n1Cap}${n2Cap}`, "English", "Seasonal");
+    add(`SunKissedIDo`, "English", "Seasonal");
+  } else if (season === "Spring") {
+    add(`BloomingLove${n1Cap}${n2Cap}`, "English", "Seasonal");
+    add(`SpringIntoLove`, "English", "Seasonal");
+  } else {
+    add(`FallingInLove${n1Cap}${n2Cap}`, "English", "Seasonal");
+    add(`HarvestHeart`, "English", "Seasonal");
+  }
+  add(`${n1Cap}${n2Cap}${yr}`, "English", "Seasonal");
+  add(`${n1Cap}Weds${n2Cap}${yr}`, "English", "Seasonal");
+
+  // ── Location ──
+  if (cityCap) {
+    add(`LoveIn${cityCap}`, "English", "Location");
+    add(`${n1Cap}Loves${n2Cap}In${cityCap}`, "English", "Location");
+    add(`HitchedIn${cityCap}`, "English", "Location");
+    add(`${cityCap}Wedding${n1Cap}${n2Cap}`, "English", "Location");
+    add(`${n1Cap}${n2Cap}In${cityCap}`, "English", "Location");
+    add(`Destination${cityCap}${n1Cap}${n2Cap}`, "English", "Location");
+  }
 
   return results;
 }
 
-/* ── Heart Particle Burst ── */
 function HeartBurst({ x, y }: { x: number; y: number }) {
   const hearts = Array.from({ length: 6 }, (_, i) => ({
     id: i,
@@ -199,7 +257,6 @@ function HeartBurst({ x, y }: { x: number; y: number }) {
   );
 }
 
-/* ── Shareable Image Card (ref) ── */
 function ShareableCard({ name1, name2, hashtags }: { name1: string; name2: string; hashtags: string[] }) {
   return (
     <div
@@ -210,7 +267,6 @@ function ShareableCard({ name1, name2, hashtags }: { name1: string; name2: strin
         fontFamily: "Playfair Display, serif",
       }}
     >
-      {/* Mandala pattern overlay */}
       <div className="absolute inset-0 opacity-[0.06]" style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23D4AF37' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
       }} />
@@ -227,20 +283,12 @@ function ShareableCard({ name1, name2, hashtags }: { name1: string; name2: strin
         <p className="text-white/50 text-sm mb-8">ShaadiSheet</p>
         <div className="flex flex-wrap justify-center gap-2 mb-8">
           {hashtags.slice(0, 12).map((h, i) => (
-            <span
-              key={i}
-              className="px-3 py-1.5 rounded-full text-sm font-medium"
-              style={{
-                background: "rgba(212, 175, 55, 0.15)",
-                border: "1px solid rgba(212, 175, 55, 0.3)",
-                color: "#F4D03F",
-              }}
-            >
+            <span key={i} className="px-3 py-1.5 rounded-full text-sm font-medium" style={{ background: "rgba(212, 175, 55, 0.15)", border: "1px solid rgba(212, 175, 55, 0.3)", color: "#F4D03F" }}>
               {h}
             </span>
           ))}
         </div>
-        <p className="text-white/30 text-xs">Create yours free at shadisheet.com</p>
+        <p className="text-white/30 text-xs">Create yours free at shaadisheet.com</p>
       </div>
     </div>
   );
@@ -250,6 +298,11 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
   const hashtags: any[] = wedding.hashtags || [];
   const [name1, setName1] = useState("");
   const [name2, setName2] = useState("");
+  const [nickname1, setNickname1] = useState("");
+  const [nickname2, setNickname2] = useState("");
+  const [year, setYear] = useState(new Date().getFullYear().toString());
+  const [city, setCity] = useState("");
+  const [vibe, setVibe] = useState("classic");
   const [activeStyle, setActiveStyle] = useState("All");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -261,6 +314,7 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
   const [showShareCard, setShowShareCard] = useState(false);
   const [copyAllFeedback, setCopyAllFeedback] = useState(false);
   const [showNameInput, setShowNameInput] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const filteredHashtags = useMemo(() => {
     let list = [...hashtags];
@@ -284,7 +338,7 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
       return;
     }
     setGenerating(true);
-    const generated = generateHashtags(name1.trim(), name2.trim());
+    const generated = generateHashtags(name1.trim(), name2.trim(), nickname1.trim(), nickname2.trim(), year, city);
     const existingTexts = new Set(hashtags.map((h) => h.text.toLowerCase()));
     const newHashtags = generated.filter((h) => !existingTexts.has(h.text.toLowerCase()));
     if (newHashtags.length === 0) {
@@ -297,7 +351,6 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
       onUpdate();
       onToast(`Generated ${newHashtags.length} hashtags`);
       setShowNameInput(false);
-      // Fire confetti on generate
       confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 }, colors: ["#D4AF37", "#8B0000", "#C62828", "#FF6B6B", "#A855F7"] });
     } catch {
       onToast("Failed to generate", "error");
@@ -390,7 +443,7 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
         </div>
         <div className="flex gap-2">
           {canEdit && hashtags.length > 0 && (
-            <button onClick={() => { setShowNameInput(!showNameInput); setName1(""); setName2(""); }} className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">
+            <button onClick={() => { setShowNameInput(!showNameInput); setName1(""); setName2(""); setNickname1(""); setNickname2(""); setCity(""); }} className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">
               <i className="fas fa-sync-alt mr-1" /> Regenerate
             </button>
           )}
@@ -416,55 +469,84 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
           className="relative rounded-2xl overflow-hidden"
           style={{ background: "linear-gradient(135deg, #722F37 0%, #5C0000 50%, #8B0000 100%)" }}
         >
-        <div className="absolute inset-0 opacity-[0.08]" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23D4AF37' fill-opacity='1'%3E%3Ccircle cx='20' cy='20' r='1.5'/%3E%3C/g%3E%3C/svg%3E")`,
-        }} />
-        <div className="relative z-10 p-6 md:p-8">
-          <p className="text-[#D4AF37] text-xs tracking-[0.25em] uppercase mb-4 text-center">Enter the couple&apos;s names</p>
-          <div className="flex flex-col sm:flex-row gap-3 items-center max-w-xl mx-auto">
-            <div className="flex-1 w-full">
-              <input
-                type="text"
-                placeholder="Partner 1"
-                value={name1}
-                onChange={(e) => setName1(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && name2.trim() && handleGenerate()}
-                className="w-full px-5 py-3.5 rounded-xl text-sm font-medium bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:bg-white/15 focus:border-[#D4AF37] focus:outline-none transition-all text-center"
-              />
+          <div className="absolute inset-0 opacity-[0.08]" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23D4AF37' fill-opacity='1'%3E%3Ccircle cx='20' cy='20' r='1.5'/%3E%3C/g%3E%3C/svg%3E")`,
+          }} />
+          <div className="relative z-10 p-6 md:p-8">
+            <p className="text-[#D4AF37] text-xs tracking-[0.25em] uppercase mb-4 text-center">Enter the couple&apos;s names</p>
+            <div className="flex flex-col sm:flex-row gap-3 items-center max-w-xl mx-auto">
+              <div className="flex-1 w-full">
+                <input
+                  type="text"
+                  placeholder="Partner 1"
+                  value={name1}
+                  onChange={(e) => setName1(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && name2.trim() && handleGenerate()}
+                  className="w-full px-5 py-3.5 rounded-xl text-sm font-medium bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:bg-white/15 focus:border-[#D4AF37] focus:outline-none transition-all text-center"
+                />
+              </div>
+              <span className="text-[#D4AF37] text-2xl font-light hidden sm:block">&</span>
+              <div className="flex-1 w-full">
+                <input
+                  type="text"
+                  placeholder="Partner 2"
+                  value={name2}
+                  onChange={(e) => setName2(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && name1.trim() && handleGenerate()}
+                  className="w-full px-5 py-3.5 rounded-xl text-sm font-medium bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:bg-white/15 focus:border-[#D4AF37] focus:outline-none transition-all text-center"
+                />
+              </div>
             </div>
-            <span className="text-[#D4AF37] text-2xl font-light hidden sm:block">&</span>
-            <div className="flex-1 w-full">
-              <input
-                type="text"
-                placeholder="Partner 2"
-                value={name2}
-                onChange={(e) => setName2(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && name1.trim() && handleGenerate()}
-                className="w-full px-5 py-3.5 rounded-xl text-sm font-medium bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:bg-white/15 focus:border-[#D4AF37] focus:outline-none transition-all text-center"
-              />
-            </div>
-            <motion.button
-              onClick={handleGenerate}
-              disabled={!name1.trim() || !name2.trim() || generating}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="px-7 py-3.5 rounded-xl text-sm font-bold text-[#722F37] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg whitespace-nowrap"
-              style={{ background: "linear-gradient(135deg, #D4AF37, #F4D03F)" }}
-            >
-              {generating ? (
-                <span className="flex items-center gap-2">
-                  <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }} className="inline-block">✨</motion.span>
-                  Generating...
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <span>✨</span> Generate
-                </span>
+
+            {/* Advanced toggle */}
+            <button onClick={() => setShowAdvanced(!showAdvanced)} className="mx-auto mt-3 text-[#D4AF37]/70 text-xs hover:text-[#D4AF37] transition-colors">
+              {showAdvanced ? "▲ Hide" : "▼ Show"} nicknames, year & city
+            </button>
+
+            {/* Advanced fields */}
+            <AnimatePresence>
+              {showAdvanced && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto mt-3">
+                    <input type="text" placeholder="Nickname 1 (optional)" value={nickname1} onChange={(e) => setNickname1(e.target.value)} className="flex-1 px-4 py-2.5 rounded-lg text-xs bg-white/10 border border-white/15 text-white placeholder:text-white/30 focus:bg-white/15 focus:border-[#D4AF37] focus:outline-none transition-all text-center" />
+                    <input type="text" placeholder="Nickname 2 (optional)" value={nickname2} onChange={(e) => setNickname2(e.target.value)} className="flex-1 px-4 py-2.5 rounded-lg text-xs bg-white/10 border border-white/15 text-white placeholder:text-white/30 focus:bg-white/15 focus:border-[#D4AF37] focus:outline-none transition-all text-center" />
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto mt-3">
+                    <input type="text" placeholder="Wedding year" value={year} onChange={(e) => setYear(e.target.value)} className="w-full sm:w-1/3 px-4 py-2.5 rounded-lg text-xs bg-white/10 border border-white/15 text-white placeholder:text-white/30 focus:bg-white/15 focus:border-[#D4AF37] focus:outline-none transition-all text-center" />
+                    <input type="text" placeholder="Wedding city (optional)" value={city} onChange={(e) => setCity(e.target.value)} className="flex-1 px-4 py-2.5 rounded-lg text-xs bg-white/10 border border-white/15 text-white placeholder:text-white/30 focus:bg-white/15 focus:border-[#D4AF37] focus:outline-none transition-all text-center" />
+                  </div>
+                </motion.div>
               )}
-            </motion.button>
+            </AnimatePresence>
+
+            <div className="flex justify-center mt-4">
+              <motion.button
+                onClick={handleGenerate}
+                disabled={!name1.trim() || !name2.trim() || generating}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="px-7 py-3.5 rounded-xl text-sm font-bold text-[#722F37] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg whitespace-nowrap"
+                style={{ background: "linear-gradient(135deg, #D4AF37, #F4D03F)" }}
+              >
+                {generating ? (
+                  <span className="flex items-center gap-2">
+                    <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }} className="inline-block">✨</motion.span>
+                    Generating...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <span>✨</span> Generate
+                  </span>
+                )}
+              </motion.button>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
       )}
 
       {/* Stats Row */}
