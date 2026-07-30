@@ -204,24 +204,28 @@ export default function InteractiveDemo() {
                             <i className="fas fa-chevron-down text-[0.55rem]" />
                           </div>
                           <div className="mt-0.5">
-                            {section.items.map((item) => (
-                              <button
-                                key={item.id}
-                                onClick={() => {
-                                  if (["overview", "budget", "vendors", "guests", "events", "tasks", "hashtags"].includes(item.id)) {
-                                    setActiveTab(item.id as DemoTab);
-                                  }
-                                }}
-                                className={`w-full flex items-center gap-3 px-4 py-2.5 ml-2 mr-2 min-h-[44px] rounded-lg text-[0.85rem] font-medium transition-all mb-0.5 cursor-pointer ${
-                                  activeTab === item.id
-                                    ? "bg-gradient-to-br from-maroon to-red-800 text-white shadow-sm"
-                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                                }`}
-                              >
-                                <i className={`fas ${item.icon} w-5 text-center text-sm`} />
-                                <span>{item.label}</span>
-                              </button>
-                            ))}
+                            {section.items.map((item) => {
+                              const isLocked = !["overview", "budget", "vendors", "guests", "events", "tasks", "hashtags"].includes(item.id);
+                              return (
+                                <button
+                                  key={item.id}
+                                  onClick={() => {
+                                    if (!isLocked) setActiveTab(item.id as DemoTab);
+                                  }}
+                                  className={`w-full flex items-center gap-3 px-4 py-2.5 ml-2 mr-2 min-h-[44px] rounded-lg text-[0.85rem] font-medium transition-all mb-0.5 ${
+                                    isLocked
+                                      ? "text-gray-400 cursor-not-allowed opacity-60"
+                                      : activeTab === item.id
+                                        ? "bg-gradient-to-br from-maroon to-red-800 text-white shadow-sm cursor-pointer"
+                                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+                                  }`}
+                                >
+                                  <i className={`fas ${item.icon} w-5 text-center text-sm`} />
+                                  <span className="flex-1 text-left">{item.label}</span>
+                                  {isLocked && <i className="fas fa-lock text-[10px] text-gray-400" />}
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
                       );
