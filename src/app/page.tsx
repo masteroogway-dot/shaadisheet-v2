@@ -220,11 +220,14 @@ export default function Home() {
       <section className="relative w-full min-h-[85vh] md:min-h-[92vh] flex items-center overflow-hidden">
         {/* Static background image */}
         <div className="absolute inset-0 z-0">
-          <img
-            src="/hero.png"
-            alt="South Asian Wedding"
-            className="w-full h-full object-cover"
-          />
+          <picture>
+            <source media="(max-width: 767px)" srcSet="/hero-mobile.png" />
+            <img
+              src="/hero.png"
+              alt="South Asian Wedding"
+              className="w-full h-full object-cover"
+            />
+          </picture>
           <div className="absolute inset-0" style={{
             background: "linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0.15) 100%)"
           }} />
