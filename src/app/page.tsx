@@ -10,6 +10,7 @@ import SpotlightCard from "@/components/animations/SpotlightCard";
 import { StaggerContainer, StaggerItem } from "@/components/animations/StaggerChildren";
 import LiveCount from "@/components/LiveCount";
 import PublicHashtagGenerator from "@/components/PublicHashtagGenerator";
+import InteractiveDemo from "@/components/InteractiveDemo";
 
 /* ─────────────────────────────────────────────
    ROSE PETAL ANIMATION
@@ -481,9 +482,7 @@ export default function Home() {
               <Link href="/auth" className="px-6 md:px-8 py-3 md:py-3.5 text-sm md:text-base font-bold text-maroon bg-white rounded-xl hover:bg-gray-100 transition-colors inline-flex items-center gap-2 shadow-2xl">
                 Start Planning Free →
               </Link>
-              <a href="#how-it-works" className="px-6 md:px-8 py-3 md:py-3.5 text-sm md:text-base font-bold border-2 border-white/30 rounded-xl text-white hover:bg-white/10 transition-all backdrop-blur-sm">
-                See How It Works
-              </a>
+              <InteractiveDemo />
             </div>
             <LiveCount />
           </div>
