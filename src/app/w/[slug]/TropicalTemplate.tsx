@@ -89,17 +89,22 @@ export default function TropicalTemplate({
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [animCountdown, setAnimCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [introDone, setIntroDone] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showNav, setShowNav] = useState(false);
   const [heroLoaded, setHeroLoaded] = useState(false);
 
   const filteredGuests = rsvpGuests.filter((g: any) => g.name?.toLowerCase().includes(guestSearch.toLowerCase()));
+  const displayCountdown = introDone ? countdown : animCountdown;
 
   const cardBg = "#FFFFFF";
 
   useEffect(() => {
+    if (introDone) return;
+    if (!countdown.days && !countdown.hours && !countdown.minutes && !countdown.seconds) return;
     setHeroLoaded(true);
 
+    const target = { ...countdown };
     const duration = 2200;
     const fps = 60;
     const steps = duration / (1000 / fps);
@@ -109,12 +114,12 @@ export default function TropicalTemplate({
       const p = Math.min(frame / steps, 1);
       const ease = 1 - Math.pow(1 - p, 3);
       setAnimCountdown({
-        days: Math.round(countdown.days * ease),
-        hours: Math.round(countdown.hours * ease),
-        minutes: Math.round(countdown.minutes * ease),
-        seconds: Math.round(countdown.seconds * ease),
+        days: Math.round(target.days * ease),
+        hours: Math.round(target.hours * ease),
+        minutes: Math.round(target.minutes * ease),
+        seconds: Math.round(target.seconds * ease),
       });
-      if (p >= 1) clearInterval(timer);
+      if (p >= 1) { clearInterval(timer); setIntroDone(true); }
     }, 1000 / fps);
 
     const observer = new IntersectionObserver(
@@ -140,7 +145,7 @@ export default function TropicalTemplate({
     window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => { clearInterval(timer); clearTimeout(timer2); observer.disconnect(); window.removeEventListener("scroll", onScroll); };
-  }, [countdown]);
+  }, [introDone]);
 
   return (
     <html lang="en" style={{ scrollBehavior: "smooth" }}>
@@ -290,10 +295,10 @@ export default function TropicalTemplate({
               transition: "all 1s cubic-bezier(0.16,1,0.3,1) 1s",
             }}>
               {[
-                { val: animCountdown.days, label: "Days" },
-                { val: animCountdown.hours, label: "Hours" },
-                { val: animCountdown.minutes, label: "Minutes" },
-                { val: animCountdown.seconds, label: "Seconds" },
+                { val: displayCountdown.days, label: "Days" },
+                { val: displayCountdown.hours, label: "Hours" },
+                { val: displayCountdown.minutes, label: "Minutes" },
+                { val: displayCountdown.seconds, label: "Seconds" },
               ].map((item, i) => (
                 <div key={item.label} style={{
                   padding: "1.2rem 1.8rem", minWidth: "90px", backgroundColor: "rgba(255,255,255,0.15)", backdropFilter: "blur(12px)", borderRadius: "20px", border: "1px solid rgba(255,255,255,0.25)",
