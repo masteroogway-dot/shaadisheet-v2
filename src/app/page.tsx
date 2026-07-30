@@ -221,7 +221,7 @@ export default function Home() {
         {/* Static background image */}
         <div className="absolute inset-0 z-0">
           <img
-            src="/hero.jpg"
+            src="/hero.png"
             alt="South Asian Wedding"
             className="w-full h-full object-cover"
           />
