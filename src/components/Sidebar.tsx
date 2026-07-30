@@ -52,6 +52,11 @@ function getChecklistItems(wedding: any): ChecklistItem[] {
       { id: "poruwa-prep", icon: "fa-torii-gate", label: "Poruwa Preparation" },
       { id: "nekath-plan", icon: "fa-star", label: "Nekath Planning" },
     ],
+    parsi: [
+      { id: "emergency-kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "priest-req", icon: "fa-fire", label: "Priest Requirements" },
+      { id: "fire-ceremony", icon: "fa-fire-flame-curved", label: "Fire Ceremony" },
+    ],
   };
 
   const checklistsByCountry: Record<string, ChecklistItem[]> = {

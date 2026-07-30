@@ -204,24 +204,24 @@ export default function Onboarding({ onComplete }: Props) {
   const religions = RELIGIONS_BY_COUNTRY[data.country] || [];
   const regions: Record<string, string[]> = {
     hindu: data.country === "india"
-      ? ["North Indian", "South Indian", "Bengali", "Gujarati", "Maharashtrian", "Rajput", "Punjabi"]
+      ? ["North Indian", "South Indian", "Bengali", "Gujarati", "Maharashtrian", "Rajput", "Punjabi", "Kashmiri", "Assamese", "Odia", "Bihari", "Malayali", "Sindhi"]
       : data.country === "bangladesh"
         ? ["Bengali"]
         : data.country === "nepal"
-          ? ["Nepali", "Newari"]
+          ? ["Nepali", "Newari", "Tamang"]
           : data.country === "sri_lanka"
-            ? ["Tamil"]
+            ? ["Tamil", "Hill Country Tamil"]
             : data.country === "pakistan"
               ? ["Pakistani"]
               : [],
     muslim: data.country === "pakistan"
-      ? ["Sunni"]
+      ? ["Sunni", "Sindhi", "Baloch", "Kashmiri"]
       : data.country === "bangladesh"
         ? ["Bengali"]
         : data.country === "maldives"
           ? ["Maldivian"]
           : data.country === "afghanistan"
-            ? ["Pashtun"]
+            ? ["Pashtun", "Tajik", "Hazara", "Uzbek"]
             : data.country === "nepal"
               ? ["Nepali"]
               : data.country === "sri_lanka"
@@ -231,14 +231,21 @@ export default function Onboarding({ onComplete }: Props) {
     buddhist: data.country === "sri_lanka"
       ? ["Sinhalese"]
       : data.country === "nepal"
-        ? ["Nepali"]
-        : ["Sinhalese"],
+        ? ["Nepali", "Sherpa"]
+        : data.country === "india"
+          ? ["Ladakhi"]
+          : data.country === "bangladesh"
+            ? ["Chakma"]
+            : ["Sinhalese"],
     christian: data.country === "pakistan"
       ? ["Pakistani"]
       : data.country === "sri_lanka"
         ? ["Sri Lankan"]
-        : ["Indian"],
+        : data.country === "india"
+          ? ["Indian", "Goan", "Kerala", "Northeast"]
+          : ["Indian"],
     jain: ["Indian"],
+    parsi: ["Parsi"],
   };
 
   // Get events for current selection
@@ -633,6 +640,17 @@ function ReligionIcon({ religion }: { religion: string }) {
           <circle cx="12" cy="12" r="0.8" fill="currentColor" opacity="0.3" />
           <line x1="12" y1="6" x2="12" y2="4" />
           <circle cx="12" cy="3" r="0.5" fill="currentColor" />
+        </svg>
+      );
+    case "parsi":
+      return (
+        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+          <path d="M4 18h16" />
+          <path d="M6 18v-5h12v5" />
+          <circle cx="12" cy="10" r="3" />
+          <path d="M12 7v6" /><path d="M9 10h6" />
+          <path d="M12 4v2" /><circle cx="12" cy="3" r="0.5" fill="currentColor" />
         </svg>
       );
     default:

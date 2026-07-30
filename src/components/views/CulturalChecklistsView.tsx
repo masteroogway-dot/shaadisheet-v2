@@ -42,6 +42,11 @@ function getTabsForWedding(wedding: any) {
       { id: "Poruwa Preparation", icon: "fa-torii-gate", label: "Poruwa Preparation" },
       { id: "Nekath Planning", icon: "fa-star", label: "Nekath Planning" },
     ],
+    parsi: [
+      { id: "Emergency Kit", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "Priest Requirements", icon: "fa-fire", label: "Priest Requirements" },
+      { id: "Fire Ceremony", icon: "fa-fire-flame-curved", label: "Fire Ceremony" },
+    ],
   };
 
   const tabsByCountry: Record<string, Array<{ id: string; icon: string; label: string }>> = {
