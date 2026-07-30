@@ -443,7 +443,7 @@ export default function GiftTrackerView({ wedding, weddingId, onUpdate, onToast,
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Amount</label>
                     {isEditing ? (
-                      <CurrencyInput value={editData.amount ?? 0} onChange={(val) => setEditData({ ...editData, amount: val })} />
+                      <CurrencyInput value={editData.amount ?? 0} onChange={(val) => setEditData({ ...editData, amount: val })} currency={wedding.currency} />
                     ) : (
                       <p className="text-sm font-semibold">{formatCurrency(g.amount, wedding.currency)}</p>
                     )}

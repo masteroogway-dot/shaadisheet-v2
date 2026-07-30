@@ -489,7 +489,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Quote</label>
                     {isEditing ? (
-                      <CurrencyInput value={editData.quote ?? 0} onChange={(val) => setEditData({ ...editData, quote: val })} />
+                      <CurrencyInput value={editData.quote ?? 0} onChange={(val) => setEditData({ ...editData, quote: val })} currency={wedding.currency} />
                     ) : (
                       <p className="text-sm font-semibold">{formatCurrency(v.quote, wedding.currency)}</p>
                     )}
@@ -497,7 +497,7 @@ export default function VendorsView({ wedding, weddingId, onUpdate, onToast, can
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Paid</label>
                     {isEditing ? (
-                      <CurrencyInput value={editData.paid ?? 0} onChange={(val) => setEditData({ ...editData, paid: val })} />
+                      <CurrencyInput value={editData.paid ?? 0} onChange={(val) => setEditData({ ...editData, paid: val })} currency={wedding.currency} />
                     ) : (
                       <p className="text-sm font-semibold text-green">{formatCurrency(v.paid, wedding.currency)}</p>
                     )}

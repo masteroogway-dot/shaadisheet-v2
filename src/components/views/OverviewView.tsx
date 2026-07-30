@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import CountUp from "@/components/animations/CountUp";
 import { updateWedding } from "@/lib/actions";
-import { formatCurrency, formatCurrencyAbbrev, getCurrencySymbol } from "@/lib/format";
+import { formatCurrency, formatCurrencyAbbrev, getCurrencySymbol, getBudgetRange } from "@/lib/format";
 import InviteModal from "@/components/InviteModal";
 import WeddingWebsiteModal from "@/components/WeddingWebsiteModal";
 import WeddingQuestionnaire from "@/components/WeddingQuestionnaire";
@@ -404,8 +404,9 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                         value={parseInt(editBudget) || 0}
                         onChange={(val) => setEditBudget(String(val))}
                         placeholder={String(wedding.budget || "")}
+                        currency={wedding.currency}
                       />
-                      <p className="text-[0.65rem] text-gray-400 mt-1">Min: {getCurrencySymbol(wedding.currency)}10 Lakh, Max: {getCurrencySymbol(wedding.currency)}10 Crore</p>
+                      <p className="text-[0.65rem] text-gray-400 mt-1">Min: {formatCurrency(getBudgetRange(wedding.currency).min, wedding.currency)}, Max: {formatCurrency(getBudgetRange(wedding.currency).max, wedding.currency)}</p>
                       <div className="flex gap-2 mt-3">
                         <button onClick={handleSaveBudget} disabled={saving} className="px-3 py-1.5 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
                           {saving ? "Saving..." : "Save"}
