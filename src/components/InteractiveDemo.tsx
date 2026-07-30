@@ -3,15 +3,58 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-type DemoTab = "overview" | "guests" | "budget" | "vendors" | "checklist" | "hashtags";
+type DemoTab = "overview" | "budget" | "vendors" | "guests" | "events" | "tasks" | "hashtags";
 
-const TABS: { id: DemoTab; label: string; icon: string }[] = [
-  { id: "overview", label: "Overview", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
-  { id: "guests", label: "Guests", icon: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8m13 10v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" },
-  { id: "budget", label: "Budget", icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" },
-  { id: "vendors", label: "Vendors", icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
-  { id: "checklist", label: "Checklist", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" },
-  { id: "hashtags", label: "Hashtags", icon: "M7 20l4-16m2 16l4-16M6 9h14M4 15h14" },
+type SidebarItem = { id: string; icon: string; label: string };
+
+const SIDEBAR_SECTIONS: { title: string; icon: string; items: SidebarItem[] }[] = [
+  {
+    title: "Planning",
+    icon: "fa-clipboard-list",
+    items: [
+      { id: "overview" as DemoTab, icon: "fa-home", label: "Overview" },
+      { id: "budget" as DemoTab, icon: "fa-coins", label: "Budget" },
+      { id: "vendors" as DemoTab, icon: "fa-store", label: "Vendors" },
+      { id: "guests" as DemoTab, icon: "fa-users", label: "Guests" },
+      { id: "events" as DemoTab, icon: "fa-calendar-alt", label: "Events" },
+      { id: "tasks" as DemoTab, icon: "fa-tasks", label: "Tasks" },
+    ],
+  },
+  {
+    title: "Logistics",
+    icon: "fa-hotel",
+    items: [
+      { id: "seating", icon: "fa-th-large", label: "Seating" },
+      { id: "rooms", icon: "fa-bed", label: "Rooms" },
+      { id: "timeline", icon: "fa-clock", label: "Timeline" },
+      { id: "gifts", icon: "fa-gift", label: "Gift Tracker" },
+      { id: "outfits", icon: "fa-shirt", label: "Outfit Planner" },
+      { id: "invites", icon: "fa-envelope-open-text", label: "Invites" },
+    ],
+  },
+  {
+    title: "Checklists",
+    icon: "fa-clipboard-check",
+    items: [
+      { id: "emergency", icon: "fa-kit-medical", label: "Emergency Kit" },
+      { id: "priest", icon: "fa-om", label: "Priest Requirements" },
+      { id: "vidaai", icon: "fa-heart-crack", label: "Vidaai Essentials" },
+    ],
+  },
+  {
+    title: "Fun",
+    icon: "fa-wand-magic-sparkles",
+    items: [
+      { id: "hashtags" as DemoTab, icon: "fa-hashtag", label: "Hashtag Generator" },
+    ],
+  },
+];
+
+const EVENTS = [
+  { name: "Mehendi Night", date: "Dec 18, 2026", time: "6:00 PM", venue: "Garden Lawn", status: "Confirmed" },
+  { name: "Haldi Ceremony", date: "Dec 19, 2026", time: "10:00 AM", venue: "Home Terrace", status: "Confirmed" },
+  { name: "Wedding Ceremony", date: "Dec 20, 2026", time: "7:00 PM", venue: "Grand Palace Banquet", status: "Confirmed" },
+  { name: "Reception", date: "Dec 21, 2026", time: "8:00 PM", venue: "Grand Palace Banquet", status: "Confirmed" },
 ];
 
 const GUESTS = [
@@ -37,47 +80,54 @@ const BUDGET_CATS = [
 ];
 
 const VENDORS = [
-  { name: "Grand Palace Banquet", category: "Venue", status: "Confirmed", amount: "₹3,20,000", deadline: "Dec 15" },
-  { name: "Spice Garden Caterers", category: "Catering", status: "Confirmed", amount: "₹1,80,000", deadline: "Dec 20" },
-  { name: "LensMan Studios", category: "Photography", status: "Pending", amount: "₹75,000", deadline: "Dec 10" },
-  { name: "Dhoom Beats", category: "DJ", status: "Confirmed", amount: "₹45,000", deadline: "Dec 18" },
-  { name: "Royal Decor", category: "Decor", status: "Pending", amount: "₹65,000", deadline: "Dec 12" },
+  { name: "Grand Palace Banquet", category: "Venue", status: "Confirmed", amount: "₹3,20,000" },
+  { name: "Spice Garden Caterers", category: "Catering", status: "Confirmed", amount: "₹1,80,000" },
+  { name: "LensMan Studios", category: "Photography", status: "Pending", amount: "₹75,000" },
+  { name: "Dhoom Beats", category: "DJ", status: "Confirmed", amount: "₹45,000" },
+  { name: "Royal Decor", category: "Decor", status: "Pending", amount: "₹65,000" },
 ];
 
-const CHECKLIST_ITEMS = [
-  { task: "Book venue", done: true, phase: "9+ months" },
-  { task: "Finalize guest list", done: true, phase: "6-9 months" },
-  { task: "Send Save the Dates", done: true, phase: "6-9 months" },
-  { task: "Book photographer", done: true, phase: "6-9 months" },
-  { task: "Book caterer", done: true, phase: "3-6 months" },
-  { task: "Shop for outfits", done: false, phase: "3-6 months" },
-  { task: "Plan mehendi night", done: false, phase: "1-3 months" },
-  { task: "Finalize seating chart", done: false, phase: "1-3 months" },
-  { task: "Send invitations", done: false, phase: "1-3 months" },
-  { task: "Confirm all vendors", done: false, phase: "Last month" },
-  { task: "Final trials", done: false, phase: "Last month" },
-  { task: "Pack emergency kit", done: false, phase: "Last week" },
+const TASKS = [
+  { task: "Book venue", done: true, due: "Mar 2026" },
+  { task: "Finalize guest list", done: true, due: "Apr 2026" },
+  { task: "Book photographer", done: true, due: "May 2026" },
+  { task: "Send Save the Dates", done: true, due: "Jun 2026" },
+  { task: "Book caterer", done: true, due: "Jul 2026" },
+  { task: "Shop for outfits", done: false, due: "Aug 2026" },
+  { task: "Plan mehendi night", done: false, due: "Oct 2026" },
+  { task: "Finalize seating chart", done: false, due: "Nov 2026" },
+  { task: "Send invitations", done: false, due: "Nov 2026" },
+  { task: "Confirm all vendors", done: false, due: "Dec 2026" },
 ];
 
 const HASHTAGS = [
   "#PriyaKiShaadi", "#RahulWedsPriya", "#SharmaVerma2026", "#WeddingBells",
-  "#SweeterThanJalebi", "#MehendiNight", "#ShaadiKaseason", "#DilSeShaadi",
+  "#SweeterThanJalebi", "#MehendiNight", "#ShaadiKaSeason", "#DilSeShaadi",
   "#HaldiVibes", "#BaraatTime", "#PherasAndPrayers", "#VidaaiFeels",
 ];
+
+function formatINR(n: number) {
+  if (n >= 10000000) return `₹${(n / 10000000).toFixed(1)} Cr`;
+  if (n >= 100000) return `₹${(n / 100000).toFixed(1)} L`;
+  return `₹${(n / 1000).toFixed(0)}K`;
+}
 
 export default function InteractiveDemo() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<DemoTab>("overview");
-  const [hoveredGuest, setHoveredGuest] = useState<number | null>(null);
 
   const totalBudget = BUDGET_CATS.reduce((a, c) => a + c.allocated, 0);
   const totalSpent = BUDGET_CATS.reduce((a, c) => a + c.spent, 0);
   const guestsConfirmed = GUESTS.filter((g) => g.rsvp === "Yes").length;
-  const guestsPending = GUESTS.filter((g) => g.rsvp === "Pending").length;
+  const tasksDone = TASKS.filter((t) => t.done).length;
+
+  const findSectionForView = (viewId: string) => {
+    return SIDEBAR_SECTIONS.find((s) => s.items.some((i) => i.id === viewId));
+  };
+  const activeSection = findSectionForView(activeTab);
 
   return (
     <>
-      {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(true)}
         className="px-6 md:px-8 py-3 md:py-3.5 text-sm md:text-base font-bold border-2 border-white/30 rounded-xl text-white hover:bg-white/10 transition-all backdrop-blur-sm"
@@ -85,340 +135,370 @@ export default function InteractiveDemo() {
         Try Interactive Demo
       </button>
 
-      {/* Full-screen Overlay */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 md:p-6"
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-[9999] bg-black/70 flex items-center justify-center p-0 md:p-4"
             onClick={(e) => { if (e.target === e.currentTarget) setIsOpen(false); }}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[92vh] overflow-hidden flex flex-col"
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+              className="bg-gray-100 rounded-none md:rounded-2xl shadow-2xl w-full max-w-6xl h-full md:h-[90vh] overflow-hidden flex flex-col"
             >
-              {/* Demo Header */}
-              <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-gray-100 bg-gray-50/80">
-                <div className="flex items-center gap-3">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-400" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-400" />
-                    <div className="w-3 h-3 rounded-full bg-green-400" />
+              {/* ── TOP HEADER BAR ── */}
+              <div className="h-[52px] md:h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-3 md:px-6 shrink-0">
+                <div className="flex items-center gap-2 md:gap-3">
+                  <button className="w-10 h-10 md:w-10 md:h-10 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 lg:hidden cursor-pointer">
+                    <i className="fas fa-bars text-base" />
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-maroon flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">S</span>
+                    </div>
+                    <span className="font-bold text-sm text-gray-900 hidden sm:inline">ShaadiSheet</span>
                   </div>
-                  <span className="text-xs font-semibold text-gray-400 hidden md:inline">shaadisheet.com/dashboard/demo</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] md:text-xs font-medium text-maroon bg-maroon/10 px-2 md:px-3 py-1 rounded-full">Demo Mode</span>
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                  >
-                    <svg className="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M6 18L18 6M6 6l12 12" />
+                <div className="text-right">
+                  <div className="font-bold text-xs md:text-sm leading-tight">Priya & Rahul&apos;s Wedding</div>
+                  <div className="text-[10px] md:text-xs text-gray-500 leading-tight">Dec 20, 2026 • Nashik</div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button className="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-maroon transition-all cursor-pointer" title="AI Assistant">
+                    <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24">
+                      <path d="M12 2L9.5 8.5 3 11l6.5 2.5L12 20l2.5-6.5L21 11l-6.5-2.5z" fill="currentColor" />
+                      <path d="M19 15l-1.5 4-3.5-3 4-1z" fill="currentColor" opacity="0.6" />
+                      <path d="M5 15l1.5 4 3.5-3-4-1z" fill="currentColor" opacity="0.6" />
                     </svg>
                   </button>
+                  <div className="w-9 h-9 rounded-full bg-maroon/10 flex items-center justify-center text-maroon font-bold text-sm cursor-pointer">
+                    PS
+                  </div>
                 </div>
               </div>
 
-              {/* Tab Bar */}
-              <div className="flex border-b border-gray-100 bg-white px-2 md:px-4 overflow-x-auto">
-                {TABS.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-1.5 px-3 md:px-4 py-3 text-xs md:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                      activeTab === tab.id
-                        ? "border-maroon text-maroon"
-                        : "border-transparent text-gray-400 hover:text-gray-600"
-                    }`}
-                  >
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d={tab.icon} />
-                    </svg>
-                    <span className="hidden sm:inline">{tab.label}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Content Area */}
-              <div className="flex-1 overflow-y-auto p-3 md:p-6">
-                <AnimatePresence mode="wait">
-                  {activeTab === "overview" && (
-                    <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                      {/* Wedding Header */}
-                      <div className="bg-gradient-to-r from-maroon to-red-800 rounded-xl p-4 md:p-6 text-white mb-4 md:mb-6">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <div>
-                            <p className="text-xs text-white/70 mb-1">Planning</p>
-                            <h3 className="text-lg md:text-xl font-bold">Priya & Rahul&apos;s Wedding</h3>
-                            <p className="text-xs text-white/80 mt-1">Dec 20, 2026 • North Indian Hindu • Nashik, India</p>
+              {/* ── BODY: SIDEBAR + MAIN ── */}
+              <div className="flex flex-1 overflow-hidden">
+                {/* ── SIDEBAR ── */}
+                <aside className="hidden lg:flex w-[240px] bg-white border-r border-gray-200 flex-col shrink-0 overflow-y-auto">
+                  <div className="p-3 border-b border-gray-200">
+                    <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all w-full cursor-pointer">
+                      <i className="fas fa-arrow-left w-5 text-center" />
+                      <span>My Weddings</span>
+                    </button>
+                  </div>
+                  <nav className="flex-1 py-2">
+                    {SIDEBAR_SECTIONS.map((section) => {
+                      const isActive = activeSection === section;
+                      return (
+                        <div key={section.title} className="mb-1">
+                          <div className={`w-full flex items-center gap-2 px-4 py-2 text-[0.65rem] font-bold uppercase tracking-wider ${isActive ? "text-maroon" : "text-gray-400"}`}>
+                            <i className={`fas ${section.icon} w-4 text-center text-[0.7rem]`} />
+                            <span className="flex-1 text-left">{section.title}</span>
+                            <i className="fas fa-chevron-down text-[0.55rem]" />
                           </div>
-                          <div className="text-right">
-                            <p className="text-xs text-white/70">Days Left</p>
-                            <p className="text-2xl md:text-3xl font-bold text-[#FFD54F]">142</p>
+                          <div className="mt-0.5">
+                            {section.items.map((item) => (
+                              <button
+                                key={item.id}
+                                onClick={() => {
+                                  if (["overview", "budget", "vendors", "guests", "events", "tasks", "hashtags"].includes(item.id)) {
+                                    setActiveTab(item.id as DemoTab);
+                                  }
+                                }}
+                                className={`w-full flex items-center gap-3 px-4 py-2.5 ml-2 mr-2 min-h-[44px] rounded-lg text-[0.85rem] font-medium transition-all mb-0.5 cursor-pointer ${
+                                  activeTab === item.id
+                                    ? "bg-gradient-to-br from-maroon to-red-800 text-white shadow-sm"
+                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                                }`}
+                              >
+                                <i className={`fas ${item.icon} w-5 text-center text-sm`} />
+                                <span>{item.label}</span>
+                              </button>
+                            ))}
                           </div>
                         </div>
-                      </div>
+                      );
+                    })}
+                  </nav>
+                </aside>
 
-                      {/* Stats Grid */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
-                        {[
-                          { label: "Guests", value: "248", sub: `${guestsConfirmed} confirmed`, color: "text-blue-600" },
-                          { label: "Budget Used", value: `${Math.round((totalSpent / totalBudget) * 100)}%`, sub: `₹${(totalSpent / 100000).toFixed(1)}L of ₹${(totalBudget / 100000).toFixed(1)}L`, color: "text-emerald-600" },
-                          { label: "Vendors", value: "5", sub: "3 confirmed", color: "text-purple-600" },
-                          { label: "Tasks Done", value: "6/12", sub: "50% complete", color: "text-amber-600" },
-                        ].map((stat, i) => (
-                          <div key={i} className="bg-white border border-gray-100 rounded-xl p-3 md:p-4">
-                            <p className="text-[10px] md:text-xs text-gray-400 mb-1">{stat.label}</p>
-                            <p className={`text-lg md:text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-                            <p className="text-[10px] md:text-xs text-gray-500 mt-1">{stat.sub}</p>
+                {/* ── MAIN CONTENT ── */}
+                <main className="flex-1 overflow-y-auto p-4 md:p-8">
+                  <AnimatePresence mode="wait">
+                    {activeTab === "overview" && (
+                      <motion.div key="overview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                        {/* Welcome banner */}
+                        <div className="bg-gradient-to-r from-maroon to-red-800 rounded-xl p-5 md:p-6 text-white mb-6">
+                          <p className="text-xs text-white/70 mb-0.5">Welcome back, Priya</p>
+                          <h2 className="text-lg md:text-xl font-bold mb-3">Priya & Rahul&apos;s Wedding</h2>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div>
+                              <p className="text-[10px] text-white/60 uppercase tracking-wider">Date</p>
+                              <p className="text-sm font-semibold">Dec 20, 2026</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-white/60 uppercase tracking-wider">Days Left</p>
+                              <p className="text-sm font-semibold text-[#FFD54F]">142</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-white/60 uppercase tracking-wider">Guests</p>
+                              <p className="text-sm font-semibold">248</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-white/60 uppercase tracking-wider">Budget</p>
+                              <p className="text-sm font-semibold">{formatINR(totalBudget)}</p>
+                            </div>
                           </div>
-                        ))}
-                      </div>
+                        </div>
 
-                      {/* Upcoming Events */}
-                      <div className="bg-white border border-gray-100 rounded-xl p-4 md:p-5">
-                        <h4 className="font-bold text-gray-900 text-sm mb-3">Upcoming Events</h4>
-                        <div className="space-y-2">
+                        {/* Stats cards */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                           {[
-                            { name: "Mehendi Night", date: "Dec 18, 2026", days: 2, icon: "🌿" },
-                            { name: "Haldi Ceremony", date: "Dec 19, 2026", days: 3, icon: "🟡" },
-                            { name: "Wedding Ceremony", date: "Dec 20, 2026", days: 4, icon: "💍" },
-                            { name: "Reception", date: "Dec 21, 2026", days: 5, icon: "🎉" },
-                          ].map((ev, i) => (
-                            <div key={i} className="flex items-center justify-between p-2 md:p-3 bg-gray-50 rounded-lg">
-                              <div className="flex items-center gap-3">
-                                <span className="text-lg">{ev.icon}</span>
-                                <div>
-                                  <p className="font-semibold text-gray-900 text-xs md:text-sm">{ev.name}</p>
-                                  <p className="text-[10px] md:text-xs text-gray-500">{ev.date}</p>
+                            { label: "Guests Confirmed", value: guestsConfirmed, total: 248, icon: "fa-users", color: "text-blue-600", bg: "bg-blue-50" },
+                            { label: "Budget Used", value: `${Math.round((totalSpent / totalBudget) * 100)}%`, icon: "fa-coins", color: "text-emerald-600", bg: "bg-emerald-50" },
+                            { label: "Vendors Booked", value: "3/5", icon: "fa-store", color: "text-purple-600", bg: "bg-purple-50" },
+                            { label: "Tasks Done", value: `${tasksDone}/${TASKS.length}`, icon: "fa-tasks", color: "text-amber-600", bg: "bg-amber-50" },
+                          ].map((s, i) => (
+                            <div key={i} className="bg-white border border-gray-200 rounded-xl p-4">
+                              <div className="flex items-center justify-between mb-2">
+                                <p className="text-xs text-gray-500">{s.label}</p>
+                                <div className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center`}>
+                                  <i className={`fas ${s.icon} text-xs ${s.color}`} />
                                 </div>
                               </div>
-                              <span className="text-[10px] md:text-xs font-medium text-maroon bg-maroon/10 px-2 py-1 rounded-full">{ev.days} days left</span>
+                              <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
                             </div>
                           ))}
                         </div>
-                      </div>
-                    </motion.div>
-                  )}
 
-                  {activeTab === "guests" && (
-                    <motion.div key="guests" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h3 className="font-bold text-gray-900">Guest List</h3>
-                          <p className="text-xs text-gray-500 mt-0.5">248 total • {guestsConfirmed} confirmed • {guestsPending} pending</p>
-                        </div>
-                        <button className="px-3 py-1.5 text-xs font-semibold text-white bg-maroon rounded-lg">+ Add Guest</button>
-                      </div>
-                      {/* RSVP Summary */}
-                      <div className="grid grid-cols-3 gap-3 mb-4">
-                        {[
-                          { label: "Confirmed", count: guestsConfirmed, color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-                          { label: "Pending", count: guestsPending, color: "bg-amber-50 text-amber-700 border-amber-200" },
-                          { label: "Declined", count: 1, color: "bg-red-50 text-red-700 border-red-200" },
-                        ].map((s, i) => (
-                          <div key={i} className={`rounded-lg p-3 text-center border ${s.color}`}>
-                            <p className="text-lg font-bold">{s.count}</p>
-                            <p className="text-[10px] font-medium">{s.label}</p>
-                          </div>
-                        ))}
-                      </div>
-                      {/* Guest Table */}
-                      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
-                        <div className="grid grid-cols-5 gap-2 px-4 py-2 bg-gray-50 text-[10px] md:text-xs font-semibold text-gray-500 border-b border-gray-100">
-                          <span>Name</span><span>Side</span><span>RSVP</span><span>Dietary</span><span>Table</span>
-                        </div>
-                        {GUESTS.map((g, i) => (
-                          <div
-                            key={i}
-                            className={`grid grid-cols-5 gap-2 px-4 py-2.5 text-xs border-b border-gray-50 transition-colors ${hoveredGuest === i ? "bg-maroon/5" : ""}`}
-                            onMouseEnter={() => setHoveredGuest(i)}
-                            onMouseLeave={() => setHoveredGuest(null)}
-                          >
-                            <span className="font-medium text-gray-900">{g.name}</span>
-                            <span className={`${g.side === "Bride" ? "text-pink-600" : "text-blue-600"}`}>{g.side}</span>
-                            <span className={`font-medium ${g.rsvp === "Yes" ? "text-emerald-600" : g.rsvp === "No" ? "text-red-500" : "text-amber-600"}`}>{g.rsvp}</span>
-                            <span className="text-gray-600">{g.dietary}</span>
-                            <span className="text-gray-600">{g.table}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {activeTab === "budget" && (
-                    <motion.div key="budget" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h3 className="font-bold text-gray-900">Budget Overview</h3>
-                          <p className="text-xs text-gray-500 mt-0.5">₹{(totalBudget / 100000).toFixed(1)}L total • ₹{(totalSpent / 100000).toFixed(1)}L spent</p>
-                        </div>
-                        <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
-                          ₹{((totalBudget - totalSpent) / 100000).toFixed(1)}L remaining
-                        </span>
-                      </div>
-                      {/* Progress Bar */}
-                      <div className="bg-gray-100 rounded-full h-3 mb-6 overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all"
-                          style={{ width: `${(totalSpent / totalBudget) * 100}%` }}
-                        />
-                      </div>
-                      {/* Category List */}
-                      <div className="space-y-3">
-                        {BUDGET_CATS.map((cat, i) => {
-                          const pct = Math.round((cat.spent / cat.allocated) * 100);
-                          return (
-                            <div key={i} className="bg-white border border-gray-100 rounded-xl p-3 md:p-4">
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-base">{cat.icon}</span>
-                                  <span className="font-semibold text-gray-900 text-xs md:text-sm">{cat.name}</span>
-                                </div>
-                                <div className="text-right">
-                                  <span className="text-xs font-bold text-gray-900">₹{(cat.spent / 1000).toFixed(0)}K</span>
-                                  <span className="text-[10px] text-gray-400"> / ₹{(cat.allocated / 1000).toFixed(0)}K</span>
-                                </div>
-                              </div>
-                              <div className="bg-gray-100 rounded-full h-2 overflow-hidden">
-                                <div
-                                  className={`h-full rounded-full transition-all ${pct > 90 ? "bg-red-500" : pct > 70 ? "bg-amber-500" : "bg-emerald-500"}`}
-                                  style={{ width: `${pct}%` }}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {activeTab === "vendors" && (
-                    <motion.div key="vendors" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h3 className="font-bold text-gray-900">Vendor Directory</h3>
-                          <p className="text-xs text-gray-500 mt-0.5">5 vendors tracked</p>
-                        </div>
-                        <button className="px-3 py-1.5 text-xs font-semibold text-white bg-maroon rounded-lg">+ Add Vendor</button>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {VENDORS.map((v, i) => (
-                          <div key={i} className="bg-white border border-gray-100 rounded-xl p-4 hover:border-gray-200 transition-colors">
-                            <div className="flex items-start justify-between mb-3">
-                              <div>
-                                <h4 className="font-bold text-gray-900 text-sm">{v.name}</h4>
-                                <p className="text-xs text-gray-500">{v.category}</p>
-                              </div>
-                              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${v.status === "Confirmed" ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>
-                                {v.status}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-bold text-gray-900">{v.amount}</span>
-                              <span className="text-[10px] text-gray-400">Due: {v.deadline}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {activeTab === "checklist" && (
-                    <motion.div key="checklist" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                      <div className="mb-4">
-                        <h3 className="font-bold text-gray-900">Wedding Checklist</h3>
-                        <p className="text-xs text-gray-500 mt-0.5">{CHECKLIST_ITEMS.filter((c) => c.done).length} of {CHECKLIST_ITEMS.length} completed</p>
-                      </div>
-                      {/* Progress */}
-                      <div className="bg-gray-100 rounded-full h-2 mb-6 overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-maroon to-red-600 transition-all"
-                          style={{ width: `${(CHECKLIST_ITEMS.filter((c) => c.done).length / CHECKLIST_ITEMS.length) * 100}%` }}
-                        />
-                      </div>
-                      {/* Group by Phase */}
-                      {["9+ months", "6-9 months", "3-6 months", "1-3 months", "Last month", "Last week"].map((phase) => {
-                        const items = CHECKLIST_ITEMS.filter((c) => c.phase === phase);
-                        if (items.length === 0) return null;
-                        return (
-                          <div key={phase} className="mb-4">
-                            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">{phase}</p>
-                            <div className="space-y-1.5">
-                              {items.map((item, i) => (
-                                <div key={i} className="flex items-center gap-3 p-2.5 bg-white border border-gray-100 rounded-lg">
-                                  <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 ${item.done ? "bg-maroon border-maroon" : "border-gray-300"}`}>
-                                    {item.done && (
-                                      <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                        <path d="M5 13l4 4L19 7" />
-                                      </svg>
-                                    )}
+                        {/* Upcoming Events */}
+                        <div className="bg-white border border-gray-200 rounded-xl p-5">
+                          <h3 className="font-bold text-gray-900 text-sm mb-4">Upcoming Events</h3>
+                          <div className="space-y-3">
+                            {EVENTS.map((ev, i) => (
+                              <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-lg bg-maroon/10 flex items-center justify-center">
+                                    <i className="fas fa-calendar-alt text-maroon text-sm" />
                                   </div>
-                                  <span className={`text-xs ${item.done ? "text-gray-400 line-through" : "text-gray-700"}`}>{item.task}</span>
+                                  <div>
+                                    <p className="font-semibold text-gray-900 text-sm">{ev.name}</p>
+                                    <p className="text-xs text-gray-500">{ev.date} • {ev.time} • {ev.venue}</p>
+                                  </div>
                                 </div>
-                              ))}
-                            </div>
+                                <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">{ev.status}</span>
+                              </div>
+                            ))}
                           </div>
-                        );
-                      })}
-                    </motion.div>
-                  )}
+                        </div>
+                      </motion.div>
+                    )}
 
-                  {activeTab === "hashtags" && (
-                    <motion.div key="hashtags" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                      <div className="mb-4">
-                        <h3 className="font-bold text-gray-900">Wedding Hashtags</h3>
-                        <p className="text-xs text-gray-500 mt-0.5">AI-generated for Priya & Rahul</p>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {HASHTAGS.map((tag, i) => (
-                          <motion.div
-                            key={i}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: i * 0.05 }}
-                            className="bg-gradient-to-br from-maroon/5 to-amber-50 border border-maroon/10 rounded-xl p-3 text-center hover:border-maroon/30 transition-colors cursor-pointer"
-                          >
-                            <span className="text-xs md:text-sm font-bold text-maroon">{tag}</span>
-                          </motion.div>
-                        ))}
-                      </div>
-                      <div className="mt-4 p-4 bg-gray-50 rounded-xl">
-                        <p className="text-xs text-gray-500 text-center">
-                          <svg className="w-4 h-4 inline-block mr-1 text-maroon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M13 10V3L4 14h7v7l9-11h-7z" />
-                          </svg>
-                          AI generates 100+ unique hashtags based on names, events, and cultural context
-                        </p>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                    {activeTab === "budget" && (
+                      <motion.div key="budget" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                        <div className="flex items-center justify-between mb-6">
+                          <div>
+                            <h2 className="font-bold text-gray-900 text-lg">Budget Overview</h2>
+                            <p className="text-xs text-gray-500 mt-0.5">Total: {formatINR(totalBudget)} • Spent: {formatINR(totalSpent)} • Remaining: {formatINR(totalBudget - totalSpent)}</p>
+                          </div>
+                          <button className="px-3 py-1.5 text-xs font-semibold text-white bg-maroon rounded-lg cursor-pointer">+ Add Expense</button>
+                        </div>
+                        <div className="bg-gray-100 rounded-full h-3 mb-6 overflow-hidden">
+                          <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400" style={{ width: `${(totalSpent / totalBudget) * 100}%` }} />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {BUDGET_CATS.map((cat, i) => {
+                            const pct = Math.round((cat.spent / cat.allocated) * 100);
+                            return (
+                              <div key={i} className="bg-white border border-gray-200 rounded-xl p-4">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-base">{cat.icon}</span>
+                                    <span className="font-semibold text-gray-900 text-sm">{cat.name}</span>
+                                  </div>
+                                  <span className="text-xs font-bold text-gray-900">{formatINR(cat.spent)} <span className="text-gray-400 font-normal">/ {formatINR(cat.allocated)}</span></span>
+                                </div>
+                                <div className="bg-gray-100 rounded-full h-2 overflow-hidden">
+                                  <div className={`h-full rounded-full ${pct > 90 ? "bg-red-500" : pct > 70 ? "bg-amber-500" : "bg-emerald-500"}`} style={{ width: `${pct}%` }} />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {activeTab === "vendors" && (
+                      <motion.div key="vendors" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                        <div className="flex items-center justify-between mb-6">
+                          <div>
+                            <h2 className="font-bold text-gray-900 text-lg">Vendor Directory</h2>
+                            <p className="text-xs text-gray-500 mt-0.5">5 vendors • 3 confirmed • 2 pending</p>
+                          </div>
+                          <button className="px-3 py-1.5 text-xs font-semibold text-white bg-maroon rounded-lg cursor-pointer">+ Add Vendor</button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {VENDORS.map((v, i) => (
+                            <div key={i} className="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors">
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-lg bg-maroon/10 flex items-center justify-center">
+                                    <i className="fas fa-store text-maroon text-sm" />
+                                  </div>
+                                  <div>
+                                    <h4 className="font-bold text-gray-900 text-sm">{v.name}</h4>
+                                    <p className="text-xs text-gray-500">{v.category}</p>
+                                  </div>
+                                </div>
+                                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${v.status === "Confirmed" ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>{v.status}</span>
+                              </div>
+                              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                                <span className="text-sm font-bold text-gray-900">{v.amount}</span>
+                                <span className="text-xs text-gray-400">View Details →</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {activeTab === "guests" && (
+                      <motion.div key="guests" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                        <div className="flex items-center justify-between mb-6">
+                          <div>
+                            <h2 className="font-bold text-gray-900 text-lg">Guest List</h2>
+                            <p className="text-xs text-gray-500 mt-0.5">248 total • {guestsConfirmed} confirmed • {GUESTS.filter((g) => g.rsvp === "Pending").length} pending</p>
+                          </div>
+                          <button className="px-3 py-1.5 text-xs font-semibold text-white bg-maroon rounded-lg cursor-pointer">+ Add Guest</button>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3 mb-6">
+                          {[
+                            { label: "Confirmed", count: guestsConfirmed, color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+                            { label: "Pending", count: GUESTS.filter((g) => g.rsvp === "Pending").length, color: "bg-amber-50 text-amber-700 border-amber-200" },
+                            { label: "Declined", count: 1, color: "bg-red-50 text-red-700 border-red-200" },
+                          ].map((s, i) => (
+                            <div key={i} className={`rounded-xl p-4 text-center border ${s.color}`}>
+                              <p className="text-2xl font-bold">{s.count}</p>
+                              <p className="text-xs font-medium">{s.label}</p>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                          <div className="grid grid-cols-5 gap-2 px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-500 border-b border-gray-200">
+                            <span>Name</span><span>Side</span><span>RSVP</span><span>Dietary</span><span>Table</span>
+                          </div>
+                          {GUESTS.map((g, i) => (
+                            <div key={i} className="grid grid-cols-5 gap-2 px-4 py-3 text-sm border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                              <span className="font-medium text-gray-900">{g.name}</span>
+                              <span className={g.side === "Bride" ? "text-pink-600" : "text-blue-600"}>{g.side}</span>
+                              <span className={`font-medium ${g.rsvp === "Yes" ? "text-emerald-600" : g.rsvp === "No" ? "text-red-500" : "text-amber-600"}`}>{g.rsvp}</span>
+                              <span className="text-gray-600">{g.dietary}</span>
+                              <span className="text-gray-600">{g.table}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {activeTab === "events" && (
+                      <motion.div key="events" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                        <div className="flex items-center justify-between mb-6">
+                          <div>
+                            <h2 className="font-bold text-gray-900 text-lg">Events</h2>
+                            <p className="text-xs text-gray-500 mt-0.5">4 events planned</p>
+                          </div>
+                          <button className="px-3 py-1.5 text-xs font-semibold text-white bg-maroon rounded-lg cursor-pointer">+ Add Event</button>
+                        </div>
+                        <div className="space-y-3">
+                          {EVENTS.map((ev, i) => (
+                            <div key={i} className="bg-white border border-gray-200 rounded-xl p-5">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-12 h-12 rounded-xl bg-maroon/10 flex items-center justify-center">
+                                    <i className="fas fa-calendar-alt text-maroon" />
+                                  </div>
+                                  <div>
+                                    <h3 className="font-bold text-gray-900">{ev.name}</h3>
+                                    <p className="text-xs text-gray-500">{ev.date} • {ev.time}</p>
+                                  </div>
+                                </div>
+                                <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">{ev.status}</span>
+                              </div>
+                              <div className="flex items-center gap-4 text-xs text-gray-500 pt-3 border-t border-gray-100">
+                                <span><i className="fas fa-map-marker-alt mr-1" />{ev.venue}</span>
+                                <span><i className="fas fa-clock mr-1" />{ev.time}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {activeTab === "tasks" && (
+                      <motion.div key="tasks" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                        <div className="flex items-center justify-between mb-6">
+                          <div>
+                            <h2 className="font-bold text-gray-900 text-lg">Tasks</h2>
+                            <p className="text-xs text-gray-500 mt-0.5">{tasksDone} of {TASKS.length} completed</p>
+                          </div>
+                          <button className="px-3 py-1.5 text-xs font-semibold text-white bg-maroon rounded-lg cursor-pointer">+ Add Task</button>
+                        </div>
+                        <div className="bg-gray-100 rounded-full h-2.5 mb-6 overflow-hidden">
+                          <div className="h-full rounded-full bg-gradient-to-r from-maroon to-red-600" style={{ width: `${(tasksDone / TASKS.length) * 100}%` }} />
+                        </div>
+                        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                          {TASKS.map((t, i) => (
+                            <div key={i} className="flex items-center gap-4 px-5 py-3.5 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
+                              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 ${t.done ? "bg-maroon border-maroon" : "border-gray-300"}`}>
+                                {t.done && <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 13l4 4L19 7" /></svg>}
+                              </div>
+                              <span className={`flex-1 text-sm ${t.done ? "text-gray-400 line-through" : "text-gray-900 font-medium"}`}>{t.task}</span>
+                              <span className="text-xs text-gray-400">{t.due}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {activeTab === "hashtags" && (
+                      <motion.div key="hashtags" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                        <div className="mb-6">
+                          <h2 className="font-bold text-gray-900 text-lg">Hashtag Generator</h2>
+                          <p className="text-xs text-gray-500 mt-0.5">AI-generated for Priya & Rahul</p>
+                        </div>
+                        <div className="bg-white border border-gray-200 rounded-xl p-5 mb-4">
+                          <div className="flex gap-3 mb-4">
+                            <input readOnly value="Priya" className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm bg-gray-50" placeholder="Partner 1" />
+                            <input readOnly value="Rahul" className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm bg-gray-50" placeholder="Partner 2" />
+                          </div>
+                          <button className="w-full py-2.5 bg-maroon text-white rounded-lg text-sm font-semibold cursor-pointer">Generate Hashtags</button>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          {HASHTAGS.map((tag, i) => (
+                            <div key={i} className="bg-gradient-to-br from-maroon/5 to-amber-50 border border-maroon/10 rounded-xl p-3 text-center hover:border-maroon/30 transition-colors cursor-pointer">
+                              <span className="text-sm font-bold text-maroon">{tag}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </main>
               </div>
 
-              {/* Demo Footer CTA */}
-              <div className="border-t border-gray-100 bg-gray-50/80 px-4 md:px-6 py-3 flex items-center justify-between">
-                <p className="text-[10px] md:text-xs text-gray-400">This is a preview — real data lives in your account</p>
+              {/* ── FOOTER ── */}
+              <div className="h-10 bg-white border-t border-gray-200 flex items-center justify-between px-4 shrink-0">
+                <p className="text-[10px] text-gray-400">Demo — data is pre-filled for illustration</p>
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    className="px-3 md:px-4 py-2 text-xs font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Close
-                  </button>
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    className="px-3 md:px-4 py-2 text-xs font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-dark transition-colors"
-                  >
-                    Start Free Trial →
-                  </button>
+                  <button onClick={() => setIsOpen(false)} className="px-3 py-1.5 text-[11px] font-semibold text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer">Close</button>
+                  <button onClick={() => setIsOpen(false)} className="px-3 py-1.5 text-[11px] font-semibold text-white bg-maroon rounded-md hover:bg-maroon-dark transition-colors cursor-pointer">Start Free Trial →</button>
                 </div>
               </div>
             </motion.div>
