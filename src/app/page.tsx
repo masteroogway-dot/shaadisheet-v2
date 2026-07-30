@@ -209,6 +209,34 @@ const SCENES = [
     mobilePos: "center 40%",
   },
   {
+    key: "pakistani",
+    label: "Pakistani Wedding",
+    gradient: "linear-gradient(135deg, #1A3A1A 0%, #2E5E2E 50%, #4CAF50 100%)",
+    image: "/weddings/pakistani.jpg",
+    mobilePos: "center 30%",
+  },
+  {
+    key: "bangladeshi",
+    label: "Bangladeshi Wedding",
+    gradient: "linear-gradient(135deg, #2E1A0A 0%, #5C3A1E 50%, #8D6E63 100%)",
+    image: "/weddings/bangladeshi.jpg",
+    mobilePos: "center 30%",
+  },
+  {
+    key: "srilankan",
+    label: "Sri Lankan Wedding",
+    gradient: "linear-gradient(135deg, #1A0A2E 0%, #4A148C 50%, #7B1FA2 100%)",
+    image: "/weddings/srilankan.jpg",
+    mobilePos: "center 30%",
+  },
+  {
+    key: "nepali",
+    label: "Nepali Wedding",
+    gradient: "linear-gradient(135deg, #3E1A00 0%, #8B4513 50%, #D4A574 100%)",
+    image: "/weddings/nepali.jpg",
+    mobilePos: "center 30%",
+  },
+  {
     key: "christian",
     label: "Christian Wedding",
     gradient: "linear-gradient(135deg, #0D1B3E 0%, #1A3A6B 50%, #1565C0 100%)",
@@ -346,12 +374,12 @@ export default function Home() {
           <div className="max-w-6xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-xs md:text-sm font-medium text-white/90 mb-6 md:mb-8">
               <span className="w-2 h-2 rounded-full bg-green animate-pulse" />
-              Built for Indian Weddings
+              Built for South Asian Weddings
             </div>
             <h1 className="text-[2rem] md:text-4xl lg:text-[3.5rem] font-extrabold leading-[1.08] mb-4 md:mb-6 tracking-tight text-white drop-shadow-lg">
               Plan Your{" "}
               <RotatingText
-                texts={["Hindu", "Muslim", "Sikh", "Christian", "Jain"]}
+                texts={["Hindu", "Muslim", "Sikh", "Pakistani", "Bangladeshi", "Sri Lankan", "Nepali", "Christian", "Jain"]}
                 rotationInterval={4500}
                 auto={false}
                 currentIndex={activeScene}
@@ -397,14 +425,14 @@ export default function Home() {
                 <span className="wedding-badge">Features</span>
               </div>
               <h2 className="text-2xl md:text-[2.5rem] font-bold mb-3 md:mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>Everything You Need</h2>
-              <p className="text-gray-500 text-sm md:text-base max-w-lg mx-auto">One app to plan the perfect Indian wedding. No spreadsheets, no chaos.</p>
+              <p className="text-gray-500 text-sm md:text-base max-w-lg mx-auto">One app to plan the perfect South Asian wedding. No spreadsheets, no chaos.</p>
             </div>
           </ScrollReveal>
           <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" staggerDelay={0.1}>
             {[
-              { icon: <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="9" /><path d="M12 7v10M9 9.5c0-1 1.5-2 3-2s3 1 3 2-1.5 1.5-3 2-3 1-3 2 1.5 2 3 2 3-1 3-2" /></svg>, title: "Budget Tracker", desc: "Track every rupee with pre-filled categories for Indian weddings." },
-              { icon: <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 21V7l9-4 9 4v14" /><path d="M9 21V11h6v10" /><path d="M3 11h18" /><circle cx="12" cy="7" r="1" fill="currentColor" opacity="0.4" /></svg>, title: "Vendor Manager", desc: "Track every vendor - from pandit to caterer to DJ." },
-              { icon: <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 7h6M9 11h6M9 15h4" /><path d="M7 7l1.5 1.5L11 6" fill="currentColor" opacity="0.5" /><path d="M7 11l1.5 1.5L11 10" fill="currentColor" opacity="0.5" /></svg>, title: "Ritual Checklists", desc: "Every ritual in order - from Roka to Vidaai, Nikah to Walima." },
+              { icon: <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="9" /><path d="M12 7v10M9 9.5c0-1 1.5-2 3-2s3 1 3 2-1.5 1.5-3 2-3 1-3 2 1.5 2 3 2 3-1 3-2" /></svg>, title: "Budget Tracker", desc: "Track every rupee, taka, or dollar with pre-filled categories for South Asian weddings." },
+              { icon: <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 21V7l9-4 9 4v14" /><path d="M9 21V11h6v10" /><path d="M3 11h18" /><circle cx="12" cy="7" r="1" fill="currentColor" opacity="0.4" /></svg>, title: "Vendor Manager", desc: "Track every vendor — from priest or officiant to caterer to DJ." },
+              { icon: <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 7h6M9 11h6M9 15h4" /><path d="M7 7l1.5 1.5L11 6" fill="currentColor" opacity="0.5" /><path d="M7 11l1.5 1.5L11 10" fill="currentColor" opacity="0.5" /></svg>, title: "Ritual Checklists", desc: "Every ritual in order — Roka to Vidaai, Nikah to Walima, Baraat to Bouquet." },
               { icon: <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="9" cy="8" r="3.5" /><circle cx="17" cy="9" r="2.5" /><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6" /><path d="M17 14c2.5 0 5 1.5 5 4" /></svg>, title: "Guest Management", desc: "RSVP tracking, dietary preferences, seating arrangements." },
               { icon: <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.5 8.5 3 11l6.5 2.5L12 20l2.5-6.5L21 11l-6.5-2.5z" /><path d="M19 15l-1.5 4-3.5-3 4-1z" opacity="0.5" /><path d="M5 15l1.5 4 3.5-3-4-1z" opacity="0.5" /></svg>, title: "AI Assistant", desc: "Get instant, intelligent recommendations for your wedding." },
               { icon: <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="10" r="4" /><circle cx="16" cy="10" r="4" /><path d="M4 18c0-2.5 2-4.5 4-5M20 18c0-2.5-2-4.5-4-5" /><path d="M10 10h4" strokeWidth="2" /></svg>, title: "Real-time Collaboration", desc: "Share with family, planners, and vendors." },
@@ -437,7 +465,7 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 relative">
             <div className="absolute top-10 left-[15%] right-[15%] h-0.5 hidden md:block" style={{ background: "linear-gradient(to right, transparent, #D4AF37, transparent)" }} />
             {[
-              { n: "1", t: "Tell Us!", d: "Religion, region, budget, guest count, events." },
+              { n: "1", t: "Tell Us!", d: "Country, religion, region, budget, guest count, events." },
               { n: "2", t: "Get Your Template!", d: "Pre-filled rituals, budget categories, checklists." },
               { n: "3", t: "Plan & Collaborate!", d: "Track budget, manage vendors, organize guests." },
               { n: "4", t: "Celebrate!", d: "Zero chaos, pure joy." },
@@ -463,10 +491,10 @@ export default function Home() {
               <div className="gold-divider mb-4 md:mb-6">
                 <span className="wedding-badge">Weddings</span>
               </div>
-              <h2 className="text-2xl md:text-[2.5rem] font-bold mb-3 md:mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>Built for Every Indian Wedding</h2>
+              <h2 className="text-2xl md:text-[2.5rem] font-bold mb-3 md:mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>Built for Every South Asian Wedding</h2>
             </div>
           </ScrollReveal>
-          <StaggerContainer className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-5" staggerDelay={0.08}>
+          <StaggerContainer className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5" staggerDelay={0.08}>
             {[
               {
                 bg: "bg-amber-50", border: "border-amber-200", title: "Hindu", desc: "Roka to Vidaai",
@@ -506,6 +534,28 @@ export default function Home() {
                 ),
               },
               {
+                bg: "bg-pink-50", border: "border-pink-200", title: "Sri Lankan", desc: "Poruwa Ceremony",
+                svg: (
+                  <svg className="w-8 h-8 md:w-10 md:h-10 text-pink-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+                    <path d="M4 18h16" /><path d="M6 18v-5h12v5" />
+                    <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
+                    <path d="M10 6l2-3 2 3" /><circle cx="12" cy="8" r="1.5" fill="currentColor" opacity="0.3" />
+                  </svg>
+                ),
+              },
+              {
+                bg: "bg-teal-50", border: "border-teal-200", title: "Nepali", desc: "Kanya Daan to Bidai",
+                svg: (
+                  <svg className="w-8 h-8 md:w-10 md:h-10 text-teal-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+                    <path d="M4 18h16" /><path d="M6 18v-5h12v5" />
+                    <circle cx="12" cy="10" r="3" /><circle cx="12" cy="10" r="1" fill="currentColor" opacity="0.3" />
+                    <path d="M9 7c-1-2 0-4 0-4" /><path d="M15 7c1-2 0-4 0-4" />
+                  </svg>
+                ),
+              },
+              {
                 bg: "bg-blue-50", border: "border-blue-200", title: "Christian", desc: "Church Ceremony",
                 svg: (
                   <svg className="w-8 h-8 md:w-10 md:h-10 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -526,6 +576,18 @@ export default function Home() {
                     <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
                     <circle cx="12" cy="12" r="2.5" /><circle cx="12" cy="12" r="1" fill="currentColor" opacity="0.3" />
                     <line x1="12" y1="6" x2="12" y2="4" /><circle cx="12" cy="3.5" r="0.5" fill="currentColor" opacity="0.4" />
+                  </svg>
+                ),
+              },
+              {
+                bg: "bg-cyan-50", border: "border-cyan-200", title: "Pakistani", desc: "Mehndi to Walima",
+                svg: (
+                  <svg className="w-8 h-8 md:w-10 md:h-10 text-cyan-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+                    <path d="M4 18h16" /><path d="M6 18v-5h12v5" />
+                    <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
+                    <path d="M11 4.5a1.5 1.5 0 1 0 2 0 1.5 1.5 0 0 0-2 0" fill="currentColor" opacity="0.4" />
+                    <circle cx="12" cy="10" r="2" /><circle cx="12" cy="10" r="0.8" fill="currentColor" opacity="0.3" />
                   </svg>
                 ),
               },
