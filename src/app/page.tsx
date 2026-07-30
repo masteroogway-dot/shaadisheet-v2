@@ -336,6 +336,56 @@ const WEDDING_CATEGORIES: WeddingCategory[] = [
       { name: "Christian", ceremony: "Church Wedding", events: "Engagement → Church Wedding → Reception" },
     ],
   },
+  {
+    id: "afghanistan", bg: "bg-red-50", title: "Afghan", desc: "Khwara to Walima",
+    svg: (
+      <svg className="w-8 h-8 md:w-10 md:h-10 text-red-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+        <path d="M4 18h16" /><path d="M6 18v-5h12v5" />
+        <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
+        <circle cx="12" cy="10" r="2" /><circle cx="12" cy="10" r="0.8" fill="currentColor" opacity="0.3" />
+        <path d="M11 4.5a1.5 1.5 0 1 0 2 0 1.5 1.5 0 0 0-2 0" fill="currentColor" opacity="0.4" />
+      </svg>
+    ),
+    regions: [
+      { name: "Pashtun", ceremony: "Khwara, Nikah, Attan", events: "Khwara → Shirni Khori → Henna Night → Nikah → Walima (with Attan dance)" },
+      { name: "Tajik", ceremony: "Nikah, Walima", events: "Mangni → Henna Night → Nikah → Walima" },
+      { name: "Hazara", ceremony: "Nikah, Walima", events: "Mangni → Nikah → Walima" },
+      { name: "Uzbek", ceremony: "Nikah, Malkeh", events: "Mangni → Nikah → Malkeh (reception)" },
+    ],
+  },
+  {
+    id: "maldives", bg: "bg-sky-50", title: "Maldivian", desc: "Nikah to Valimah",
+    svg: (
+      <svg className="w-8 h-8 md:w-10 md:h-10 text-sky-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+        <path d="M4 18h16" /><path d="M6 18v-5h12v5" />
+        <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
+        <path d="M10 6l2-3 2 3" /><circle cx="12" cy="8" r="1.5" fill="currentColor" opacity="0.3" />
+        <line x1="4" y1="10" x2="20" y2="10" />
+      </svg>
+    ),
+    regions: [
+      { name: "Maldivian Muslim", ceremony: "Nikah, Boduberu", events: "Henna Night → Nikah → Boduberu (drumming/dance) → Valimah" },
+    ],
+  },
+  {
+    id: "bangladesh", bg: "bg-emerald-50", title: "Bangladeshi", desc: "Gaye Holud to Bou Bhat",
+    svg: (
+      <svg className="w-8 h-8 md:w-10 md:h-10 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+        <path d="M4 18h16" /><path d="M6 18v-5h12v5" />
+        <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
+        <circle cx="12" cy="10" r="2" /><circle cx="12" cy="10" r="0.8" fill="currentColor" opacity="0.3" />
+        <path d="M9 7c-1-2 0-4 0-4" /><path d="M15 7c1-2 0-4 0-4" />
+      </svg>
+    ),
+    regions: [
+      { name: "Bengali Muslim", ceremony: "Gaye Holud, Nikah", events: "Gaye Holud → Mehendi → Nikah → Walima → Bou Bhat" },
+      { name: "Bengali Hindu", ceremony: "Shubho Drishti, Sindoor", events: "Gaye Holud → Dodhi Mangal → Shubho Drishti → Wedding → Bou Bhat" },
+      { name: "Chakma Buddhist", ceremony: "Buddhist Ceremony", events: "Buddhist Ceremony → Reception" },
+    ],
+  },
 ];
 
 /* ─────────────────────────────────────────────
