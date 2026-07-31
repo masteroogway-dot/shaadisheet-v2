@@ -179,9 +179,22 @@ export default function TutorialOverlay({ open, onClose, steps, sidebarOpen, onS
     const isMobile = viewW < 640;
     const gap = 12;
 
-    if (isMobile || !targetRect) {
-      // Mobile: always center the tooltip on screen
-      return { top: `${Math.max(20, viewH * 0.15)}px`, left: "16px", right: "16px", transform: "" };
+    if (!targetRect) {
+      // No target: center on screen
+      if (isMobile) {
+        return { top: `${Math.max(20, viewH * 0.15)}px`, left: "16px", right: "16px", transform: "" };
+      }
+      return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
+    }
+
+    if (isMobile) {
+      // Mobile with target: scroll target into view, position tooltip below it
+      const targetEl = step?.target ? document.querySelector(step.target) : null;
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+      // Position tooltip at bottom of viewport
+      return { top: "auto", bottom: "16px", left: "16px", right: "16px", transform: "" };
     }
 
     // Desktop: position relative to target
