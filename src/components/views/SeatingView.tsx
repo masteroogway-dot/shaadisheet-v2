@@ -88,11 +88,17 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
     if (brideTables.length === 0) { onToast("No tables with space available", "error"); return; }
 
     let assigned = 0;
+    const tableGuestsMap = new Map<string, string[]>();
+    for (const t of brideTables) {
+      let g: string[] = [];
+      try { g = JSON.parse(t.guests || "[]"); } catch { g = []; }
+      tableGuestsMap.set(t.id, g);
+    }
+
     for (const guest of unassignedGuests) {
       const side = guest.side === "Bride" ? "Bride" : guest.side === "Groom" ? "Groom" : "Both";
       let targetTable = brideTables.find((t: any) => {
-        let g: string[] = [];
-        try { g = JSON.parse(t.guests || "[]"); } catch { g = []; }
+        const g = tableGuestsMap.get(t.id) || [];
         if (g.length >= (t.capacity || 8)) return false;
         const tableName = (t.name || "").toLowerCase();
         if (side === "Bride" && (tableName.includes("bride") || tableName.includes("family"))) return true;
@@ -100,14 +106,12 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
         return true;
       });
       if (!targetTable) targetTable = brideTables.find((t: any) => {
-        let g: string[] = [];
-        try { g = JSON.parse(t.guests || "[]"); } catch { g = []; }
+        const g = tableGuestsMap.get(t.id) || [];
         return g.length < (t.capacity || 8);
       });
       if (!targetTable) break;
 
-      let currentGuests: string[] = [];
-      try { currentGuests = JSON.parse(targetTable.guests || "[]"); } catch { currentGuests = []; }
+      const currentGuests = tableGuestsMap.get(targetTable.id) || [];
       currentGuests.push(guest.name);
       await updateSeatingTable(weddingId, targetTable.id, { guests: JSON.stringify(currentGuests) });
       assigned++;
