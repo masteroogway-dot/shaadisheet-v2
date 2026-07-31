@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { createTask, deleteTask, updateTask } from "@/lib/actions";
 import { motion, AnimatePresence } from "framer-motion";
 import TaskSuggestions from "@/components/TaskSuggestions";
@@ -31,6 +31,11 @@ export default function TasksView({ wedding, weddingId, onToggle, onUpdate, onTo
   const [filterStatus, setFilterStatus] = useState("All");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [undoStack, setUndoStack] = useState<{ task: any; period: string }[]>([]);
+
+  // Sync local state when wedding prop changes (e.g., after adding suggested tasks)
+  useEffect(() => {
+    setTasks(wedding.tasks || []);
+  }, [wedding.tasks]);
 
   const today = new Date().toISOString().split("T")[0];
 
