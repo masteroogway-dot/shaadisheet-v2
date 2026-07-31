@@ -33,7 +33,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     },
   });
 
-  const baseUrl = process.env.NEXTAUTH_URL || "https://shaadisheet-v2.vercel.app";
+  const baseUrl = process.env.NEXTAUTH_URL || "https://shaadisheet.com";
   const link = `${baseUrl}/invite/${token}`;
 
   return NextResponse.json({ invite, link, token });
