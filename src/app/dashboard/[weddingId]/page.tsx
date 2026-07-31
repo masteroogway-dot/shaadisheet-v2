@@ -60,16 +60,6 @@ export default function WeddingDashboardPage() {
       const w = await getWeddingWithRole(weddingId);
       setWedding(w);
       setUserRole(w.userRole || "owner");
-      if (w.weddingDate) {
-        try {
-          await seedWeddingEvents(weddingId);
-          const updated = await getWeddingWithRole(weddingId);
-          setWedding(updated);
-          setUserRole(updated.userRole || "owner");
-        } catch {
-          // seedWeddingEvents failed, but wedding data is already set
-        }
-      }
     } catch (e) {
       console.error(e);
       router.push("/dashboard");
@@ -91,6 +81,27 @@ export default function WeddingDashboardPage() {
     if (status === "unauthenticated") router.push("/auth");
     if (status === "authenticated") loadWedding();
   }, [status, router, loadWedding]);
+
+  // Seed wedding events in background after initial load (non-blocking)
+  useEffect(() => {
+    if (!wedding?.weddingDate) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        await seedWeddingEvents(weddingId);
+        if (!cancelled) {
+          const updated = await getWeddingWithRole(weddingId);
+          if (!cancelled) {
+            setWedding(updated);
+            setUserRole(updated.userRole || "owner");
+          }
+        }
+      } catch {
+        // seeding failed, data is already set from initial load
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [weddingId, wedding?.weddingDate]);
 
   const handleOnboardingComplete = async (data: any) => {
     try {
