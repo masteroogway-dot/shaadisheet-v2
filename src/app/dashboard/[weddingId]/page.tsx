@@ -24,7 +24,10 @@ import HashtagGeneratorView from "@/components/views/HashtagGeneratorView";
 import AiPanel from "@/components/AiPanel";
 import ProfileMenu from "@/components/ProfileMenu";
 import ToastContainer, { Toast } from "@/components/Toast";
-import TutorialOverlay, { TUTORIAL_STEPS } from "@/components/TutorialOverlay";
+import TutorialOverlay, {
+  WELCOME_TOUR, BUDGET_TOUR, GUESTS_TOUR, VENDORS_TOUR, EVENTS_TOUR, AI_TOUR, WEBSITE_TOUR,
+  shouldShowTour, markTourComplete, TourDef,
+} from "@/components/TutorialOverlay";
 
 let toastId = 0;
 
@@ -41,6 +44,7 @@ export default function WeddingDashboardPage() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [userRole, setUserRole] = useState<string>("owner");
   const [showTutorial, setShowTutorial] = useState(false);
+  const [activeTour, setActiveTour] = useState<TourDef | null>(null);
 
   const addToast = useCallback((message: string, type: "success" | "error" = "success", options?: { undoAction?: () => void }) => {
     const id = ++toastId;
@@ -113,16 +117,37 @@ export default function WeddingDashboardPage() {
     if (!wedding) return;
     const onboardingComplete = wedding.religion && wedding.religion !== "";
     if (!onboardingComplete) return;
-    const tutorialDone = localStorage.getItem("shaadisheet-tutorial-done");
-    if (!tutorialDone) {
-      const timer = setTimeout(() => setShowTutorial(true), 800);
+    if (shouldShowTour("welcome")) {
+      const timer = setTimeout(() => {
+        setActiveTour(WELCOME_TOUR);
+        setShowTutorial(true);
+      }, 800);
       return () => clearTimeout(timer);
     }
   }, [wedding]);
 
   const handleTutorialClose = () => {
+    if (activeTour) markTourComplete(activeTour.id);
     setShowTutorial(false);
-    localStorage.setItem("shaadisheet-tutorial-done", "true");
+    setActiveTour(null);
+  };
+
+  const VIEW_TOURS: Record<string, TourDef> = {
+    budget: BUDGET_TOUR,
+    guests: GUESTS_TOUR,
+    vendors: VENDORS_TOUR,
+    events: EVENTS_TOUR,
+    website: WEBSITE_TOUR,
+  };
+
+  const handleViewChange = (view: string) => {
+    setActiveView(view);
+    // Trigger contextual tour if user hasn't seen it
+    const tour = VIEW_TOURS[view];
+    if (tour && shouldShowTour(tour.id) && !showTutorial) {
+      setActiveTour(tour);
+      setShowTutorial(true);
+    }
   };
 
   const handleToggleTask = async (id: string, done: boolean) => {
@@ -267,7 +292,7 @@ export default function WeddingDashboardPage() {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar activeView={activeView} onViewChange={setActiveView} mobileOpen={sidebarOpen} onMobileClose={() => setSidebarOpen(false)} wedding={wedding} />
+        <Sidebar activeView={activeView} onViewChange={handleViewChange} mobileOpen={sidebarOpen} onMobileClose={() => setSidebarOpen(false)} wedding={wedding} />
         <main className="flex-1 overflow-y-auto p-4 md:p-8" key={activeView}>
           <div className="animate-[fadeIn_0.2s_ease-out]">
             {renderView()}
@@ -276,7 +301,7 @@ export default function WeddingDashboardPage() {
       </div>
 
       <AiPanel open={aiOpen} onClose={() => setAiOpen(false)} wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} />
-      <TutorialOverlay open={showTutorial} onClose={handleTutorialClose} steps={TUTORIAL_STEPS} sidebarOpen={sidebarOpen} onSidebarOpen={setSidebarOpen} />
+      <TutorialOverlay open={showTutorial} onClose={handleTutorialClose} tour={activeTour || WELCOME_TOUR} sidebarOpen={sidebarOpen} onSidebarOpen={setSidebarOpen} />
     </div>
   );
 }

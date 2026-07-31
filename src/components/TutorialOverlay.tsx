@@ -3,17 +3,23 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
-export interface TutorialStep {
+export interface TourStep {
   target?: string;
   title: string;
   description: string;
+  icon?: string;
   position?: "top" | "bottom" | "left" | "right";
+}
+
+export interface TourDef {
+  id: string;
+  steps: TourStep[];
 }
 
 interface TutorialOverlayProps {
   open: boolean;
   onClose: () => void;
-  steps: TutorialStep[];
+  tour: TourDef;
   sidebarOpen?: boolean;
   onSidebarOpen?: (open: boolean) => void;
 }
@@ -25,81 +31,165 @@ interface TargetRect {
   height: number;
 }
 
-export const TUTORIAL_STEPS: TutorialStep[] = [
-  {
-    title: "Welcome to ShaadiSheet!",
-    description: "Your complete wedding planning companion. Let us show you around in 60 seconds.",
-    position: "bottom",
-  },
-  {
-    target: ".sidebar",
-    title: "Your Navigation",
-    description: "Access all your planning tools from this sidebar. It collapses on mobile.",
-    position: "right",
-  },
-  {
-    target: "[data-tutorial='overview']",
-    title: "Wedding Dashboard",
-    description: "Your home base — see budget, guests, vendors, tasks, and progress at a glance.",
-    position: "bottom",
-  },
-  {
-    target: "[data-tutorial='budget']",
-    title: "Budget Tracker",
-    description: "Track every rupee. Set your total budget and log vendor payments to see where your money goes.",
-    position: "right",
-  },
-  {
-    target: "[data-tutorial='guests']",
-    title: "Guest Manager",
-    description: "Manage your full guest list, track RSVPs, dietary needs, and table assignments.",
-    position: "right",
-  },
-  {
-    target: "[data-tutorial='vendors']",
-    title: "Vendor Manager",
-    description: "Keep all vendor contacts, contracts, and payments organized in one place.",
-    position: "right",
-  },
-  {
-    target: "[data-tutorial='events']",
-    title: "Event Planner",
-    description: "Plan your Mehendi, Sangeet, Wedding, and Reception with detailed timelines.",
-    position: "right",
-  },
-  {
-    target: "[data-tutorial='ai']",
-    title: "AI Assistant",
-    description: "Stuck on something? Our AI helps with budgeting, seating, vendor recommendations, and more.",
-    position: "bottom",
-  },
-  {
-    target: "[data-tutorial='website']",
-    title: "Wedding Website",
-    description: "Create a beautiful wedding website to share with your guests. 9 premium templates included!",
-    position: "bottom",
-  },
-  {
-    target: "[data-tutorial='checklists']",
-    title: "Cultural Checklists",
-    description: "Never forget anything — checklists for Priest Kit, Emergency Kit, and Vidaai essentials.",
-    position: "right",
-  },
-  {
-    title: "You're All Set!",
-    description: "Start by adding your budget and guest list. We're here to make your wedding planning stress-free.",
-    position: "bottom",
-  },
-];
+export const WELCOME_TOUR: TourDef = {
+  id: "welcome",
+  steps: [
+    {
+      title: "Welcome to ShaadiSheet!",
+      description: "Your complete wedding planning companion. Let us show you the basics.",
+      icon: "fa-sparkles",
+    },
+    {
+      target: ".sidebar",
+      title: "Navigation Sidebar",
+      description: "Access all your planning tools here. Budget, guests, vendors, events, and more.",
+      icon: "fa-bars",
+      position: "right",
+    },
+    {
+      target: "[data-tutorial='overview']",
+      title: "Your Dashboard",
+      description: "See your budget, guests, vendors, tasks, and progress at a glance. Tap any card to explore.",
+      icon: "fa-home",
+      position: "bottom",
+    },
+  ],
+};
 
-export default function TutorialOverlay({ open, onClose, steps, sidebarOpen, onSidebarOpen }: TutorialOverlayProps) {
+export const BUDGET_TOUR: TourDef = {
+  id: "budget",
+  steps: [
+    {
+      target: "[data-tutorial='budget']",
+      title: "Budget Tracker",
+      description: "Set your total budget and log vendor payments. Tap to get started.",
+      icon: "fa-coins",
+    },
+  ],
+};
+
+export const GUESTS_TOUR: TourDef = {
+  id: "guests",
+  steps: [
+    {
+      target: "[data-tutorial='guests']",
+      title: "Guest Manager",
+      description: "Add guests, track RSVPs, dietary needs, and table assignments.",
+      icon: "fa-users",
+    },
+  ],
+};
+
+export const VENDORS_TOUR: TourDef = {
+  id: "vendors",
+  steps: [
+    {
+      target: "[data-tutorial='vendors']",
+      title: "Vendor Manager",
+      description: "Keep all vendor contacts, contracts, and payments in one place.",
+      icon: "fa-store",
+    },
+  ],
+};
+
+export const EVENTS_TOUR: TourDef = {
+  id: "events",
+  steps: [
+    {
+      target: "[data-tutorial='events']",
+      title: "Event Planner",
+      description: "Plan your Mehendi, Sangeet, Wedding, and Reception with timelines.",
+      icon: "fa-calendar-alt",
+    },
+  ],
+};
+
+export const AI_TOUR: TourDef = {
+  id: "ai",
+  steps: [
+    {
+      target: "[data-tutorial='ai']",
+      title: "AI Assistant",
+      description: "Stuck on something? Ask our AI for help with budgeting, seating, or vendor ideas.",
+      icon: "fa-wand-magic-sparkles",
+    },
+  ],
+};
+
+export const WEBSITE_TOUR: TourDef = {
+  id: "website",
+  steps: [
+    {
+      target: "[data-tutorial='website']",
+      title: "Wedding Website",
+      description: "Create a beautiful website to share with your guests. 9 premium templates included.",
+      icon: "fa-globe",
+    },
+  ],
+};
+
+export const ALL_TOURS: TourDef[] = [WELCOME_TOUR, BUDGET_TOUR, GUESTS_TOUR, VENDORS_TOUR, EVENTS_TOUR, AI_TOUR, WEBSITE_TOUR];
+
+const STORAGE_KEY = "shaadisheet-tours-seen";
+
+function getSeenTours(): Set<string> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function markTourSeen(id: string) {
+  try {
+    const seen = getSeenTours();
+    seen.add(id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...seen]));
+  } catch {}
+}
+
+export function shouldShowTour(id: string): boolean {
+  if (id === "welcome") {
+    return !localStorage.getItem("shaadisheet-tutorial-done");
+  }
+  return !getSeenTours().has(id);
+}
+
+export function markTourComplete(id: string) {
+  if (id === "welcome") {
+    localStorage.setItem("shaadisheet-tutorial-done", "true");
+  }
+  markTourSeen(id);
+}
+
+function isMobile(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.innerWidth < 640;
+}
+
+function isSidebarTarget(target?: string): boolean {
+  if (!target) return false;
+  return target.includes("tutorial=") && !target.includes("overview") && !target.includes("website") && !target.includes("ai");
+}
+
+export default function TutorialOverlay({ open, onClose, tour, sidebarOpen, onSidebarOpen }: TutorialOverlayProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState<TargetRect | null>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchDelta, setTouchDelta] = useState(0);
+  const [mobile, setMobile] = useState(false);
 
-  const step = steps[currentStep];
-  const totalSteps = steps.length;
+  const step = tour.steps[currentStep];
+  const totalSteps = tour.steps.length;
   const hasTarget = !!step?.target;
+
+  useEffect(() => {
+    setMobile(isMobile());
+    const onResize = () => setMobile(isMobile());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const findTarget = useCallback(() => {
     if (!step?.target) {
@@ -108,16 +198,16 @@ export default function TutorialOverlay({ open, onClose, steps, sidebarOpen, onS
     }
     const el = document.querySelector(step.target);
     if (el) {
-      // Scroll target into view
       el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
-      // Use requestAnimationFrame to get rect after scroll settles
       requestAnimationFrame(() => {
-        const rect = el.getBoundingClientRect();
-        setTargetRect({
-          top: rect.top - 8,
-          left: rect.left - 8,
-          width: rect.width + 16,
-          height: rect.height + 16,
+        requestAnimationFrame(() => {
+          const rect = el.getBoundingClientRect();
+          setTargetRect({
+            top: rect.top - 8,
+            left: rect.left - 8,
+            width: rect.width + 16,
+            height: rect.height + 16,
+          });
         });
       });
     } else {
@@ -125,26 +215,23 @@ export default function TutorialOverlay({ open, onClose, steps, sidebarOpen, onS
     }
   }, [step?.target]);
 
-  // Reset target immediately when step changes so old highlight disappears
   useEffect(() => {
     setTargetRect(null);
   }, [currentStep]);
 
   useEffect(() => {
     if (!open) return;
-    const isMobile = window.innerWidth < 640;
-    // On mobile, delay target finding to let sidebar animation finish
-    const delay = isMobile && step?.target ? 400 : 50;
+    const delay = mobile && step?.target ? 450 : 60;
     const timer = setTimeout(() => findTarget(), delay);
-    const onResize = () => findTarget();
-    window.addEventListener("resize", onResize);
-    window.addEventListener("scroll", onResize, true);
+    const onScroll = () => findTarget();
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", onScroll);
     return () => {
       clearTimeout(timer);
-      window.removeEventListener("resize", onResize);
-      window.removeEventListener("scroll", onResize);
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", onScroll);
     };
-  }, [open, findTarget]);
+  }, [open, findTarget, mobile]);
 
   useEffect(() => {
     if (!open) return;
@@ -154,9 +241,7 @@ export default function TutorialOverlay({ open, onClose, steps, sidebarOpen, onS
         if (currentStep < totalSteps - 1) setCurrentStep((p) => p + 1);
         else onClose();
       }
-      if (e.key === "ArrowLeft" && currentStep > 0) {
-        setCurrentStep((p) => p - 1);
-      }
+      if (e.key === "ArrowLeft" && currentStep > 0) setCurrentStep((p) => p - 1);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -166,63 +251,204 @@ export default function TutorialOverlay({ open, onClose, steps, sidebarOpen, onS
     if (open) setCurrentStep(0);
   }, [open]);
 
-  // Auto-open sidebar on mobile only for sidebar targets; close for non-sidebar targets
+  // Sidebar management on mobile
   useEffect(() => {
-    if (!open) return;
-    const isMobile = window.innerWidth < 640;
-    if (!isMobile || !onSidebarOpen) return;
-    const target = step?.target || "";
-    const isSidebarTarget = target.includes("tutorial=") && !target.includes("overview") && !target.includes("website") && !target.includes("ai");
-    if (isSidebarTarget) {
+    if (!open || !mobile || !onSidebarOpen) return;
+    if (isSidebarTarget(step?.target)) {
       onSidebarOpen(true);
     } else {
       onSidebarOpen(false);
     }
-  }, [open, step?.target, onSidebarOpen]);
+  }, [open, step?.target, mobile, onSidebarOpen]);
 
-  // Close sidebar when tutorial closes
   useEffect(() => {
-    if (!open && onSidebarOpen) {
-      const isMobile = window.innerWidth < 640;
-      if (isMobile) onSidebarOpen(false);
-    }
-  }, [open, onSidebarOpen]);
+    if (!open && onSidebarOpen && mobile) onSidebarOpen(false);
+  }, [open, onSidebarOpen, mobile]);
 
-  const getTooltipPosition = () => {
+  // Swipe handlers for mobile
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    setTouchStart(e.touches[0].clientX);
+    setTouchDelta(0);
+  }, []);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    if (touchStart === null) return;
+    setTouchDelta(e.touches[0].clientX - touchStart);
+  }, [touchStart]);
+
+  const onTouchEnd = useCallback(() => {
+    if (Math.abs(touchDelta) > 50) {
+      if (touchDelta < 0 && currentStep < totalSteps - 1) {
+        setCurrentStep((p) => p + 1);
+      } else if (touchDelta > 0 && currentStep > 0) {
+        setCurrentStep((p) => p - 1);
+      }
+    }
+    setTouchStart(null);
+    setTouchDelta(0);
+  }, [touchDelta, currentStep, totalSteps]);
+
+  const goNext = () => {
+    if (currentStep < totalSteps - 1) setCurrentStep((p) => p + 1);
+    else onClose();
+  };
+
+  const goPrev = () => {
+    if (currentStep > 0) setCurrentStep((p) => p - 1);
+  };
+
+  if (!open) return null;
+
+  // ━━━ MOBILE: Bottom-sheet layout ━━━
+  if (mobile) {
+    return (
+      <div className="fixed inset-0 z-[99999]">
+        {/* Backdrop */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="absolute inset-0 bg-black/50"
+          onClick={onClose}
+        />
+
+        {/* Spotlight */}
+        {hasTarget && targetRect && (
+          <motion.div
+            key={`spot-${currentStep}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="absolute rounded-xl pointer-events-none"
+            style={{
+              top: targetRect.top,
+              left: targetRect.left,
+              width: targetRect.width,
+              height: targetRect.height,
+              boxShadow: "0 0 0 4000px rgba(0,0,0,0.55)",
+              zIndex: 1,
+            }}
+          />
+        )}
+
+        {/* Glow ring */}
+        {hasTarget && targetRect && (
+          <motion.div
+            key={`glow-${currentStep}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute rounded-xl pointer-events-none border-[3px] border-[#D4AF37]"
+            style={{
+              top: targetRect.top - 3,
+              left: targetRect.left - 3,
+              width: targetRect.width + 6,
+              height: targetRect.height + 6,
+              zIndex: 2,
+              boxShadow: "0 0 16px 2px rgba(212,175,55,0.4)",
+            }}
+          />
+        )}
+
+        {/* Bottom sheet */}
+        <motion.div
+          key={currentStep}
+          initial={{ y: "100%" }}
+          animate={{ y: 0 }}
+          exit={{ y: "100%" }}
+          transition={{ type: "spring", damping: 28, stiffness: 300 }}
+          className="absolute bottom-0 left-0 right-0 z-10"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+        >
+          <div className="bg-white rounded-t-3xl shadow-2xl max-h-[70vh] flex flex-col">
+            {/* Grab handle */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full bg-gray-300" />
+            </div>
+
+            {/* Icon + Content */}
+            <div className="px-6 pt-2 pb-4 flex-1 overflow-y-auto">
+              <div className="flex items-center gap-3 mb-3">
+                {step.icon && (
+                  <div className="w-10 h-10 rounded-xl bg-maroon/10 flex items-center justify-center shrink-0">
+                    <i className={`fas ${step.icon} text-maroon text-sm`} />
+                  </div>
+                )}
+                <h3 className="text-lg font-bold text-gray-900">{step.title}</h3>
+              </div>
+              <p className="text-sm text-gray-500 leading-relaxed">{step.description}</p>
+            </div>
+
+            {/* Dots */}
+            <div className="flex justify-center gap-1.5 pb-3">
+              {Array.from({ length: totalSteps }, (_, i) => (
+                <div
+                  key={i}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    i === currentStep ? "w-6 bg-maroon" : "w-1.5 bg-gray-300"
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Navigation — thumb zone */}
+            <div className="px-4 pb-8 pt-1 flex items-center gap-3">
+              <button
+                onClick={onClose}
+                className="h-12 px-4 rounded-xl text-sm font-semibold text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                Skip
+              </button>
+              {currentStep > 0 && (
+                <button
+                  onClick={goPrev}
+                  className="h-12 px-4 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer"
+                >
+                  Back
+                </button>
+              )}
+              <button
+                onClick={goNext}
+                className="flex-1 h-12 rounded-xl bg-gradient-to-r from-[#722F37] to-[#8B3A44] text-white text-sm font-semibold shadow-md active:scale-[0.98] transition-transform cursor-pointer"
+              >
+                {currentStep < totalSteps - 1 ? "Next" : "Get Started"}
+              </button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Swipe hint */}
+        {totalSteps > 1 && (
+          <div className="absolute bottom-[220px] left-0 right-0 flex justify-center z-10 pointer-events-none">
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.4 }}
+              transition={{ delay: 1.5 }}
+              className="text-white text-xs"
+            >
+              Swipe to navigate
+            </motion.p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ━━━ DESKTOP: Floating card layout ━━━
+  const getDesktopPosition = () => {
     const viewW = window.innerWidth;
     const viewH = window.innerHeight;
-    const isMobile = viewW < 640;
-    const gap = 12;
+    const gap = 14;
+    const cardW = 340;
+    const cardH = 180;
 
     if (!targetRect) {
-      // No target: center on screen
-      if (isMobile) {
-        return { top: `${Math.max(20, viewH * 0.15)}px`, left: "16px", right: "16px", transform: "" };
-      }
       return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
     }
 
-    if (isMobile) {
-      // Mobile with target: position tooltip below the target, or above if no space
-      const tooltipH = 180;
-      const gap = 12;
-      let top = targetRect.top + targetRect.height + gap;
-      // If tooltip would go off-screen bottom, put it above
-      if (top + tooltipH > viewH - 16) {
-        top = targetRect.top - gap - tooltipH;
-      }
-      // Clamp to screen
-      if (top < 16) top = 16;
-      // Center horizontally, clamp to screen
-      let left = Math.max(16, Math.min(targetRect.left, viewW - 340 - 16));
-      return { top: `${top}px`, left: `${left}px`, width: "308px", transform: "" };
-    }
-
-    // Desktop: position relative to target
     const pos = step?.position || "bottom";
-    const tooltipW = 340;
-    const tooltipH = 200;
-
     let top: number;
     let left: number;
     let transform = "";
@@ -232,63 +458,57 @@ export default function TutorialOverlay({ open, onClose, steps, sidebarOpen, onS
         top = targetRect.top + targetRect.height + gap;
         left = targetRect.left + targetRect.width / 2;
         transform = "translateX(-50%)";
-        if (left + tooltipW / 2 > viewW - 16) { left = viewW - tooltipW - 16; transform = ""; }
-        if (left - tooltipW / 2 < 16) { left = 16; transform = ""; }
-        if (top + tooltipH > viewH - 16) { top = targetRect.top - gap - tooltipH; }
+        if (left + cardW / 2 > viewW - 16) { left = viewW - cardW - 16; transform = ""; }
+        if (left - cardW / 2 < 16) { left = 16; transform = ""; }
+        if (top + cardH > viewH - 16) { top = targetRect.top - gap - cardH; }
         break;
       case "top":
-        top = targetRect.top - gap - tooltipH;
+        top = targetRect.top - gap - cardH;
         left = targetRect.left + targetRect.width / 2;
         transform = "translateX(-50%)";
-        if (left + tooltipW / 2 > viewW - 16) { left = viewW - tooltipW - 16; transform = ""; }
-        if (left - tooltipW / 2 < 16) { left = 16; transform = ""; }
+        if (left + cardW / 2 > viewW - 16) { left = viewW - cardW - 16; transform = ""; }
+        if (left - cardW / 2 < 16) { left = 16; transform = ""; }
         if (top < 16) { top = targetRect.top + targetRect.height + gap; }
         break;
       case "right":
-        top = targetRect.top + targetRect.height / 2 - tooltipH / 2;
+        top = targetRect.top + targetRect.height / 2 - cardH / 2;
         left = targetRect.left + targetRect.width + gap;
-        transform = "";
-        if (left + tooltipW > viewW - 16) { left = targetRect.left - gap - tooltipW; }
-        if (left < 16) { left = 16; }
+        if (left + cardW > viewW - 16) { left = targetRect.left - gap - cardW; }
+        if (left < 16) left = 16;
         if (top < 16) top = 16;
-        if (top + tooltipH > viewH - 16) top = viewH - tooltipH - 16;
+        if (top + cardH > viewH - 16) top = viewH - cardH - 16;
         break;
       case "left":
-        top = targetRect.top + targetRect.height / 2 - tooltipH / 2;
-        left = targetRect.left - gap - tooltipW;
-        transform = "";
+        top = targetRect.top + targetRect.height / 2 - cardH / 2;
+        left = targetRect.left - gap - cardW;
         if (left < 16) { left = targetRect.left + targetRect.width + gap; }
-        if (left + tooltipW > viewW - 16) { left = viewW - tooltipW - 16; }
+        if (left + cardW > viewW - 16) left = viewW - cardW - 16;
         if (top < 16) top = 16;
-        if (top + tooltipH > viewH - 16) top = viewH - tooltipH - 16;
+        if (top + cardH > viewH - 16) top = viewH - cardH - 16;
         break;
       default:
-        top = viewH / 2 - tooltipH / 2;
-        left = viewW / 2 - tooltipW / 2;
-        transform = "";
+        top = viewH / 2 - cardH / 2;
+        left = viewW / 2 - cardW / 2;
     }
 
     return { top: `${top}px`, left: `${left}px`, transform };
   };
 
-  if (!open) return null;
-
   return (
-    <div ref={overlayRef} className="fixed inset-0 z-[99999]">
+    <div className="fixed inset-0 z-[99999]">
       {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        className="absolute inset-0 bg-black/60"
+        className="absolute inset-0 bg-black/50"
         onClick={onClose}
       />
 
-      {/* Spotlight hole */}
+      {/* Spotlight */}
       {hasTarget && targetRect && (
         <motion.div
-          key={`spotlight-${currentStep}`}
+          key={`spot-${currentStep}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
@@ -298,18 +518,18 @@ export default function TutorialOverlay({ open, onClose, steps, sidebarOpen, onS
             left: targetRect.left,
             width: targetRect.width,
             height: targetRect.height,
-            boxShadow: "0 0 0 4000px rgba(0,0,0,0.6), 0 0 20px 4px rgba(212,175,55,0.3)",
+            boxShadow: "0 0 0 4000px rgba(0,0,0,0.55), 0 0 20px 4px rgba(212,175,55,0.3)",
             zIndex: 1,
           }}
         />
       )}
 
-      {/* Pulsing glow ring on target */}
+      {/* Glow ring */}
       {hasTarget && targetRect && (
         <motion.div
           key={`glow-${currentStep}`}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: [0.4, 0.8, 0.4], scale: [0.98, 1.01, 0.98] }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0.4, 0.8, 0.4] }}
           transition={{ duration: 2, repeat: Infinity }}
           className="absolute rounded-xl pointer-events-none border-2 border-[#D4AF37]"
           style={{
@@ -332,26 +552,33 @@ export default function TutorialOverlay({ open, onClose, steps, sidebarOpen, onS
         />
       </div>
 
-      {/* Tooltip */}
+      {/* Floating card */}
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep}
-          initial={{ opacity: 0, y: 8, scale: 0.97 }}
+          initial={{ opacity: 0, y: 8, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -8, scale: 0.97 }}
-          transition={{ duration: 0.25, ease: "easeOut" }}
-          className="absolute z-10 sm:w-[340px]"
-          style={getTooltipPosition()}
+          exit={{ opacity: 0, y: -8, scale: 0.96 }}
+          transition={{ duration: 0.2 }}
+          className="absolute z-10 w-[340px]"
+          style={getDesktopPosition()}
         >
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-            {/* Step indicator */}
+            {/* Header */}
             <div className="px-5 pt-4 pb-0 flex items-center justify-between">
-              <span className="text-[0.65rem] font-semibold text-gray-400 uppercase tracking-widest">
-                Step {currentStep + 1} of {totalSteps}
-              </span>
+              <div className="flex items-center gap-2">
+                {step.icon && (
+                  <div className="w-7 h-7 rounded-lg bg-maroon/10 flex items-center justify-center">
+                    <i className={`fas ${step.icon} text-maroon text-xs`} />
+                  </div>
+                )}
+                <span className="text-[0.65rem] font-semibold text-gray-400 uppercase tracking-widest">
+                  Step {currentStep + 1} of {totalSteps}
+                </span>
+              </div>
               <button
                 onClick={onClose}
-                className="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                className="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
               >
                 <i className="fas fa-times text-sm" />
               </button>
@@ -365,41 +592,39 @@ export default function TutorialOverlay({ open, onClose, steps, sidebarOpen, onS
 
             {/* Navigation */}
             <div className="px-5 pb-4 flex items-center justify-between">
-              <div>
-                {currentStep > 0 && (
-                  <button
-                    onClick={() => setCurrentStep((p) => p - 1)}
-                    className="px-4 py-2.5 text-xs font-semibold text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer min-h-[44px]"
-                  >
-                    <i className="fas fa-arrow-left mr-1.5" />
-                    Back
-                  </button>
-                )}
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalSteps }, (_, i) => (
+                  <div
+                    key={i}
+                    className={`h-1 rounded-full transition-all duration-300 ${
+                      i === currentStep ? "w-5 bg-maroon" : "w-1.5 bg-gray-200"
+                    }`}
+                  />
+                ))}
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2.5 text-xs font-semibold text-gray-400 hover:text-gray-600 rounded-lg transition-colors cursor-pointer min-h-[44px]"
+                  className="px-3 py-2 text-xs font-semibold text-gray-400 hover:text-gray-600 rounded-lg transition-colors cursor-pointer min-h-[44px] min-w-[44px]"
                 >
                   Skip
                 </button>
+                {currentStep > 0 && (
+                  <button
+                    onClick={goPrev}
+                    className="px-3 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer min-h-[44px]"
+                  >
+                    Back
+                  </button>
+                )}
                 <button
-                  onClick={() => {
-                    if (currentStep < totalSteps - 1) setCurrentStep((p) => p + 1);
-                    else onClose();
-                  }}
+                  onClick={goNext}
                   className="px-5 py-2.5 text-xs font-semibold text-white bg-gradient-to-r from-[#722F37] to-[#8B3A44] rounded-lg hover:from-[#5C2530] hover:to-[#722F37] transition-all shadow-md hover:shadow-lg cursor-pointer min-h-[44px]"
                 >
                   {currentStep < totalSteps - 1 ? (
-                    <>
-                      Next
-                      <i className="fas fa-arrow-right ml-1.5" />
-                    </>
+                    <>Next <i className="fas fa-arrow-right ml-1" /></>
                   ) : (
-                    <>
-                      Get Started
-                      <i className="fas fa-check ml-1.5" />
-                    </>
+                    <>Get Started <i className="fas fa-check ml-1" /></>
                   )}
                 </button>
               </div>
@@ -408,8 +633,8 @@ export default function TutorialOverlay({ open, onClose, steps, sidebarOpen, onS
         </motion.div>
       </AnimatePresence>
 
-      {/* Keyboard hint — hidden on mobile */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 hidden sm:flex items-center gap-3 text-white/40 text-[0.65rem]">
+      {/* Keyboard hints */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 text-white/40 text-[0.65rem]">
         <span className="flex items-center gap-1">
           <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[0.6rem]">←</kbd>
           <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[0.6rem]">→</kbd>
