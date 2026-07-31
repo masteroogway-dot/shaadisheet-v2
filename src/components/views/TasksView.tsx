@@ -14,7 +14,7 @@ const PRIORITY_COLORS: Record<string, { bg: string; text: string; dot: string }>
   Urgent: { bg: "bg-red-100", text: "text-red-700", dot: "bg-red-500" },
 };
 
-export default function TasksView({ wedding, weddingId, onToggle, canEdit = true }: { wedding: any; weddingId: string; onToggle: (id: string, done: boolean) => void; canEdit?: boolean }) {
+export default function TasksView({ wedding, weddingId, onToggle, onUpdate, onToast, canEdit = true }: { wedding: any; weddingId: string; onToggle: (id: string, done: boolean) => void; onUpdate?: () => void; onToast?: (msg: string, type?: "success" | "error") => void; canEdit?: boolean }) {
   const [tasks, setTasks] = useState<any[]>(wedding.tasks || []);
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [newTaskText, setNewTaskText] = useState("");
@@ -168,7 +168,7 @@ export default function TasksView({ wedding, weddingId, onToggle, canEdit = true
         </div>
       )}
 
-      <TaskSuggestions weddingId={weddingId} wedding={wedding} onUpdate={() => {}} onToast={(msg) => {}} />
+      <TaskSuggestions weddingId={weddingId} wedding={wedding} onUpdate={onUpdate || (() => {})} onToast={onToast || (() => {})} />
 
       {/* Summary bar */}
       {tasks.length > 0 && (

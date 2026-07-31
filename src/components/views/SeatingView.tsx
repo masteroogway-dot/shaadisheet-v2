@@ -111,9 +111,7 @@ export default function SeatingView({ wedding, weddingId, onUpdate, onToast, can
       currentGuests.push(guest.name);
       await updateSeatingTable(weddingId, targetTable.id, { guests: JSON.stringify(currentGuests) });
       assigned++;
-      let g: string[] = [];
-      try { g = JSON.parse(targetTable.guests || "[]"); } catch { g = []; }
-      if (g.length >= (targetTable.capacity || 8)) {
+      if (currentGuests.length >= (targetTable.capacity || 8)) {
         const idx = brideTables.indexOf(targetTable);
         if (idx > -1) brideTables.splice(idx, 1);
       }

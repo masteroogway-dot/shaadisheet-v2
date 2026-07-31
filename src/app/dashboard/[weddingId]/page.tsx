@@ -196,7 +196,7 @@ export default function WeddingDashboardPage() {
       case "vendors": return <VendorsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "guests": return <GuestsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "events": return <EventsView wedding={wedding} weddingId={weddingId} canEdit={canEdit} />;
-      case "tasks": return <TasksView wedding={wedding} weddingId={weddingId} onToggle={handleToggleTask} canEdit={canEdit} />;
+      case "tasks": return <TasksView wedding={wedding} weddingId={weddingId} onToggle={handleToggleTask} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "seating": return <SeatingView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "rooms": return <RoomAllocationView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "timeline": return <TimelineView wedding={wedding} weddingId={weddingId} canEdit={canEdit} />;

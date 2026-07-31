@@ -78,7 +78,7 @@ export default function Onboarding({ onComplete }: Props) {
   const [guestInput, setGuestInput] = useState("200");
   const [daysInput, setDaysInput] = useState("1");
 
-  const totalSteps = 8;
+  const totalSteps = 9;
   const progress = (step / totalSteps) * 100;
 
   const currency = COUNTRIES.find((c) => c.id === data.country)?.currency || "INR";
@@ -99,11 +99,12 @@ export default function Onboarding({ onComplete }: Props) {
       case 1: return !!data.country;
       case 2: return !!data.religion;
       case 3: return !!data.region;
-      case 4: return data.budget >= budgetRange.min;
-      case 5: return data.guestCount >= 10;
-      case 6: return data.weddingDays >= 1;
-      case 7: return data.selectedEvents.length > 0;
-      case 8: return true;
+      case 4: return !!data.weddingCity;
+      case 5: return data.budget >= budgetRange.min;
+      case 6: return data.guestCount >= 10;
+      case 7: return data.weddingDays >= 1;
+      case 8: return data.selectedEvents.length > 0;
+      case 9: return true;
       default: return false;
     }
   };
@@ -335,8 +336,29 @@ export default function Onboarding({ onComplete }: Props) {
             </div>
           )}
 
-          {/* STEP 4: Budget */}
+          {/* STEP 4: City */}
           {step === 4 && (
+            <div className="animate-[fadeInUp_0.4s_ease]">
+              <h2 className="text-xl md:text-3xl font-bold mb-2">Where is the wedding?</h2>
+              <p className="text-gray-500 mb-6 md:mb-8 text-sm md:text-base">Select your wedding city for vendor recommendations and local insights.</p>
+              <div className="max-w-[400px]">
+                <select value={data.weddingCity} onChange={(e) => setData({ ...data, weddingCity: e.target.value })}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-maroon transition-colors bg-white text-sm">
+                  <option value="">Select your city</option>
+                  {cities.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+                {data.weddingCity === "Other" && (
+                  <input type="text" placeholder="Type your city" value={data.customCity || ""} onChange={(e) => setData({ ...data, customCity: e.target.value })}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-maroon transition-colors mt-2 text-sm" />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* STEP 5: Budget */}
+          {step === 5 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-xl md:text-3xl font-bold mb-2">What&apos;s your wedding budget?</h2>
               <p className="text-gray-500 mb-1 text-sm md:text-base">This helps us suggest realistic allocations.</p>
@@ -378,8 +400,8 @@ export default function Onboarding({ onComplete }: Props) {
             </div>
           )}
 
-          {/* STEP 5: Guest Count */}
-          {step === 5 && (
+          {/* STEP 6: Guest Count */}
+          {step === 6 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-xl md:text-3xl font-bold mb-2">How many guests are you expecting?</h2>
               <p className="text-gray-500 mb-1 text-sm md:text-base">This affects your catering budget and venue selection.</p>
@@ -419,8 +441,8 @@ export default function Onboarding({ onComplete }: Props) {
             </div>
           )}
 
-          {/* STEP 6: Wedding Days */}
-          {step === 6 && (
+          {/* STEP 7: Wedding Days */}
+          {step === 7 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-xl md:text-3xl font-bold mb-2">How many days will the main wedding span?</h2>
               <p className="text-gray-500 mb-6 md:mb-8 text-sm md:text-base">This helps us plan the timeline. Many South Asian weddings span multiple days.</p>
@@ -463,8 +485,8 @@ export default function Onboarding({ onComplete }: Props) {
             </div>
           )}
 
-          {/* STEP 7: Events */}
-          {step === 7 && (
+          {/* STEP 8: Events */}
+          {step === 8 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-xl md:text-3xl font-bold mb-2">Which events are you planning?</h2>
               <p className="text-gray-500 mb-1 text-sm md:text-base">Select all that apply. We&apos;ll create a timeline for each.</p>
@@ -493,10 +515,10 @@ export default function Onboarding({ onComplete }: Props) {
             </div>
           )}
 
-          {/* STEP 8: Date, City, Name */}
-          {step === 8 && (
+          {/* STEP 9: Date, Name */}
+          {step === 9 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
-              <h2 className="text-xl md:text-3xl font-bold mb-2">Almost done! When and where?</h2>
+              <h2 className="text-xl md:text-3xl font-bold mb-2">Almost done! When and who?</h2>
               <p className="text-gray-500 mb-6 md:mb-8 text-sm md:text-base">We&apos;ll set up reminders based on your wedding date. You can always change this later.</p>
               <div className="max-w-[400px] space-y-4 md:space-y-5">
                 <div>
@@ -504,23 +526,9 @@ export default function Onboarding({ onComplete }: Props) {
                   <DatePicker value={data.weddingDate} min={new Date().toISOString().split("T")[0]} onChange={(val) => setData({ ...data, weddingDate: val })} />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Wedding City</label>
-                  <select value={data.weddingCity} onChange={(e) => setData({ ...data, weddingCity: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-maroon transition-colors bg-white">
-                    <option value="">Select your city</option>
-                    {cities.map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                  {data.weddingCity === "Other" && (
-                    <input type="text" placeholder="Type your city" value={data.customCity || ""} onChange={(e) => setData({ ...data, customCity: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-maroon transition-colors mt-2" />
-                  )}
-                </div>
-                <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Your Name</label>
                   <input type="text" placeholder="e.g., Priya Sharma" value={data.userName} onChange={(e) => setData({ ...data, userName: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-maroon transition-colors" />
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-maroon transition-colors text-sm" />
                 </div>
               </div>
             </div>

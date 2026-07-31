@@ -154,9 +154,10 @@ export default function TutorialOverlay({ open, onClose, steps }: TutorialOverla
     if (!targetRect) {
       return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
     }
-    const pos = step?.position || "bottom";
+    const isMobile = window.innerWidth < 640;
+    const pos = isMobile ? "bottom" : (step?.position || "bottom");
     const gap = 16;
-    const tooltipW = 340;
+    const tooltipW = Math.min(340, window.innerWidth - 32);
     const tooltipH = 180;
     const viewW = window.innerWidth;
     const viewH = window.innerHeight;
@@ -276,7 +277,7 @@ export default function TutorialOverlay({ open, onClose, steps }: TutorialOverla
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -8, scale: 0.97 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
-          className="absolute z-10 w-[340px] max-w-[calc(100vw-2rem)]"
+          className="absolute z-10 w-full max-w-[340px]"
           style={getTooltipPosition()}
         >
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">

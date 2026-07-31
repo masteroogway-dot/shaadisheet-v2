@@ -647,7 +647,7 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20, scale: 0.95 }}
                   transition={{ duration: 0.25, delay: i * 0.02 }}
-                  className={`bg-white rounded-xl border p-3.5 hover:shadow-md transition-all flex items-center gap-3 group ${h.favorite ? "border-rose-300 shadow-sm" : "border-gray-200"}`}
+                  className={`bg-white rounded-xl border p-3.5 hover:shadow-md transition-all flex flex-wrap items-center gap-2 sm:gap-3 group ${h.favorite ? "border-rose-300 shadow-sm" : "border-gray-200"}`}
                 >
                   {canEdit && (
                     <input type="checkbox" checked={selected.has(h.id)} onChange={() => setSelected((p) => { const n = new Set(p); n.has(h.id) ? n.delete(h.id) : n.add(h.id); return n; })} className="w-4 h-4 rounded border-gray-300 accent-rose-500" />
@@ -662,11 +662,11 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
                   <div className={`px-3 py-1 rounded-lg text-xs font-bold ${cfg.bg} ${cfg.text} shrink-0`}>
                     {cfg.emoji} {h.style}
                   </div>
-                  <span className="flex-1 font-mono text-sm font-semibold text-gray-800 truncate">{h.text}</span>
+                  <span className="flex-1 font-mono text-sm font-semibold text-gray-800 break-all">{h.text}</span>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${h.language === "Hindi" ? "bg-orange-50 text-orange-600 border-orange-200" : h.language === "Bilingual" ? "bg-purple-50 text-purple-600 border-purple-200" : "bg-blue-50 text-blue-600 border-blue-200"}`}>
                     {h.language}
                   </span>
-                  <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
+                  <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0 w-full sm:w-auto justify-end">
                     <motion.button
                       onClick={() => handleCopy(h.text, h.id)}
                       whileTap={{ scale: 0.9 }}

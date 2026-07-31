@@ -50,6 +50,7 @@ const SUGGESTIONS_BY_MONTH: Record<string, { text: string; category: string; pri
 
 export default function TaskSuggestions({ weddingId, wedding, onUpdate, onToast }: { weddingId: string; wedding: any; onUpdate: () => void; onToast: (msg: string, type?: "success" | "error") => void }) {
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const [added, setAdded] = useState<Set<string>>(new Set());
 
   const suggestions = useMemo(() => {
     if (!wedding.weddingDate) return [];
@@ -66,12 +67,13 @@ export default function TaskSuggestions({ weddingId, wedding, onUpdate, onToast 
 
     const existingTasks = new Set((wedding.tasks || []).map((t: any) => t.text?.toLowerCase()));
     const periodSuggestions = SUGGESTIONS_BY_MONTH[period] || [];
-    return periodSuggestions.filter((s) => !existingTasks.has(s.text.toLowerCase()) && !dismissed.has(s.text));
-  }, [wedding, dismissed]);
+    return periodSuggestions.filter((s) => !existingTasks.has(s.text.toLowerCase()) && !dismissed.has(s.text) && !added.has(s.text));
+  }, [wedding, dismissed, added]);
 
   const handleAddSuggestion = async (suggestion: { text: string; category: string; priority: string }) => {
     try {
       await createTask(weddingId, { period: "1-3 Months", text: suggestion.text, priority: suggestion.priority, category: suggestion.category });
+      setAdded((prev) => new Set([...prev, suggestion.text]));
       onUpdate();
       onToast(`Added: ${suggestion.text}`, "success");
     } catch {
