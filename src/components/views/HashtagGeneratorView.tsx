@@ -647,36 +647,42 @@ export default function HashtagGeneratorView({ wedding, weddingId, onUpdate, onT
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20, scale: 0.95 }}
                   transition={{ duration: 0.25, delay: i * 0.02 }}
-                  className={`bg-white rounded-xl border p-3.5 hover:shadow-md transition-all flex items-center gap-2 sm:gap-3 group ${h.favorite ? "border-rose-300 shadow-sm" : "border-gray-200"}`}
+                  className={`bg-white rounded-xl border p-3.5 hover:shadow-md transition-all group ${h.favorite ? "border-rose-300 shadow-sm" : "border-gray-200"}`}
                 >
-                  {canEdit && (
-                    <input type="checkbox" checked={selected.has(h.id)} onChange={() => setSelected((p) => { const n = new Set(p); n.has(h.id) ? n.delete(h.id) : n.add(h.id); return n; })} className="w-4 h-4 rounded border-gray-300 accent-rose-500" />
-                  )}
-                  <motion.button
-                    onClick={(e) => canEdit && handleToggleFavorite(h.id, h.favorite, e)}
-                    whileTap={{ scale: 1.4 }}
-                    className="text-lg shrink-0 cursor-pointer"
-                  >
-                    {h.favorite ? "❤️" : "🤍"}
-                  </motion.button>
-                  <div className={`hidden sm:block px-3 py-1 rounded-lg text-xs font-bold ${cfg.bg} ${cfg.text} shrink-0`}>
-                    {cfg.emoji} {h.style}
-                  </div>
-                  <span className="font-mono text-sm font-semibold text-gray-800 truncate min-w-0 flex-1">{h.text}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border shrink-0 ${h.language === "Hindi" ? "bg-orange-50 text-orange-600 border-orange-200" : h.language === "Bilingual" ? "bg-purple-50 text-purple-600 border-purple-200" : "bg-blue-50 text-blue-600 border-blue-200"}`}>
-                    {h.language}
-                  </span>
-                  <div className="flex gap-1 shrink-0">
-                    <motion.button
-                      onClick={() => handleCopy(h.text, h.id)}
-                      whileTap={{ scale: 0.9 }}
-                      className="px-3 py-2 text-xs text-gray-600 hover:bg-gray-100 rounded-md font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
-                    >
-                      {copiedId === h.id ? "✓" : "Copy"}
-                    </motion.button>
+                  {/* Row 1: checkbox, heart, hashtag text */}
+                  <div className="flex items-center gap-2 mb-2">
                     {canEdit && (
-                      <button onClick={() => handleDelete(h.id)} className="px-3 py-2 text-xs text-red-500 hover:bg-red-50 rounded-md font-medium min-h-[44px] min-w-[44px] flex items-center justify-center">Delete</button>
+                      <input type="checkbox" checked={selected.has(h.id)} onChange={() => setSelected((p) => { const n = new Set(p); n.has(h.id) ? n.delete(h.id) : n.add(h.id); return n; })} className="w-4 h-4 rounded border-gray-300 accent-rose-500 shrink-0" />
                     )}
+                    <motion.button
+                      onClick={(e) => canEdit && handleToggleFavorite(h.id, h.favorite, e)}
+                      whileTap={{ scale: 1.4 }}
+                      className="text-lg shrink-0 cursor-pointer"
+                    >
+                      {h.favorite ? "❤️" : "🤍"}
+                    </motion.button>
+                    <span className="font-mono text-sm font-semibold text-gray-800">{h.text}</span>
+                  </div>
+                  {/* Row 2: style badge, language, copy, delete */}
+                  <div className="flex items-center gap-2 ml-8 sm:ml-10">
+                    <div className={`hidden sm:inline-block px-2.5 py-0.5 rounded-lg text-[0.65rem] font-bold ${cfg.bg} ${cfg.text} shrink-0`}>
+                      {cfg.emoji} {h.style}
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border shrink-0 ${h.language === "Hindi" ? "bg-orange-50 text-orange-600 border-orange-200" : h.language === "Bilingual" ? "bg-purple-50 text-purple-600 border-purple-200" : "bg-blue-50 text-blue-600 border-blue-200"}`}>
+                      {h.language}
+                    </span>
+                    <div className="flex gap-1 ml-auto shrink-0">
+                      <motion.button
+                        onClick={() => handleCopy(h.text, h.id)}
+                        whileTap={{ scale: 0.9 }}
+                        className="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-md font-medium min-h-[36px] flex items-center justify-center"
+                      >
+                        {copiedId === h.id ? "✓" : "Copy"}
+                      </motion.button>
+                      {canEdit && (
+                        <button onClick={() => handleDelete(h.id)} className="px-3 py-1.5 text-xs text-red-500 hover:bg-red-50 rounded-md font-medium min-h-[36px] flex items-center justify-center">Delete</button>
+                      )}
+                    </div>
                   </div>
                 </motion.div>
               );
