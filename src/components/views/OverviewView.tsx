@@ -35,6 +35,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
   const [editingCollab, setEditingCollab] = useState<string | null>(null);
   const [collabRole, setCollabRole] = useState("");
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
   let toastId = 0;
   const addToast = useCallback((message: string, type: "success" | "error") => {
@@ -341,28 +342,111 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
               {[
-                { label: "Total Budget", numVal: totalBudget, prefix: totalBudget > 0 ? getCurrencySymbol(wedding.currency) : "", suffix: "", formatFn: totalBudget > 0 ? (v: number) => formatCurrencyAbbrev(v, wedding.currency) : undefined, sub: totalSpent > 0 ? `${getCurrencySymbol(wedding.currency)}${formatCurrency(totalSpent, wedding.currency)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
-                { label: "Guests", numVal: totalGuests, prefix: "", suffix: "", formatFn: undefined, sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : floating > 0 ? `${floating} local/floating` : "No RSVPs yet", icon: "fa-users", gradient: "from-green to-green/80" },
-                { label: "Vendors", numVal: vendorsBooked, prefix: "", suffix: totalVendors > 0 ? ` / ${totalVendors}` : "", formatFn: undefined, sub: totalVendors > 0 ? `${totalVendors - vendorsBooked} remaining` : "No vendors added", icon: "fa-store", gradient: "from-blue to-blue/80" },
-                { label: "Tasks", numVal: tasksDone, prefix: "", suffix: totalTasks > 0 ? ` / ${totalTasks}` : "", formatFn: undefined, sub: totalTasks > 0 ? `${totalTasks - tasksDone} remaining` : "No tasks yet", icon: "fa-tasks", gradient: "from-orange-600 to-red-700" },
-                { label: "Rooms", numVal: totalRooms, prefix: "", suffix: "", formatFn: undefined, sub: roomsOccupied > 0 ? `${roomsOccupied} checked in` : needsRoom > 0 ? `${needsRoom} guests need rooms` : totalRooms > 0 ? "None checked in" : "No rooms allocated", icon: "fa-bed", gradient: "from-purple-600 to-purple-800" },
-                { label: "Gifts", numVal: totalGiftAmount, prefix: totalGiftAmount > 0 ? getCurrencySymbol(wedding.currency) : "", suffix: "", formatFn: totalGiftAmount > 0 ? (v: number) => formatCurrencyAbbrev(v, wedding.currency) : undefined, sub: totalGifts > 0 ? `${totalGifts} gifts${pendingThankYous > 0 ? ` \u2022 ${pendingThankYous} pending thank-yous` : ""}` : "No gifts tracked", icon: "fa-gift", gradient: "from-pink-500 to-rose-600" },
-              ].map((s, i) => (
-                <div key={i} className="bg-white rounded-xl p-5 md:p-6 border border-gray-200 flex items-center gap-4 hover:shadow-lg transition-all duration-300 hover:border-gray-300 group">
-                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${s.gradient} flex items-center justify-center text-white shrink-0 shadow-sm group-hover:scale-105 transition-transform`}>
-                    <i className={`fas ${s.icon} text-lg`} />
+                { id: "budget", label: "Total Budget", numVal: totalBudget, prefix: totalBudget > 0 ? getCurrencySymbol(wedding.currency) : "", suffix: "", formatFn: totalBudget > 0 ? (v: number) => formatCurrencyAbbrev(v, wedding.currency) : undefined, sub: totalSpent > 0 ? `${getCurrencySymbol(wedding.currency)}${formatCurrency(totalSpent, wedding.currency)} spent (${Math.round(totalSpent / totalBudget * 100)}%)` : "No spending yet", icon: "fa-rupee-sign", gradient: "from-maroon to-maroon-light" },
+                { id: "guests", label: "Guests", numVal: totalGuests, prefix: "", suffix: "", formatFn: undefined, sub: rsvpYes > 0 ? `${rsvpYes} RSVP'd (${Math.round(rsvpYes / totalGuests * 100)}%)` : floating > 0 ? `${floating} local/floating` : "No RSVPs yet", icon: "fa-users", gradient: "from-green to-green/80" },
+                { id: "vendors", label: "Vendors", numVal: vendorsBooked, prefix: "", suffix: totalVendors > 0 ? ` / ${totalVendors}` : "", formatFn: undefined, sub: totalVendors > 0 ? `${totalVendors - vendorsBooked} remaining` : "No vendors added", icon: "fa-store", gradient: "from-blue to-blue/80" },
+                { id: "tasks", label: "Tasks", numVal: tasksDone, prefix: "", suffix: totalTasks > 0 ? ` / ${totalTasks}` : "", formatFn: undefined, sub: totalTasks > 0 ? `${totalTasks - tasksDone} remaining` : "No tasks yet", icon: "fa-tasks", gradient: "from-orange-600 to-red-700" },
+                { id: "rooms", label: "Rooms", numVal: totalRooms, prefix: "", suffix: "", formatFn: undefined, sub: roomsOccupied > 0 ? `${roomsOccupied} checked in` : needsRoom > 0 ? `${needsRoom} guests need rooms` : totalRooms > 0 ? "None checked in" : "No rooms allocated", icon: "fa-bed", gradient: "from-purple-600 to-purple-800" },
+                { id: "gifts", label: "Gifts", numVal: totalGiftAmount, prefix: totalGiftAmount > 0 ? getCurrencySymbol(wedding.currency) : "", suffix: "", formatFn: totalGiftAmount > 0 ? (v: number) => formatCurrencyAbbrev(v, wedding.currency) : undefined, sub: totalGifts > 0 ? `${totalGifts} gifts${pendingThankYous > 0 ? ` \u2022 ${pendingThankYous} pending thank-yous` : ""}` : "No gifts tracked", icon: "fa-gift", gradient: "from-pink-500 to-rose-600" },
+              ].map((s) => {
+                const isExpanded = expandedCard === s.id;
+                return (
+                <div key={s.id} className="bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-300 hover:border-gray-300 group overflow-hidden">
+                  <div
+                    className="p-5 md:p-6 flex items-center gap-4 cursor-pointer"
+                    onClick={() => setExpandedCard(isExpanded ? null : s.id)}
+                  >
+                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${s.gradient} flex items-center justify-center text-white shrink-0 shadow-sm group-hover:scale-105 transition-transform`}>
+                      <i className={`fas ${s.icon} text-lg`} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[0.7rem] text-gray-400 font-semibold uppercase tracking-wider">{s.label}</span>
+                      <div className="text-2xl font-extrabold text-gray-900 mt-0.5">
+                        {s.numVal === 0 && s.label !== "Total Budget" ? "\u2014" : (
+                          <CountUp target={s.numVal} prefix={s.prefix} suffix={s.suffix} formatValue={s.formatFn} duration={1.5} />
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500 block mt-1 leading-relaxed">{s.sub}</span>
+                    </div>
+                    <i className={`fas fa-chevron-${isExpanded ? "up" : "down"} text-gray-300 text-xs shrink-0 transition-transform`} />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[0.7rem] text-gray-400 font-semibold uppercase tracking-wider">{s.label}</span>
-                    <div className="text-2xl font-extrabold text-gray-900 mt-0.5">
-                      {s.numVal === 0 && s.label !== "Total Budget" ? "\u2014" : (
-                        <CountUp target={s.numVal} prefix={s.prefix} suffix={s.suffix} formatValue={s.formatFn} duration={1.5} />
+                  {isExpanded && (
+                    <div className="px-5 pb-5 pt-0 border-t border-gray-100">
+                      {s.id === "budget" && (
+                        <div className="space-y-3 pt-4">
+                          {wedding.budgetItems?.length > 0 ? (() => {
+                            const categoryMap = new Map<string, { spent: number; budget: number }>();
+                            for (const item of wedding.budgetItems) {
+                              const cat = item.category || "Uncategorized";
+                              const existing = categoryMap.get(cat) || { spent: 0, budget: 0 };
+                              existing.spent += item.paid || 0;
+                              existing.budget += item.estimated || 0;
+                              categoryMap.set(cat, existing);
+                            }
+                            const colors = ["bg-maroon", "bg-gold", "bg-green", "bg-blue", "bg-purple-600", "bg-orange-600"];
+                            return Array.from(categoryMap.entries()).slice(0, 6).map(([cat, data], i) => (
+                              <div key={cat}>
+                                <div className="flex justify-between text-xs mb-1">
+                                  <span className="font-medium truncate">{cat}</span>
+                                  <span className="text-gray-500">{getCurrencySymbol(wedding.currency)}{formatCurrency(data.spent, wedding.currency)} / {formatCurrency(data.budget, wedding.currency)}</span>
+                                </div>
+                                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                  <div className={`h-full ${colors[i % colors.length]} rounded-full`} style={{ width: `${data.budget > 0 ? Math.min((data.spent / data.budget) * 100, 100) : 0}%` }} />
+                                </div>
+                              </div>
+                            ));
+                          })() : <p className="text-xs text-gray-400 pt-3 text-center">No budget items yet</p>}
+                        </div>
+                      )}
+                      {s.id === "guests" && (
+                        <div className="grid grid-cols-3 gap-3 pt-4">
+                          <div className="text-center p-2 bg-green-50 rounded-lg"><div className="text-lg font-bold text-green-700">{wedding.guests?.filter((g: any) => g.rsvp === "Yes").length || 0}</div><div className="text-[0.65rem] text-green-600">Attending</div></div>
+                          <div className="text-center p-2 bg-amber-50 rounded-lg"><div className="text-lg font-bold text-amber-700">{wedding.guests?.filter((g: any) => g.rsvp === "Pending" || !g.rsvp).length || 0}</div><div className="text-[0.65rem] text-amber-600">Pending</div></div>
+                          <div className="text-center p-2 bg-red-50 rounded-lg"><div className="text-lg font-bold text-red-700">{wedding.guests?.filter((g: any) => g.rsvp === "No").length || 0}</div><div className="text-[0.65rem] text-red-600">Declined</div></div>
+                        </div>
+                      )}
+                      {s.id === "vendors" && (
+                        <div className="space-y-2 pt-4">
+                          {wedding.vendors?.slice(0, 5).map((v: any) => (
+                            <div key={v.id} className="flex items-center justify-between text-xs">
+                              <span className="truncate">{v.name || v.category}</span>
+                              <span className={`px-2 py-0.5 rounded-full font-medium shrink-0 ${v.contract === "Signed" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>{v.contract === "Signed" ? "Booked" : "Pending"}</span>
+                            </div>
+                          )) || <p className="text-xs text-gray-400 pt-3 text-center">No vendors yet</p>}
+                        </div>
+                      )}
+                      {s.id === "tasks" && (
+                        <div className="space-y-2 pt-4">
+                          <div className="flex items-center gap-2 text-xs">
+                            <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-green rounded-full" style={{ width: `${totalTasks > 0 ? (tasksDone / totalTasks) * 100 : 0}%` }} /></div>
+                            <span className="font-medium text-gray-500">{totalTasks > 0 ? Math.round((tasksDone / totalTasks) * 100) : 0}%</span>
+                          </div>
+                          {wedding.tasks?.filter((t: any) => !t.done).slice(0, 4).map((t: any) => (
+                            <div key={t.id} className="flex items-center gap-2 text-xs text-gray-600">
+                              <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                              <span className="truncate">{t.text}</span>
+                            </div>
+                          ))}
+                          {totalTasks === 0 && <p className="text-xs text-gray-400 text-center">No tasks yet</p>}
+                        </div>
+                      )}
+                      {s.id === "rooms" && (
+                        <div className="grid grid-cols-2 gap-3 pt-4">
+                          <div className="text-center p-2 bg-purple-50 rounded-lg"><div className="text-lg font-bold text-purple-700">{roomsOccupied}</div><div className="text-[0.65rem] text-purple-600">Checked In</div></div>
+                          <div className="text-center p-2 bg-blue-50 rounded-lg"><div className="text-lg font-bold text-blue-700">{needsRoom}</div><div className="text-[0.65rem] text-blue-600">Need Rooms</div></div>
+                        </div>
+                      )}
+                      {s.id === "gifts" && (
+                        <div className="grid grid-cols-2 gap-3 pt-4">
+                          <div className="text-center p-2 bg-pink-50 rounded-lg"><div className="text-lg font-bold text-pink-700">{getCurrencySymbol(wedding.currency)}{formatCurrency(totalGiftAmount, wedding.currency)}</div><div className="text-[0.65rem] text-pink-600">Total Gifts</div></div>
+                          <div className="text-center p-2 bg-amber-50 rounded-lg"><div className="text-lg font-bold text-amber-700">{pendingThankYous}</div><div className="text-[0.65rem] text-amber-600">Pending Thank-Yous</div></div>
+                        </div>
                       )}
                     </div>
-                    <span className="text-xs text-gray-500 block mt-1 leading-relaxed">{s.sub}</span>
-                  </div>
+                  )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

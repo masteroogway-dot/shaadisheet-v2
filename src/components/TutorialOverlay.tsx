@@ -151,16 +151,20 @@ export default function TutorialOverlay({ open, onClose, steps }: TutorialOverla
   }, [open]);
 
   const getTooltipPosition = () => {
-    if (!targetRect) {
-      return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
-    }
-    const isMobile = window.innerWidth < 640;
-    const pos = isMobile ? "bottom" : (step?.position || "bottom");
-    const gap = 16;
-    const tooltipW = Math.min(340, window.innerWidth - 32);
-    const tooltipH = 180;
     const viewW = window.innerWidth;
     const viewH = window.innerHeight;
+    const isMobile = viewW < 640;
+    const gap = 12;
+
+    if (isMobile || !targetRect) {
+      // Mobile: always center the tooltip on screen
+      return { top: `${Math.max(20, viewH * 0.15)}px`, left: "16px", right: "16px", transform: "" };
+    }
+
+    // Desktop: position relative to target
+    const pos = step?.position || "bottom";
+    const tooltipW = 340;
+    const tooltipH = 200;
 
     let top: number;
     let left: number;
@@ -172,7 +176,7 @@ export default function TutorialOverlay({ open, onClose, steps }: TutorialOverla
         left = targetRect.left + targetRect.width / 2;
         transform = "translateX(-50%)";
         if (left + tooltipW / 2 > viewW - 16) { left = viewW - tooltipW - 16; transform = ""; }
-        if (left - tooltipW / 2 < 16) { left = tooltipW + 16; transform = ""; }
+        if (left - tooltipW / 2 < 16) { left = 16; transform = ""; }
         if (top + tooltipH > viewH - 16) { top = targetRect.top - gap - tooltipH; }
         break;
       case "top":
@@ -180,7 +184,7 @@ export default function TutorialOverlay({ open, onClose, steps }: TutorialOverla
         left = targetRect.left + targetRect.width / 2;
         transform = "translateX(-50%)";
         if (left + tooltipW / 2 > viewW - 16) { left = viewW - tooltipW - 16; transform = ""; }
-        if (left - tooltipW / 2 < 16) { left = tooltipW + 16; transform = ""; }
+        if (left - tooltipW / 2 < 16) { left = 16; transform = ""; }
         if (top < 16) { top = targetRect.top + targetRect.height + gap; }
         break;
       case "right":
@@ -188,6 +192,7 @@ export default function TutorialOverlay({ open, onClose, steps }: TutorialOverla
         left = targetRect.left + targetRect.width + gap;
         transform = "";
         if (left + tooltipW > viewW - 16) { left = targetRect.left - gap - tooltipW; }
+        if (left < 16) { left = 16; }
         if (top < 16) top = 16;
         if (top + tooltipH > viewH - 16) top = viewH - tooltipH - 16;
         break;
@@ -196,6 +201,7 @@ export default function TutorialOverlay({ open, onClose, steps }: TutorialOverla
         left = targetRect.left - gap - tooltipW;
         transform = "";
         if (left < 16) { left = targetRect.left + targetRect.width + gap; }
+        if (left + tooltipW > viewW - 16) { left = viewW - tooltipW - 16; }
         if (top < 16) top = 16;
         if (top + tooltipH > viewH - 16) top = viewH - tooltipH - 16;
         break;
@@ -277,7 +283,7 @@ export default function TutorialOverlay({ open, onClose, steps }: TutorialOverla
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -8, scale: 0.97 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
-          className="absolute z-10 w-full max-w-[340px]"
+          className="absolute z-10 sm:w-[340px]"
           style={getTooltipPosition()}
         >
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
