@@ -108,23 +108,33 @@ export default function TutorialOverlay({ open, onClose, steps, sidebarOpen, onS
     }
     const el = document.querySelector(step.target);
     if (el) {
-      const rect = el.getBoundingClientRect();
-      setTargetRect({
-        top: rect.top - 8,
-        left: rect.left - 8,
-        width: rect.width + 16,
-        height: rect.height + 16,
+      // Scroll target into view
+      el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+      // Use requestAnimationFrame to get rect after scroll settles
+      requestAnimationFrame(() => {
+        const rect = el.getBoundingClientRect();
+        setTargetRect({
+          top: rect.top - 8,
+          left: rect.left - 8,
+          width: rect.width + 16,
+          height: rect.height + 16,
+        });
       });
     } else {
       setTargetRect(null);
     }
   }, [step?.target]);
 
+  // Reset target immediately when step changes so old highlight disappears
+  useEffect(() => {
+    setTargetRect(null);
+  }, [currentStep]);
+
   useEffect(() => {
     if (!open) return;
     const isMobile = window.innerWidth < 640;
     // On mobile, delay target finding to let sidebar animation finish
-    const delay = isMobile && step?.target ? 300 : 0;
+    const delay = isMobile && step?.target ? 400 : 50;
     const timer = setTimeout(() => findTarget(), delay);
     const onResize = () => findTarget();
     window.addEventListener("resize", onResize);
@@ -132,7 +142,7 @@ export default function TutorialOverlay({ open, onClose, steps, sidebarOpen, onS
     return () => {
       clearTimeout(timer);
       window.removeEventListener("resize", onResize);
-      window.removeEventListener("scroll", onResize, true);
+      window.removeEventListener("scroll", onResize);
     };
   }, [open, findTarget]);
 
@@ -156,12 +166,17 @@ export default function TutorialOverlay({ open, onClose, steps, sidebarOpen, onS
     if (open) setCurrentStep(0);
   }, [open]);
 
-  // Auto-open sidebar on mobile when a step has a target
+  // Auto-open sidebar on mobile only for sidebar targets; close for non-sidebar targets
   useEffect(() => {
     if (!open) return;
     const isMobile = window.innerWidth < 640;
-    if (isMobile && step?.target && onSidebarOpen) {
+    if (!isMobile || !onSidebarOpen) return;
+    const target = step?.target || "";
+    const isSidebarTarget = target.includes("tutorial=") && !target.includes("overview") && !target.includes("website") && !target.includes("ai");
+    if (isSidebarTarget) {
       onSidebarOpen(true);
+    } else {
+      onSidebarOpen(false);
     }
   }, [open, step?.target, onSidebarOpen]);
 
@@ -188,13 +203,19 @@ export default function TutorialOverlay({ open, onClose, steps, sidebarOpen, onS
     }
 
     if (isMobile) {
-      // Mobile with target: scroll target into view, position tooltip below it
-      const targetEl = step?.target ? document.querySelector(step.target) : null;
-      if (targetEl) {
-        targetEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      // Mobile with target: position tooltip below the target, or above if no space
+      const tooltipH = 180;
+      const gap = 12;
+      let top = targetRect.top + targetRect.height + gap;
+      // If tooltip would go off-screen bottom, put it above
+      if (top + tooltipH > viewH - 16) {
+        top = targetRect.top - gap - tooltipH;
       }
-      // Position tooltip at bottom of viewport
-      return { top: "auto", bottom: "16px", left: "16px", right: "16px", transform: "" };
+      // Clamp to screen
+      if (top < 16) top = 16;
+      // Center horizontally, clamp to screen
+      let left = Math.max(16, Math.min(targetRect.left, viewW - 340 - 16));
+      return { top: `${top}px`, left: `${left}px`, width: "308px", transform: "" };
     }
 
     // Desktop: position relative to target

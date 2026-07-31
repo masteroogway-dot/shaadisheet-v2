@@ -451,6 +451,7 @@ export default function Sidebar({ activeView, onViewChange, mobileOpen, onMobile
               <div key={section.id} className="mb-1">
                 <button
                   onClick={() => toggleSection(section.id)}
+                  data-tutorial={section.id === "checklists" ? "checklists" : undefined}
                   className={`w-full flex items-center gap-2 px-4 py-2 text-[0.65rem] font-bold uppercase tracking-wider transition-colors cursor-pointer ${
                     isActive ? "text-maroon" : "text-gray-400 hover:text-gray-600"
                   }`}
