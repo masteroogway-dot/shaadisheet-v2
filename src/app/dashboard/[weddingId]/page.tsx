@@ -276,7 +276,7 @@ export default function WeddingDashboardPage() {
       </div>
 
       <AiPanel open={aiOpen} onClose={() => setAiOpen(false)} wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} />
-      <TutorialOverlay open={showTutorial} onClose={handleTutorialClose} steps={TUTORIAL_STEPS} />
+      <TutorialOverlay open={showTutorial} onClose={handleTutorialClose} steps={TUTORIAL_STEPS} sidebarOpen={sidebarOpen} onSidebarOpen={setSidebarOpen} />
     </div>
   );
 }

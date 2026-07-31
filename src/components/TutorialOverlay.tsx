@@ -14,6 +14,8 @@ interface TutorialOverlayProps {
   open: boolean;
   onClose: () => void;
   steps: TutorialStep[];
+  sidebarOpen?: boolean;
+  onSidebarOpen?: (open: boolean) => void;
 }
 
 interface TargetRect {
@@ -90,7 +92,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
   },
 ];
 
-export default function TutorialOverlay({ open, onClose, steps }: TutorialOverlayProps) {
+export default function TutorialOverlay({ open, onClose, steps, sidebarOpen, onSidebarOpen }: TutorialOverlayProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState<TargetRect | null>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -120,11 +122,15 @@ export default function TutorialOverlay({ open, onClose, steps }: TutorialOverla
 
   useEffect(() => {
     if (!open) return;
-    findTarget();
+    const isMobile = window.innerWidth < 640;
+    // On mobile, delay target finding to let sidebar animation finish
+    const delay = isMobile && step?.target ? 300 : 0;
+    const timer = setTimeout(() => findTarget(), delay);
     const onResize = () => findTarget();
     window.addEventListener("resize", onResize);
     window.addEventListener("scroll", onResize, true);
     return () => {
+      clearTimeout(timer);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("scroll", onResize, true);
     };
@@ -149,6 +155,23 @@ export default function TutorialOverlay({ open, onClose, steps }: TutorialOverla
   useEffect(() => {
     if (open) setCurrentStep(0);
   }, [open]);
+
+  // Auto-open sidebar on mobile when a step has a target
+  useEffect(() => {
+    if (!open) return;
+    const isMobile = window.innerWidth < 640;
+    if (isMobile && step?.target && onSidebarOpen) {
+      onSidebarOpen(true);
+    }
+  }, [open, step?.target, onSidebarOpen]);
+
+  // Close sidebar when tutorial closes
+  useEffect(() => {
+    if (!open && onSidebarOpen) {
+      const isMobile = window.innerWidth < 640;
+      if (isMobile) onSidebarOpen(false);
+    }
+  }, [open, onSidebarOpen]);
 
   const getTooltipPosition = () => {
     const viewW = window.innerWidth;
