@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-type DemoTab = "overview" | "budget" | "vendors" | "guests" | "events" | "tasks" | "hashtags";
+type DemoTab = "overview" | "budget" | "vendors" | "guests" | "events" | "tasks" | "hashtags" | "sangeet" | "colors";
 
 type SidebarItem = { id: string; icon: string; label: string };
 
@@ -29,6 +29,7 @@ const SIDEBAR_SECTIONS: { title: string; icon: string; items: SidebarItem[] }[] 
       { id: "timeline", icon: "fa-clock", label: "Timeline" },
       { id: "gifts", icon: "fa-gift", label: "Gift Tracker" },
       { id: "outfits", icon: "fa-shirt", label: "Outfit Planner" },
+      { id: "colors" as DemoTab, icon: "fa-palette", label: "Color Coordinator" },
       { id: "invites", icon: "fa-envelope-open-text", label: "Invites" },
     ],
   },
@@ -46,6 +47,7 @@ const SIDEBAR_SECTIONS: { title: string; icon: string; items: SidebarItem[] }[] 
     icon: "fa-wand-magic-sparkles",
     items: [
       { id: "hashtags" as DemoTab, icon: "fa-hashtag", label: "Hashtag Generator" },
+      { id: "sangeet" as DemoTab, icon: "fa-music", label: "Sangeet Planner" },
     ],
   },
 ];
@@ -104,6 +106,31 @@ const HASHTAGS = [
   "#PriyaKiShaadi", "#RahulWedsPriya", "#SharmaVerma2026", "#WeddingBells",
   "#SweeterThanJalebi", "#MehendiNight", "#ShaadiKaSeason", "#DilSeShaadi",
   "#HaldiVibes", "#BaraatTime", "#PherasAndPrayers", "#VidaaiFeels",
+];
+
+const SANGEET_SONGS = [
+  { title: "London Thumakda", artist: "Labh Janjua", duration: "4:35", type: "Group", performers: ["Priya", "Meera", "Neha"], confirmed: 3 },
+  { title: "Nagada Sang Dhol", artist: "Shreya Ghoshal", duration: "5:02", type: "Solo", performers: ["Priya"], confirmed: 1 },
+  { title: "Mere Brother Ki Dulhan", artist: "Pritam", duration: "4:28", type: "Duet", performers: ["Rahul", "Vikram"], confirmed: 2 },
+  { title: "Kar Gayi Chull", artist: "Badshah", duration: "3:30", type: "Group", performers: ["Meera", "Neha", "Amit"], confirmed: 2 },
+  { title: "Dil Dhadakne Do", artist: "Shankar-Ehsaan-Loy", duration: "4:50", type: "Duet", performers: ["Priya", "Rahul"], confirmed: 2 },
+  { title: "Badtameez Dil", artist: "Benny Dayal", duration: "3:52", type: "Solo", performers: ["Rahul"], confirmed: 1 },
+];
+
+const COLOR_THEMES = [
+  { event: "Mehendi", primary: "#228B22", secondary: "#90EE90", accent: "#FFD700", mood: "Traditional" },
+  { event: "Haldi", primary: "#FFD700", secondary: "#FFA500", accent: "#FFF8DC", mood: "Vibrant" },
+  { event: "Wedding", primary: "#DC143C", secondary: "#FF6347", accent: "#FFD700", mood: "Traditional" },
+  { event: "Reception", primary: "#4B0082", secondary: "#9370DB", accent: "#C0C0C0", mood: "Elegant" },
+];
+
+const OUTFIT_COLORS = [
+  { person: "Priya", event: "Mehendi", desc: "Green Anarkali suit", colors: ["#228B22", "#FFD700"], match: 92 },
+  { person: "Rahul", event: "Mehendi", desc: "Green kurta with gold", colors: ["#228B22", "#FFD700"], match: 88 },
+  { person: "Priya", event: "Wedding", desc: "Red Banarasi lehenga", colors: ["#DC143C", "#FFD700"], match: 98 },
+  { person: "Rahul", event: "Wedding", desc: "Red and gold sherwani", colors: ["#DC143C", "#FFD700"], match: 96 },
+  { person: "Priya", event: "Reception", desc: "Purple silk saree", colors: ["#4B0082", "#C0C0C0"], match: 94 },
+  { person: "Rahul", event: "Reception", desc: "Navy blue suit", colors: ["#191970", "#C0C0C0"], match: 91 },
 ];
 
 function formatINR(n: number) {
@@ -205,7 +232,7 @@ export default function InteractiveDemo() {
                           </div>
                           <div className="mt-0.5">
                             {section.items.map((item) => {
-                              const isLocked = !["overview", "budget", "vendors", "guests", "events", "tasks", "hashtags"].includes(item.id);
+                              const isLocked = !["overview", "budget", "vendors", "guests", "events", "tasks", "hashtags", "sangeet", "colors"].includes(item.id);
                               return (
                                 <button
                                   key={item.id}
@@ -488,6 +515,119 @@ export default function InteractiveDemo() {
                           {HASHTAGS.map((tag, i) => (
                             <div key={i} className="bg-gradient-to-br from-maroon/5 to-amber-50 border border-maroon/10 rounded-xl p-3 text-center hover:border-maroon/30 transition-colors cursor-pointer">
                               <span className="text-sm font-bold text-maroon">{tag}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {activeTab === "sangeet" && (
+                      <motion.div key="sangeet" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                        <div className="flex items-center justify-between mb-6">
+                          <div>
+                            <h2 className="font-bold text-gray-900 text-lg">Sangeet Planner</h2>
+                            <p className="text-xs text-gray-500 mt-0.5">Plan performances, track rehearsals</p>
+                          </div>
+                          <button className="px-3 py-1.5 text-xs font-semibold text-white bg-maroon rounded-lg cursor-pointer">+ Add Song</button>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                          {[
+                            { label: "Songs", value: SANGEET_SONGS.length, icon: "fa-music", color: "bg-purple-100 text-purple-600" },
+                            { label: "Performers", value: SANGEET_SONGS.reduce((a, s) => a + s.performers.length, 0), icon: "fa-microphone", color: "bg-blue-100 text-blue-600" },
+                            { label: "Confirmed", value: SANGEET_SONGS.reduce((a, s) => a + s.confirmed, 0), icon: "fa-check-circle", color: "bg-green-100 text-green-600" },
+                            { label: "Duration", value: "26:37", icon: "fa-clock", color: "bg-amber-100 text-amber-600" },
+                          ].map((s, i) => (
+                            <div key={i} className="bg-white rounded-xl border border-gray-200 p-3">
+                              <div className={`w-8 h-8 rounded-lg ${s.color} flex items-center justify-center mb-2`}>
+                                <i className={`fas ${s.icon} text-xs`} />
+                              </div>
+                              <div className="text-lg font-bold text-gray-900">{s.value}</div>
+                              <div className="text-[0.65rem] text-gray-500">{s.label}</div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="space-y-3">
+                          {SANGEET_SONGS.map((song, i) => (
+                            <div key={i} className="bg-white rounded-xl border border-gray-200 p-4">
+                              <div className="flex items-center justify-between mb-2">
+                                <div>
+                                  <span className="font-bold text-gray-900 text-sm">{song.title}</span>
+                                  <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full ml-2">{song.type}</span>
+                                  <span className="text-xs text-gray-400 ml-2">{song.duration}</span>
+                                </div>
+                                <span className="text-xs text-gray-500">{song.artist}</span>
+                              </div>
+                              <div className="flex flex-wrap gap-1.5">
+                                {song.performers.map((p, j) => (
+                                  <span key={j} className="flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[0.65rem] font-medium">
+                                    {p} <i className="fas fa-check-circle" />
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {activeTab === "colors" && (
+                      <motion.div key="colors" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                        <div className="flex items-center justify-between mb-6">
+                          <div>
+                            <h2 className="font-bold text-gray-900 text-lg">Color Coordinator</h2>
+                            <p className="text-xs text-gray-500 mt-0.5">Coordinate themes across all events</p>
+                          </div>
+                          <button className="px-3 py-1.5 text-xs font-semibold text-white bg-maroon rounded-lg cursor-pointer">+ Add Theme</button>
+                        </div>
+                        <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+                          <h3 className="text-sm font-bold text-gray-900 mb-3">Color Journey</h3>
+                          <div className="flex items-center gap-1 overflow-x-auto pb-2">
+                            {COLOR_THEMES.map((theme, i) => (
+                              <div key={i} className="flex items-center shrink-0">
+                                <div className="flex flex-col items-center gap-1">
+                                  <div className="flex gap-0.5">
+                                    <div className="w-6 h-6 rounded-full border border-gray-200" style={{ backgroundColor: theme.primary }} />
+                                    <div className="w-4 h-4 rounded-full border border-gray-200 mt-1" style={{ backgroundColor: theme.secondary }} />
+                                  </div>
+                                  <span className="text-[0.6rem] text-gray-500 font-medium">{theme.event}</span>
+                                </div>
+                                {i < COLOR_THEMES.length - 1 && <div className="w-6 h-0.5 bg-gray-200 mx-1" />}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                          {COLOR_THEMES.map((theme, i) => (
+                            <div key={i} className="bg-white rounded-xl border border-gray-200 p-4">
+                              <div className="flex items-center justify-between mb-3">
+                                <span className="font-bold text-gray-900 text-sm">{theme.event}</span>
+                                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{theme.mood}</span>
+                              </div>
+                              <div className="flex gap-2 mb-2">
+                                <div className="flex-1 h-10 rounded-lg border border-gray-200" style={{ backgroundColor: theme.primary }} />
+                                <div className="flex-1 h-10 rounded-lg border border-gray-200" style={{ backgroundColor: theme.secondary }} />
+                                <div className="flex-1 h-10 rounded-lg border border-gray-200" style={{ backgroundColor: theme.accent }} />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <h3 className="font-bold text-gray-900 text-sm mb-3">Outfit Colors</h3>
+                        <div className="space-y-2">
+                          {OUTFIT_COLORS.map((outfit, i) => (
+                            <div key={i} className="bg-white rounded-xl border border-gray-200 p-3 flex items-center justify-between">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-gray-900 text-sm">{outfit.person}</span>
+                                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{outfit.event}</span>
+                                  <span className={`text-xs px-2 py-0.5 rounded-full ${outfit.match >= 90 ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>{outfit.match}% match</span>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-0.5">{outfit.desc}</p>
+                              </div>
+                              <div className="flex gap-1">
+                                {outfit.colors.map((c, j) => (
+                                  <div key={j} className="w-5 h-5 rounded-full border border-gray-200" style={{ backgroundColor: c }} />
+                                ))}
+                              </div>
                             </div>
                           ))}
                         </div>
