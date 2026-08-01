@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || `${process.env.NEXTAUTH_URL}/api/auth/google/callback`;
+const GOOGLE_REDIRECT_URI = "https://www.shaadisheet.com/api/auth/google/callback";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
