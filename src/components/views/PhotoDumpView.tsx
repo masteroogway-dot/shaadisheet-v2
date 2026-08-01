@@ -103,25 +103,43 @@ export default function PhotoDumpView({ weddingId, canEdit, onToast }: Props) {
     setUploading(true);
     setUploadProgress(0);
 
-    const formData = new FormData();
-    formData.append("weddingId", weddingId);
-    for (let i = 0; i < files.length; i++) {
-      formData.append("files", files[i]);
-    }
+    const BATCH_SIZE = 5;
+    const totalBatches = Math.ceil(files.length / BATCH_SIZE);
+    let uploaded = 0;
+    let failed = 0;
 
     try {
-      const res = await fetch(`/api/weddings/${weddingId}/photos/upload`, {
-        method: "POST",
-        body: formData,
-      });
+      for (let batch = 0; batch < totalBatches; batch++) {
+        const start = batch * BATCH_SIZE;
+        const end = Math.min(start + BATCH_SIZE, files.length);
+        const formData = new FormData();
+        formData.append("weddingId", weddingId);
+        for (let i = start; i < end; i++) {
+          formData.append("files", files[i]);
+        }
 
-      if (res.ok) {
-        const result = await res.json();
-        onToast(`${result.photos.length} photos uploaded!`);
+        try {
+          const res = await fetch(`/api/weddings/${weddingId}/photos/upload`, {
+            method: "POST",
+            body: formData,
+          });
+          if (res.ok) {
+            const result = await res.json();
+            uploaded += result.photos.length;
+          } else {
+            failed += end - start;
+          }
+        } catch {
+          failed += end - start;
+        }
+        setUploadProgress(Math.round(((batch + 1) / totalBatches) * 100));
+      }
+
+      if (uploaded > 0) {
+        onToast(`${uploaded} photos uploaded!${failed ? ` ${failed} failed.` : ""}`);
         await loadPhotos();
       } else {
-        const err = await res.json();
-        onToast(err.error || "Upload failed", "error");
+        onToast("Upload failed", "error");
       }
     } catch (err) {
       onToast("Upload failed", "error");
