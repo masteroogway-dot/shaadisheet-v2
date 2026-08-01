@@ -257,10 +257,8 @@ export default function Onboarding({ onComplete }: Props) {
 
   // Get cities for selected country, filtered by region if available
   const allCountryCities = CITIES_BY_COUNTRY[data.country] || [];
-  const regionCities = data.region ? CITIES_BY_REGION[data.region] : null;
-  const cities = regionCities
-    ? [...new Set([...regionCities, ...allCountryCities].filter((c) => c !== "Other"))].concat(["Other"])
-    : allCountryCities;
+  const regionCities = CITIES_BY_REGION[data.region];
+  const cities = regionCities || allCountryCities;
 
   return (
     <div className="min-h-screen bg-cream flex flex-col relative">
