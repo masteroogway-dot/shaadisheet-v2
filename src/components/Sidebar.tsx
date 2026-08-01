@@ -373,6 +373,7 @@ function getSections(wedding: any): SidebarSection[] {
       icon: "fa-wand-magic-sparkles",
       items: [
         { id: "hashtags", icon: "fa-hashtag", label: "Hashtag Generator" },
+        { id: "photos", icon: "fa-images", label: "Photo Dump" },
       ],
     },
   ];

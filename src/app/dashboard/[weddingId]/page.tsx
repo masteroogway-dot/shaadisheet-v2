@@ -21,6 +21,7 @@ import OutfitPlannerView from "@/components/views/OutfitPlannerView";
 import InviteDetailsView from "@/components/views/InviteDetailsView";
 import CulturalChecklistsView from "@/components/views/CulturalChecklistsView";
 import HashtagGeneratorView from "@/components/views/HashtagGeneratorView";
+import PhotoDumpView from "@/components/views/PhotoDumpView";
 import AiPanel from "@/components/AiPanel";
 import ProfileMenu from "@/components/ProfileMenu";
 import ToastContainer, { Toast } from "@/components/Toast";
@@ -240,6 +241,7 @@ export default function WeddingDashboardPage() {
       case "outfits": return <OutfitPlannerView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "invites": return <InviteDetailsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "hashtags": return <HashtagGeneratorView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
+      case "photos": return <PhotoDumpView weddingId={weddingId} wedding={wedding} canEdit={canEdit} onToast={addToast} />;
       default:
         // Handle dynamic checklist views
         const checklistTab = CHECKLIST_VIEW_MAP[activeView];
