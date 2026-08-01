@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
-import { getWedding, getWeddingWithRole, updateWedding, updateTask, seedWeddingEvents, getUserPlan } from "@/lib/actions";
+import { getWedding, getWeddingWithRole, updateWedding, updateTask, seedWeddingEvents } from "@/lib/actions";
 import Onboarding from "@/components/Onboarding";
 import Sidebar from "@/components/Sidebar";
 import OverviewView from "@/components/views/OverviewView";
@@ -21,7 +21,6 @@ import OutfitPlannerView from "@/components/views/OutfitPlannerView";
 import InviteDetailsView from "@/components/views/InviteDetailsView";
 import CulturalChecklistsView from "@/components/views/CulturalChecklistsView";
 import HashtagGeneratorView from "@/components/views/HashtagGeneratorView";
-import PhotoDumpView from "@/components/views/PhotoDumpView";
 import AiPanel from "@/components/AiPanel";
 import ProfileMenu from "@/components/ProfileMenu";
 import ToastContainer, { Toast } from "@/components/Toast";
@@ -46,8 +45,6 @@ export default function WeddingDashboardPage() {
   const [userRole, setUserRole] = useState<string>("owner");
   const [showTutorial, setShowTutorial] = useState(false);
   const [activeTour, setActiveTour] = useState<TourDef | null>(null);
-  const [userPlan, setUserPlan] = useState<"free" | "pro">("free");
-
   const addToast = useCallback((message: string, type: "success" | "error" = "success", options?: { undoAction?: () => void }) => {
     const id = ++toastId;
     setToasts((prev) => [...prev, { id, message, type, undoAction: options?.undoAction }]);
@@ -83,7 +80,6 @@ export default function WeddingDashboardPage() {
     if (status === "unauthenticated") router.push("/auth");
     if (status === "authenticated") {
       loadWedding();
-      getUserPlan().then(setUserPlan);
     }
   }, [status, router, loadWedding]);
 
@@ -245,27 +241,7 @@ export default function WeddingDashboardPage() {
       case "outfits": return <OutfitPlannerView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "invites": return <InviteDetailsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "hashtags": return <HashtagGeneratorView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
-      case "photos":
-        if (userPlan === "free") {
-          return (
-            <div className="flex flex-col items-center justify-center py-20 px-4">
-              <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center mb-6">
-                <i className="fas fa-lock text-purple-500 text-3xl" />
-              </div>
-              <h2 className="text-2xl font-extrabold text-gray-900 mb-2">Premium Feature</h2>
-              <p className="text-gray-500 text-sm md:text-base mb-8 max-w-md text-center">
-                Photo Dump lets your photographer upload all wedding photos, auto-detect faces, and let guests search by name. Subscribe to unlock this feature.
-              </p>
-              <a
-                href="/subscriptions"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-maroon text-white text-sm font-semibold rounded-xl hover:bg-maroon-dark transition-colors"
-              >
-                <i className="fas fa-crown text-xs" /> View Plans
-              </a>
-            </div>
-          );
-        }
-        return <PhotoDumpView weddingId={weddingId} wedding={wedding} canEdit={canEdit} onToast={addToast} />;
+
       default:
         // Handle dynamic checklist views
         const checklistTab = CHECKLIST_VIEW_MAP[activeView];
@@ -329,7 +305,7 @@ export default function WeddingDashboardPage() {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar activeView={activeView} onViewChange={handleViewChange} mobileOpen={sidebarOpen} onMobileClose={() => setSidebarOpen(false)} wedding={wedding} userPlan={userPlan} />
+        <Sidebar activeView={activeView} onViewChange={handleViewChange} mobileOpen={sidebarOpen} onMobileClose={() => setSidebarOpen(false)} wedding={wedding} />
         <main className="flex-1 overflow-y-auto p-4 md:p-8" key={activeView}>
           <div className="animate-[fadeIn_0.2s_ease-out]">
             {renderView()}

@@ -119,8 +119,6 @@ model Wedding {
   inviteDetails   InviteDetail[]
   checklistItems  ChecklistItem[]
   hashtags        Hashtag[]
-  photoDump       PhotoDump?
-  faceClusters    FaceCluster[]
   user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   collaborators   WeddingCollaborator[]
   events          WeddingEvent[]
@@ -357,59 +355,4 @@ model WeddingTemplate {
   updatedAt      DateTime @updatedAt
 }
 
-model PhotoDump {
-  id            String   @id @default(cuid())
-  weddingId     String   @unique
-  shareToken    String   @unique @default("")
-  title         String   @default("Wedding Photos")
-  description   String   @default("")
-  coverUrl      String   @default("")
-  isPublished   Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  wedding       Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
-  photos        Photo[]
-}
 
-model Photo {
-  id            String   @id @default(cuid())
-  photoDumpId   String
-  url           String
-  thumbnailUrl  String   @default("")
-  publicId      String   @default("")
-  filename      String   @default("")
-  width         Int      @default(0)
-  height        Int      @default(0)
-  size          Int      @default(0)
-  mime          String   @default("image/jpeg")
-  favorite      Boolean  @default(false)
-  tags          String   @default("[]")
-  uploadedBy    String   @default("")
-  order         Int      @default(0)
-  facesProcessed Boolean @default(false)
-  createdAt     DateTime @default(now())
-  photoDump     PhotoDump @relation(fields: [photoDumpId], references: [id], onDelete: Cascade)
-  faceEmbeddings FaceEmbedding[]
-}
-
-model FaceEmbedding {
-  id            String   @id @default(cuid())
-  photoId       String
-  x             Float
-  y             Float
-  w             Float
-  h             Float
-  embedding     String   @default("[]")
-  label         String   @default("")
-  clusterId     String   @default("")
-  createdAt     DateTime @default(now())
-  photo         Photo    @relation(fields: [photoId], references: [id], onDelete: Cascade)
-}
-
-model FaceCluster {
-  id            String   @id @default(cuid())
-  weddingId     String
-  label         String   @default("")
-  createdAt     DateTime @default(now())
-  wedding       Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
-}
