@@ -8,7 +8,6 @@ interface Photo {
   url: string;
   thumbnailUrl: string;
   filename: string;
-  source?: string;
   width: number;
   height: number;
   size: number;
@@ -63,18 +62,7 @@ export default function PhotoDumpView({ weddingId, canEdit, onToast }: Props) {
   const [showFaceLabeler, setShowFaceLabeler] = useState(false);
   const [loadingClusters, setLoadingClusters] = useState(false);
   const [clusterLabels, setClusterLabels] = useState<Record<string, string>>({});
-  const [googleConnected, setGoogleConnected] = useState(false);
-  const [googleImporting, setGoogleImporting] = useState(false);
-  const [googlePickerSession, setGooglePickerSession] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const getPhotoUrl = (photo: Photo, size: "thumb" | "full" = "thumb") => {
-    if (photo.source === "google") {
-      const params = size === "thumb" ? "w400-h300-c" : "w1920-h1080-c";
-      return `/api/weddings/${weddingId}/photos/proxy?photoId=${photo.id}&size=${size}`;
-    }
-    return size === "thumb" ? (photo.thumbnailUrl || photo.url) : photo.url;
-  };
 
   const loadPhotos = useCallback(async () => {
     try {
@@ -89,84 +77,6 @@ export default function PhotoDumpView({ weddingId, canEdit, onToast }: Props) {
       console.error("Failed to load photos:", err);
     }
   }, [weddingId]);
-
-  const checkGoogleConnection = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/weddings/${weddingId}/photos/google-picker`);
-      if (res.ok) {
-        const text = await res.text();
-        try {
-          const data = JSON.parse(text);
-          setGoogleConnected(data.connected);
-        } catch {}
-      }
-    } catch {}
-  }, [weddingId]);
-
-  const handleGooglePicker = async () => {
-    if (!googleConnected) {
-      window.location.href = "/api/auth/google";
-      return;
-    }
-
-    setGoogleImporting(true);
-    try {
-      const createRes = await fetch(`/api/weddings/${weddingId}/photos/google-picker`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "create" }),
-      });
-
-      if (!createRes.ok) {
-        const err = await createRes.json();
-        onToast(err.error || "Failed to open Google Photos", "error");
-        setGoogleImporting(false);
-        return;
-      }
-
-      const { sessionId, pickerUri } = await createRes.json();
-      setGooglePickerSession(sessionId);
-
-      const width = 600;
-      const height = 700;
-      const left = window.screenX + (window.outerWidth - width) / 2;
-      const top = window.screenY + (window.outerHeight - height) / 2;
-      window.open(pickerUri, "google-picker", `width=${width},height=${height},left=${left},top=${top}`);
-    } catch {
-      onToast("Failed to open Google Photos picker", "error");
-    }
-    setGoogleImporting(false);
-  };
-
-  const handleGoogleImport = async () => {
-    if (!googlePickerSession) return;
-
-    setGoogleImporting(true);
-    try {
-      const res = await fetch(`/api/weddings/${weddingId}/photos/google-picker`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "import", sessionId: googlePickerSession }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        onToast(`${data.count} photos imported from Google Photos!`);
-        setGooglePickerSession(null);
-        await loadPhotos();
-      } else {
-        const err = await res.json();
-        onToast(err.error || "Import failed", "error");
-      }
-    } catch {
-      onToast("Import failed", "error");
-    }
-    setGoogleImporting(false);
-  };
-
-  useEffect(() => {
-    checkGoogleConnection();
-  }, [checkGoogleConnection]);
 
   useEffect(() => {
     let cancelled = false;
@@ -517,34 +427,11 @@ export default function PhotoDumpView({ weddingId, canEdit, onToast }: Props) {
         </div>
         <div className="flex items-center gap-2">
           {canEdit && (
-            <>
-              <button
-                onClick={handleGooglePicker}
-                disabled={googleImporting}
-                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 cursor-pointer"
-              >
-                {googleImporting ? (
-                  <span className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                    Importing...
-                  </span>
-                ) : googlePickerSession ? (
-                  <span className="flex items-center gap-2">
-                    <i className="fas fa-check text-green-500" />
-                    Import Selected
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <i className="fab fa-google text-blue-500" />
-                    Google Photos
-                  </span>
-                )}
-              </button>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="px-4 py-2 bg-maroon text-white rounded-lg font-medium hover:bg-maroon-light transition-colors disabled:opacity-50 cursor-pointer"
-              >
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="px-4 py-2 bg-maroon text-white rounded-lg font-medium hover:bg-maroon-light transition-colors disabled:opacity-50 cursor-pointer"
+            >
               {uploading ? (
                 <span className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -557,7 +444,6 @@ export default function PhotoDumpView({ weddingId, canEdit, onToast }: Props) {
                 </span>
               )}
             </button>
-            </>
           )}
         </div>
       </div>
@@ -778,7 +664,7 @@ export default function PhotoDumpView({ weddingId, canEdit, onToast }: Props) {
                 onClick={() => setPreviewPhoto(photo)}
               >
                 <img
-                  src={getPhotoUrl(photo, "thumb")}
+                  src={photo.thumbnailUrl || photo.url}
                   alt={photo.filename}
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -1017,7 +903,7 @@ export default function PhotoDumpView({ weddingId, canEdit, onToast }: Props) {
               onDoubleClick={() => setPreviewPhoto(photo)}
             >
               <img
-                src={getPhotoUrl(photo, "full")}
+                src={photo.url}
                 alt={photo.filename}
                 className="w-full h-full object-cover"
                 loading="lazy"
@@ -1108,7 +994,7 @@ export default function PhotoDumpView({ weddingId, canEdit, onToast }: Props) {
               </button>
 
               <img
-                src={getPhotoUrl(photo, "thumb")}
+                src={photo.thumbnailUrl || photo.url}
                 alt={photo.filename}
                 className="w-12 h-12 rounded-lg object-cover"
               />

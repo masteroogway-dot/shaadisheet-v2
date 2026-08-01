@@ -41,6 +41,9 @@ export async function uploadPhotos(weddingId: string, files: Array<{ buffer: str
   const session = await auth();
   if (!session?.user?.id) throw new Error("Not authenticated");
 
+  const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { plan: true } });
+  const isPro = user?.plan === "pro";
+
   const wedding = await prisma.wedding.findFirst({
     where: { id: weddingId, userId: session.user.id },
   });
@@ -54,6 +57,21 @@ export async function uploadPhotos(weddingId: string, files: Array<{ buffer: str
   }
 
   const existingCount = await prisma.photo.count({ where: { photoDumpId: photoDump.id } });
+  const existingSize = await prisma.photo.aggregate({ where: { photoDumpId: photoDump.id }, _sum: { size: true } });
+  const currentSizeMB = (existingSize._sum.size || 0) / (1024 * 1024);
+
+  if (!isPro) {
+    const PHOTO_LIMIT = 50;
+    const SIZE_LIMIT_MB = 500;
+    const newFilesSizeMB = files.reduce((acc, f) => acc + Buffer.from(f.buffer, "base64").length, 0) / (1024 * 1024);
+
+    if (existingCount >= PHOTO_LIMIT) {
+      throw new Error(`Free plan limited to ${PHOTO_LIMIT} photos. Upgrade to Pro for unlimited.`);
+    }
+    if (currentSizeMB + newFilesSizeMB > SIZE_LIMIT_MB) {
+      throw new Error(`Free plan limited to ${SIZE_LIMIT_MB}MB storage. You've used ${currentSizeMB.toFixed(1)}MB. Upgrade to Pro for unlimited.`);
+    }
+  }
   const folder = `shaadisheet/${weddingId}/photos`;
 
   const results = [];
