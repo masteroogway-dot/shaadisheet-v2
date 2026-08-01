@@ -119,6 +119,13 @@ model Wedding {
   inviteDetails   InviteDetail[]
   checklistItems  ChecklistItem[]
   hashtags        Hashtag[]
+  sangeetSongs    SangeetSong[]
+  sangeetPractices SangeetPractice[]
+  colorThemes     EventColorTheme[]
+  outfitColors    OutfitColor[]
+  familyMembers   FamilyMember[]
+  familyRelationships FamilyRelationship[]
+  seatingConflicts SeatingConflict[]
   user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   collaborators   WeddingCollaborator[]
   events          WeddingEvent[]
@@ -353,6 +360,119 @@ model WeddingTemplate {
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model SangeetSong {
+  id            String              @id @default(cuid())
+  weddingId     String
+  title         String              @default("")
+  artist        String              @default("")
+  duration      Int                 @default(0)
+  type          String              @default("Group")
+  event         String              @default("Sangeet")
+  notes         String              @default("")
+  order         Int                 @default(0)
+  createdAt     DateTime            @default(now())
+  wedding       Wedding             @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  performances  SangeetPerformance[]
+}
+
+model SangeetPerformance {
+  id            String      @id @default(cuid())
+  songId        String
+  personName    String      @default("")
+  role          String      @default("Performer")
+  confirmed     Boolean     @default(false)
+  notes         String      @default("")
+  order         Int         @default(0)
+  createdAt     DateTime    @default(now())
+  song          SangeetSong @relation(fields: [songId], references: [id], onDelete: Cascade)
+}
+
+model SangeetPractice {
+  id            String   @id @default(cuid())
+  weddingId     String
+  date          String   @default("")
+  time          String   @default("")
+  location      String   @default("")
+  notes         String   @default("")
+  attendees     String   @default("[]")
+  completed     Boolean  @default(false)
+  order         Int      @default(0)
+  createdAt     DateTime @default(now())
+  wedding       Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+}
+
+model EventColorTheme {
+  id             String   @id @default(cuid())
+  weddingId      String
+  eventName      String   @default("")
+  primaryColor   String   @default("#000000")
+  secondaryColor String   @default("")
+  accentColor    String   @default("")
+  mood           String   @default("")
+  notes          String   @default("")
+  createdAt      DateTime @default(now())
+  wedding        Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+}
+
+model OutfitColor {
+  id             String   @id @default(cuid())
+  weddingId      String
+  eventName      String   @default("")
+  person         String   @default("")
+  outfitDesc     String   @default("")
+  primaryColor   String   @default("")
+  secondaryColor String   @default("")
+  accentColor    String   @default("")
+  matchScore     Int      @default(0)
+  notes          String   @default("")
+  order          Int      @default(0)
+  createdAt      DateTime @default(now())
+  wedding        Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+}
+
+model FamilyMember {
+  id            String              @id @default(cuid())
+  weddingId     String
+  name          String              @default("")
+  side          String              @default("Bride")
+  relation      String              @default("")
+  age           Int                 @default(0)
+  sideDetail    String              @default("")
+  notes         String              @default("")
+  order         Int                 @default(0)
+  createdAt     DateTime            @default(now())
+  wedding       Wedding             @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  relationshipsA FamilyRelationship[] @relation("MemberA")
+  relationshipsB FamilyRelationship[] @relation("MemberB")
+}
+
+model FamilyRelationship {
+  id            String       @id @default(cuid())
+  weddingId     String
+  memberIdA     String
+  memberIdB     String
+  status        String       @default("Good")
+  notes         String       @default("")
+  conflictLevel Int          @default(0)
+  createdAt     DateTime     @default(now())
+  wedding       Wedding      @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  memberA       FamilyMember @relation("MemberA", fields: [memberIdA], references: [id], onDelete: Cascade)
+  memberB       FamilyMember @relation("MemberB", fields: [memberIdB], references: [id], onDelete: Cascade)
+}
+
+model SeatingConflict {
+  id            String   @id @default(cuid())
+  weddingId     String
+  guestName     String   @default("")
+  conflictWith  String   @default("")
+  severity      String   @default("Medium")
+  reason        String   @default("")
+  resolved      Boolean  @default(false)
+  notes         String   @default("")
+  createdAt     DateTime @default(now())
+  wedding       Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 }
 
 

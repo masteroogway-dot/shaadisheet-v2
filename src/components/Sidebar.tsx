@@ -358,6 +358,8 @@ function getSections(wedding: any): SidebarSection[] {
         { id: "timeline", icon: "fa-clock", label: "Timeline" },
         { id: "gifts", icon: "fa-gift", label: "Gift Tracker" },
         { id: "outfits", icon: "fa-shirt", label: "Outfit Planner" },
+        { id: "colors", icon: "fa-palette", label: "Color Coordinator" },
+        { id: "family", icon: "fa-people-roof", label: "Family Map" },
         { id: "invites", icon: "fa-envelope-open-text", label: "Invites" },
       ],
     },
@@ -373,6 +375,7 @@ function getSections(wedding: any): SidebarSection[] {
       icon: "fa-wand-magic-sparkles",
       items: [
         { id: "hashtags", icon: "fa-hashtag", label: "Hashtag Generator" },
+        { id: "sangeet", icon: "fa-music", label: "Sangeet Planner" },
       ],
     },
   ];

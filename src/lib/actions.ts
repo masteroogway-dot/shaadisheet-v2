@@ -66,6 +66,13 @@ async function getCurrentWedding(weddingId?: string) {
         inviteDetails: { orderBy: { order: "asc" } },
         checklistItems: { orderBy: { order: "asc" } },
         hashtags: { orderBy: { order: "asc" } },
+        sangeetSongs: { orderBy: { order: "asc" }, include: { performances: { orderBy: { order: "asc" } } } },
+        sangeetPractices: { orderBy: { order: "asc" } },
+        colorThemes: {},
+        outfitColors: { orderBy: { order: "asc" } },
+        familyMembers: { orderBy: { order: "asc" } },
+        familyRelationships: {},
+        seatingConflicts: {},
         collaborators: { where: { status: "accepted" }, include: { user: { select: { id: true, name: true, email: true, image: true } } } },
       },
     });
@@ -93,6 +100,13 @@ async function getCurrentWedding(weddingId?: string) {
             inviteDetails: { orderBy: { order: "asc" } },
             checklistItems: { orderBy: { order: "asc" } },
             hashtags: { orderBy: { order: "asc" } },
+            sangeetSongs: { orderBy: { order: "asc" }, include: { performances: { orderBy: { order: "asc" } } } },
+            sangeetPractices: { orderBy: { order: "asc" } },
+            colorThemes: {},
+            outfitColors: { orderBy: { order: "asc" } },
+            familyMembers: { orderBy: { order: "asc" } },
+            familyRelationships: {},
+            seatingConflicts: {},
             collaborators: { where: { status: "accepted" }, include: { user: { select: { id: true, name: true, email: true, image: true } } } },
           },
         });
@@ -119,6 +133,13 @@ async function getCurrentWedding(weddingId?: string) {
         inviteDetails: { orderBy: { order: "asc" } },
         checklistItems: { orderBy: { order: "asc" } },
         hashtags: { orderBy: { order: "asc" } },
+        sangeetSongs: { orderBy: { order: "asc" }, include: { performances: { orderBy: { order: "asc" } } } },
+        sangeetPractices: { orderBy: { order: "asc" } },
+        colorThemes: {},
+        outfitColors: { orderBy: { order: "asc" } },
+        familyMembers: { orderBy: { order: "asc" } },
+        familyRelationships: {},
+        seatingConflicts: {},
       },
     });
     if (!wedding) throw new Error("No wedding found");
@@ -2490,4 +2511,175 @@ export async function getWeddingTemplateBudgetRanges(weddingId: string) {
   } catch {
     return null;
   }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SANGEET CHOREOGRAPHY PLANNER
+// ═══════════════════════════════════════════════════════════════
+
+export async function createSangeetSong(weddingId: string, data: { title?: string; artist?: string; duration?: number; type?: string; event?: string; notes?: string }) {
+  const wedding = await getCurrentWedding(weddingId);
+  const maxOrder = Math.max(...wedding.sangeetSongs.map((s) => s.order), -1);
+  return prisma.sangeetSong.create({ data: { weddingId: wedding.id, ...data, order: maxOrder + 1 } });
+}
+
+export async function updateSangeetSong(weddingId: string, id: string, data: Record<string, any>) {
+  await getCurrentWedding(weddingId);
+  const song = await prisma.sangeetSong.findUnique({ where: { id } });
+  if (!song) throw new Error("Song not found");
+  return prisma.sangeetSong.update({ where: { id }, data });
+}
+
+export async function deleteSangeetSong(weddingId: string, id: string) {
+  await getCurrentWedding(weddingId);
+  return prisma.sangeetSong.delete({ where: { id } });
+}
+
+export async function bulkAddSangeetSongs(weddingId: string, count: number) {
+  const wedding = await getCurrentWedding(weddingId);
+  const maxOrder = Math.max(...wedding.sangeetSongs.map((s) => s.order), -1);
+  const songs = Array.from({ length: count }, (_, i) => ({
+    weddingId: wedding.id,
+    title: "",
+    artist: "",
+    duration: 0,
+    type: "Group",
+    event: "Sangeet",
+    notes: "",
+    order: maxOrder + 1 + i,
+  }));
+  return prisma.sangeetSong.createMany({ data: songs });
+}
+
+export async function createSangeetPerformance(songId: string, data: { personName?: string; role?: string; notes?: string }) {
+  const song = await prisma.sangeetSong.findUnique({ where: { id: songId }, include: { performances: true } });
+  if (!song) throw new Error("Song not found");
+  const maxOrder = Math.max(...song.performances.map((p) => p.order), -1);
+  return prisma.sangeetPerformance.create({ data: { songId, ...data, order: maxOrder + 1 } });
+}
+
+export async function updateSangeetPerformance(songId: string, id: string, data: Record<string, any>) {
+  const perf = await prisma.sangeetPerformance.findUnique({ where: { id } });
+  if (!perf || perf.songId !== songId) throw new Error("Unauthorized");
+  return prisma.sangeetPerformance.update({ where: { id }, data });
+}
+
+export async function deleteSangeetPerformance(songId: string, id: string) {
+  const perf = await prisma.sangeetPerformance.findUnique({ where: { id } });
+  if (!perf || perf.songId !== songId) throw new Error("Unauthorized");
+  return prisma.sangeetPerformance.delete({ where: { id } });
+}
+
+export async function createSangeetPractice(weddingId: string, data: { date?: string; time?: string; location?: string; notes?: string; attendees?: string }) {
+  const wedding = await getCurrentWedding(weddingId);
+  const maxOrder = Math.max(...wedding.sangeetPractices.map((p) => p.order), -1);
+  return prisma.sangeetPractice.create({ data: { weddingId: wedding.id, ...data, order: maxOrder + 1 } });
+}
+
+export async function updateSangeetPractice(weddingId: string, id: string, data: Record<string, any>) {
+  await getCurrentWedding(weddingId);
+  const practice = await prisma.sangeetPractice.findUnique({ where: { id } });
+  if (!practice) throw new Error("Practice not found");
+  return prisma.sangeetPractice.update({ where: { id }, data });
+}
+
+export async function deleteSangeetPractice(weddingId: string, id: string) {
+  await getCurrentWedding(weddingId);
+  return prisma.sangeetPractice.delete({ where: { id } });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MULTI-DAY COLOR COORDINATOR
+// ═══════════════════════════════════════════════════════════════
+
+export async function createEventColorTheme(weddingId: string, data: { eventName?: string; primaryColor?: string; secondaryColor?: string; accentColor?: string; mood?: string; notes?: string }) {
+  const wedding = await getCurrentWedding(weddingId);
+  return prisma.eventColorTheme.create({ data: { weddingId: wedding.id, ...data } });
+}
+
+export async function updateEventColorTheme(weddingId: string, id: string, data: Record<string, any>) {
+  await getCurrentWedding(weddingId);
+  const theme = await prisma.eventColorTheme.findUnique({ where: { id } });
+  if (!theme) throw new Error("Theme not found");
+  return prisma.eventColorTheme.update({ where: { id }, data });
+}
+
+export async function deleteEventColorTheme(weddingId: string, id: string) {
+  await getCurrentWedding(weddingId);
+  return prisma.eventColorTheme.delete({ where: { id } });
+}
+
+export async function createOutfitColor(weddingId: string, data: { eventName?: string; person?: string; outfitDesc?: string; primaryColor?: string; secondaryColor?: string; accentColor?: string; matchScore?: number; notes?: string }) {
+  const wedding = await getCurrentWedding(weddingId);
+  const maxOrder = Math.max(...wedding.outfitColors.map((o) => o.order), -1);
+  return prisma.outfitColor.create({ data: { weddingId: wedding.id, ...data, order: maxOrder + 1 } });
+}
+
+export async function updateOutfitColor(weddingId: string, id: string, data: Record<string, any>) {
+  await getCurrentWedding(weddingId);
+  const outfit = await prisma.outfitColor.findUnique({ where: { id } });
+  if (!outfit) throw new Error("Outfit not found");
+  return prisma.outfitColor.update({ where: { id }, data });
+}
+
+export async function deleteOutfitColor(weddingId: string, id: string) {
+  await getCurrentWedding(weddingId);
+  return prisma.outfitColor.delete({ where: { id } });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FAMILY POLITICS MAPPER
+// ═══════════════════════════════════════════════════════════════
+
+export async function createFamilyMember(weddingId: string, data: { name?: string; side?: string; relation?: string; age?: number; sideDetail?: string; notes?: string }) {
+  const wedding = await getCurrentWedding(weddingId);
+  const maxOrder = Math.max(...wedding.familyMembers.map((m) => m.order), -1);
+  return prisma.familyMember.create({ data: { weddingId: wedding.id, ...data, order: maxOrder + 1 } });
+}
+
+export async function updateFamilyMember(weddingId: string, id: string, data: Record<string, any>) {
+  await getCurrentWedding(weddingId);
+  const member = await prisma.familyMember.findUnique({ where: { id } });
+  if (!member) throw new Error("Member not found");
+  return prisma.familyMember.update({ where: { id }, data });
+}
+
+export async function deleteFamilyMember(weddingId: string, id: string) {
+  await getCurrentWedding(weddingId);
+  await prisma.familyRelationship.deleteMany({ where: { OR: [{ memberIdA: id }, { memberIdB: id }] } });
+  return prisma.familyMember.delete({ where: { id } });
+}
+
+export async function createFamilyRelationship(weddingId: string, data: { memberIdA: string; memberIdB: string; status?: string; notes?: string; conflictLevel?: number }) {
+  await getCurrentWedding(weddingId);
+  return prisma.familyRelationship.create({ data: { weddingId, ...data } });
+}
+
+export async function updateFamilyRelationship(weddingId: string, id: string, data: Record<string, any>) {
+  await getCurrentWedding(weddingId);
+  const rel = await prisma.familyRelationship.findUnique({ where: { id } });
+  if (!rel) throw new Error("Relationship not found");
+  return prisma.familyRelationship.update({ where: { id }, data });
+}
+
+export async function deleteFamilyRelationship(weddingId: string, id: string) {
+  await getCurrentWedding(weddingId);
+  return prisma.familyRelationship.delete({ where: { id } });
+}
+
+export async function createSeatingConflict(weddingId: string, data: { guestName?: string; conflictWith?: string; severity?: string; reason?: string; notes?: string }) {
+  await getCurrentWedding(weddingId);
+  return prisma.seatingConflict.create({ data: { weddingId, ...data } });
+}
+
+export async function updateSeatingConflict(weddingId: string, id: string, data: Record<string, any>) {
+  await getCurrentWedding(weddingId);
+  const conflict = await prisma.seatingConflict.findUnique({ where: { id } });
+  if (!conflict) throw new Error("Conflict not found");
+  return prisma.seatingConflict.update({ where: { id }, data });
+}
+
+export async function deleteSeatingConflict(weddingId: string, id: string) {
+  await getCurrentWedding(weddingId);
+  return prisma.seatingConflict.delete({ where: { id } });
 }

@@ -21,6 +21,9 @@ import OutfitPlannerView from "@/components/views/OutfitPlannerView";
 import InviteDetailsView from "@/components/views/InviteDetailsView";
 import CulturalChecklistsView from "@/components/views/CulturalChecklistsView";
 import HashtagGeneratorView from "@/components/views/HashtagGeneratorView";
+import SangeetView from "@/components/views/SangeetView";
+import ColorCoordinatorView from "@/components/views/ColorCoordinatorView";
+import FamilyPoliticsView from "@/components/views/FamilyPoliticsView";
 import AiPanel from "@/components/AiPanel";
 import ProfileMenu from "@/components/ProfileMenu";
 import ToastContainer, { Toast } from "@/components/Toast";
@@ -241,6 +244,9 @@ export default function WeddingDashboardPage() {
       case "outfits": return <OutfitPlannerView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "invites": return <InviteDetailsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
       case "hashtags": return <HashtagGeneratorView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
+      case "sangeet": return <SangeetView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
+      case "colors": return <ColorCoordinatorView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
+      case "family": return <FamilyPoliticsView wedding={wedding} weddingId={weddingId} onUpdate={loadWedding} onToast={addToast} canEdit={canEdit} />;
 
       default:
         // Handle dynamic checklist views
