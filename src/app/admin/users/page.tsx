@@ -7,6 +7,7 @@ interface User {
   name: string;
   email: string;
   role: string;
+  plan: string;
   createdAt: string;
   bannedAt: string | null;
   bannedReason: string | null;
@@ -66,6 +67,13 @@ export default function AdminUsers() {
     loadUsers();
   };
 
+  const handleTogglePlan = async (userId: string) => {
+    setActionLoading(userId);
+    await fetch(`/api/admin/users/${userId}/toggle-plan`, { method: "POST" });
+    setActionLoading(null);
+    loadUsers();
+  };
+
   if (loading) return <div className="flex items-center justify-center py-20"><i className="fas fa-spinner fa-spin text-2xl text-gray-400" /></div>;
 
   return (
@@ -108,6 +116,7 @@ export default function AdminUsers() {
                 <th className="text-left px-5 py-3 font-medium text-gray-500">Name</th>
                 <th className="text-left px-5 py-3 font-medium text-gray-500">Email</th>
                 <th className="text-left px-5 py-3 font-medium text-gray-500">Role</th>
+                <th className="text-left px-5 py-3 font-medium text-gray-500">Plan</th>
                 <th className="text-left px-5 py-3 font-medium text-gray-500">Weddings</th>
                 <th className="text-left px-5 py-3 font-medium text-gray-500">Joined</th>
                 <th className="text-right px-5 py-3 font-medium text-gray-500">Actions</th>
@@ -126,12 +135,28 @@ export default function AdminUsers() {
                       "bg-green-100 text-green-700"
                     }`}>{u.role}</span>
                   </td>
+                  <td className="px-5 py-3">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                      u.plan === "pro" ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500"
+                    }`}>{u.plan}</span>
+                  </td>
                   <td className="px-5 py-3 text-gray-500">{u._count.weddings}</td>
                   <td className="px-5 py-3 text-gray-500">{new Date(u.createdAt).toLocaleDateString("en-IN")}</td>
                   <td className="px-5 py-3">
                     <div className="flex items-center justify-end gap-2">
                       {u.role !== "admin" && (
                         <>
+                          <button
+                            onClick={() => handleTogglePlan(u.id)}
+                            disabled={actionLoading === u.id}
+                            className={`px-2.5 py-1 rounded text-xs font-medium cursor-pointer disabled:opacity-50 ${
+                              u.plan === "pro"
+                                ? "bg-amber-50 text-amber-700 hover:bg-amber-100"
+                                : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                            }`}
+                          >
+                            <i className="fas fa-crown mr-1" />{u.plan === "pro" ? "Downgrade" : "Upgrade"}
+                          </button>
                           {u.role === "banned" ? (
                             <button
                               onClick={() => handleUnban(u.id)}

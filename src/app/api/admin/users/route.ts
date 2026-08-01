@@ -15,6 +15,7 @@ export async function GET() {
       name: true,
       email: true,
       role: true,
+      plan: true,
       createdAt: true,
       bannedAt: true,
       bannedReason: true,
