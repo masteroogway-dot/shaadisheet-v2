@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import DatePicker from "@/components/DatePicker";
-import { COUNTRIES, CITIES_BY_COUNTRY, RELIGIONS_BY_COUNTRY, WEDDING_TEMPLATES } from "@/lib/weddingTemplates";
+import { COUNTRIES, CITIES_BY_COUNTRY, CITIES_BY_REGION, RELIGIONS_BY_COUNTRY, WEDDING_TEMPLATES } from "@/lib/weddingTemplates";
 
 function formatBudgetDisplay(value: number, currency?: string): string {
   const cfg = (COUNTRIES as any).find((c: any) => c.currency === currency) || { symbol: "\u20B9", currency: "INR" };
@@ -154,7 +154,7 @@ export default function Onboarding({ onComplete }: Props) {
     );
     const events = template ? template.events.map((e) => e.name) : data.selectedEvents;
 
-    setData({ ...data, region: r, selectedEvents: events });
+    setData({ ...data, region: r, selectedEvents: events, weddingCity: "" });
   };
 
   const toggleEvent = (e: string) => {
@@ -255,8 +255,12 @@ export default function Onboarding({ onComplete }: Props) {
   );
   const availableEvents = template ? template.events.map((e) => e.name) : [];
 
-  // Get cities for selected country
-  const cities = CITIES_BY_COUNTRY[data.country] || [];
+  // Get cities for selected country, filtered by region if available
+  const allCountryCities = CITIES_BY_COUNTRY[data.country] || [];
+  const regionCities = data.region ? CITIES_BY_REGION[data.region] : null;
+  const cities = regionCities
+    ? [...new Set([...regionCities, ...allCountryCities].filter((c) => c !== "Other"))].concat(["Other"])
+    : allCountryCities;
 
   return (
     <div className="min-h-screen bg-cream flex flex-col relative">
