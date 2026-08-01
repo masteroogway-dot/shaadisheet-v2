@@ -6,6 +6,13 @@ import bcrypt from "bcryptjs";
 import { getUserRole, requireWeddingAccess } from "@/lib/permissions";
 import { findTemplate, WEDDING_TEMPLATES } from "@/lib/weddingTemplates";
 
+export async function getUserPlan(): Promise<"free" | "pro"> {
+  const session = await auth();
+  if (!session?.user?.id) return "free";
+  const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { plan: true } });
+  return (user?.plan === "pro" ? "pro" : "free");
+}
+
 // ═══════════════════════════════════════════════════════════════
 // AUTH: SIGNUP
 // ═══════════════════════════════════════════════════════════════

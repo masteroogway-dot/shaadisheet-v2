@@ -387,9 +387,10 @@ interface Props {
   mobileOpen: boolean;
   onMobileClose: () => void;
   wedding?: any;
+  userPlan?: "free" | "pro";
 }
 
-export default function Sidebar({ activeView, onViewChange, mobileOpen, onMobileClose, wedding }: Props) {
+export default function Sidebar({ activeView, onViewChange, mobileOpen, onMobileClose, wedding, userPlan }: Props) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const SECTIONS = getSections(wedding);
 
@@ -477,6 +478,9 @@ export default function Sidebar({ activeView, onViewChange, mobileOpen, onMobile
                       >
                         <i className={`fas ${item.icon} w-5 text-center text-sm`} />
                         <span>{item.label}</span>
+                        {item.id === "photos" && userPlan === "free" && (
+                          <i className="fas fa-lock text-[0.6rem] text-gray-400 ml-auto" />
+                        )}
                       </button>
                     ))}
                   </div>

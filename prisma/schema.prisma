@@ -16,6 +16,7 @@ model User {
   createdAt      DateTime              @default(now())
   password       String?
   role           String                @default("user")
+  plan           String                @default("free")
   bannedAt       DateTime?
   bannedReason   String?
   accounts       Account[]
