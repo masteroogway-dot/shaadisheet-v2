@@ -125,12 +125,12 @@ export async function POST(
 
       const existingCount = await prisma.photo.count({ where: { photoDumpId: photoDump.id } });
 
-      const imported = [];
+      const imported: Array<{ id: string; url: string; thumbnailUrl: string; filename: string; source: string }> = [];
       for (const item of sessionData.mediaItems) {
         const baseUrl = item.mediaItem?.baseUrl || item.baseUrl;
         if (!baseUrl) continue;
 
-        const photo = await prisma.photo.create({
+        const photo: { id: string; url: string; thumbnailUrl: string; filename: string; source: string } = await prisma.photo.create({
           data: {
             photoDumpId: photoDump.id,
             url: baseUrl,
