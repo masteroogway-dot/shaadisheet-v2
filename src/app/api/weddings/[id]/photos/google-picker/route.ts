@@ -162,11 +162,15 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ connected: false });
+    }
 
-  const tokenData = await prisma.googleToken.findUnique({ where: { userId: session.user.id } });
-  return NextResponse.json({ connected: !!tokenData });
+    const tokenData = await prisma.googleToken.findUnique({ where: { userId: session.user.id } });
+    return NextResponse.json({ connected: !!tokenData });
+  } catch {
+    return NextResponse.json({ connected: false });
+  }
 }

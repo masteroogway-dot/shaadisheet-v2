@@ -94,8 +94,11 @@ export default function PhotoDumpView({ weddingId, canEdit, onToast }: Props) {
     try {
       const res = await fetch(`/api/weddings/${weddingId}/photos/google-picker`);
       if (res.ok) {
-        const data = await res.json();
-        setGoogleConnected(data.connected);
+        const text = await res.text();
+        try {
+          const data = JSON.parse(text);
+          setGoogleConnected(data.connected);
+        } catch {}
       }
     } catch {}
   }, [weddingId]);
