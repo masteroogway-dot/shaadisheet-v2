@@ -29,7 +29,7 @@ export async function GET(
       where: {
         photo: { photoDumpId: photoDump.id },
       },
-      include: { photo: { select: { url: true, thumbnailUrl: true, id: true } } },
+      include: { photo: { select: { url: true, id: true } } },
     });
 
     if (faces.length === 0) {
@@ -71,7 +71,7 @@ export async function GET(
         faces: cluster.map((f) => ({
           id: f.id,
           photoId: f.photoId,
-          photoUrl: f.photo.thumbnailUrl || f.photo.url,
+          photoUrl: f.photo.url,
           x: f.x,
           y: f.y,
           w: f.w,
