@@ -164,7 +164,7 @@ export default function InteractiveDemo({ onOpenChange }: { onOpenChange?: (open
     <>
       <button
         onClick={() => handleOpen(true)}
-        className="px-6 md:px-8 py-3 md:py-3.5 text-sm md:text-base font-bold border-2 border-white/30 rounded-xl text-white hover:bg-white/10 transition-all backdrop-blur-sm"
+        className="px-6 md:px-8 py-3 md:py-3.5 text-sm md:text-base font-bold bg-maroon text-white rounded-xl hover:bg-maroon-dark transition-all shadow-lg"
       >
         Try Interactive Demo
       </button>
