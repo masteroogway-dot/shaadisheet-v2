@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 type DemoTab = "overview" | "budget" | "vendors" | "guests" | "events" | "tasks" | "hashtags" | "sangeet" | "colors";
@@ -139,9 +140,15 @@ function formatINR(n: number) {
   return `₹${(n / 1000).toFixed(0)}K`;
 }
 
-export default function InteractiveDemo() {
+export default function InteractiveDemo({ onOpenChange }: { onOpenChange?: (open: boolean) => void } = {}) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<DemoTab>("overview");
+
+  const handleOpen = (open: boolean) => {
+    setIsOpen(open);
+    onOpenChange?.(open);
+  };
 
   const totalBudget = BUDGET_CATS.reduce((a, c) => a + c.allocated, 0);
   const totalSpent = BUDGET_CATS.reduce((a, c) => a + c.spent, 0);
@@ -156,7 +163,7 @@ export default function InteractiveDemo() {
   return (
     <>
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => handleOpen(true)}
         className="px-6 md:px-8 py-3 md:py-3.5 text-sm md:text-base font-bold border-2 border-white/30 rounded-xl text-white hover:bg-white/10 transition-all backdrop-blur-sm"
       >
         Try Interactive Demo
@@ -170,7 +177,7 @@ export default function InteractiveDemo() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             className="fixed inset-0 z-[9999] bg-black/70 flex items-center justify-center p-0 md:p-4"
-            onClick={(e) => { if (e.target === e.currentTarget) setIsOpen(false); }}
+            onClick={(e) => { if (e.target === e.currentTarget) handleOpen(false); }}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 10 }}
@@ -641,8 +648,8 @@ export default function InteractiveDemo() {
               <div className="h-10 bg-white border-t border-gray-200 flex items-center justify-between px-4 shrink-0">
                 <p className="text-[10px] text-gray-400">Demo — data is pre-filled for illustration</p>
                 <div className="flex gap-2">
-                  <button onClick={() => setIsOpen(false)} className="px-3 py-1.5 text-[11px] font-semibold text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer">Close</button>
-                  <button onClick={() => setIsOpen(false)} className="px-3 py-1.5 text-[11px] font-semibold text-white bg-maroon rounded-md hover:bg-maroon-dark transition-colors cursor-pointer">Start Free Trial →</button>
+                  <button onClick={() => handleOpen(false)} className="px-3 py-1.5 text-[11px] font-semibold text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer">Close</button>
+                  <button onClick={() => { handleOpen(false); router.push("/auth"); }} className="px-3 py-1.5 text-[11px] font-semibold text-white bg-maroon rounded-md hover:bg-maroon-dark transition-colors cursor-pointer">Start Free Trial →</button>
                 </div>
               </div>
             </motion.div>

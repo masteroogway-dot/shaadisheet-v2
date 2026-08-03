@@ -397,6 +397,7 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  const [demoOpen, setDemoOpen] = useState(false);
 
   useEffect(() => {
     setPetalKey(1);
@@ -411,6 +412,7 @@ export default function Home() {
       {petalKey > 0 && <RosePetals key={petalKey} />}
 
       {/* NAVBAR */}
+      {!demoOpen && (
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-cream/95 backdrop-blur-xl border-b border-gray-200/60" : "bg-transparent"}`}>
         <div className="max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between h-[60px] md:h-[70px]">
           <Link href="/" className="flex items-center gap-2.5">
@@ -427,6 +429,7 @@ export default function Home() {
           </div>
         </div>
       </nav>
+      )}
 
       {/* HERO - FULL BACKGROUND */}
       <section className="relative w-full min-h-[85vh] md:min-h-[92vh] flex items-center overflow-hidden">
@@ -482,7 +485,7 @@ export default function Home() {
               <Link href="/auth" className="px-6 md:px-8 py-3 md:py-3.5 text-sm md:text-base font-bold text-maroon bg-white rounded-xl hover:bg-gray-100 transition-colors inline-flex items-center gap-2 shadow-2xl">
                 Start Planning Free →
               </Link>
-              <InteractiveDemo />
+              <InteractiveDemo onOpenChange={setDemoOpen} />
             </div>
             <LiveCount />
           </div>
