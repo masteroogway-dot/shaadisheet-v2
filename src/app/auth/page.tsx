@@ -10,7 +10,7 @@ import NoIndex from "@/components/NoIndex";
 export default function AuthPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [mode, setMode] = useState<"login" | "signup">("signup");
+  const [mode, setMode] = useState<"login" | "signup">("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
