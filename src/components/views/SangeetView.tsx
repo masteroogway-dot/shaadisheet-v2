@@ -217,7 +217,7 @@ export default function SangeetView({ wedding, weddingId, onUpdate, onToast, can
                         <div className="grid grid-cols-2 gap-2">
                           <input value={editData.title ?? song.title} onChange={(e) => setEditData({ ...editData, title: e.target.value })} placeholder="Song title" className="px-3 py-2 border rounded-lg text-sm" />
                           <input value={editData.artist ?? song.artist} onChange={(e) => setEditData({ ...editData, artist: e.target.value })} placeholder="Artist" className="px-3 py-2 border rounded-lg text-sm" />
-                          <input type="number" value={editData.duration ?? song.duration} onChange={(e) => setEditData({ ...editData, duration: parseInt(e.target.value) || 0 })} placeholder="Duration (sec)" className="px-3 py-2 border rounded-lg text-sm" />
+                          <input type="number" value={editData.duration ?? song.duration || ""} onChange={(e) => setEditData({ ...editData, duration: parseInt(e.target.value) || 0 })} placeholder="Duration (sec)" className="px-3 py-2 border rounded-lg text-sm" />
                           <select value={editData.type ?? song.type} onChange={(e) => setEditData({ ...editData, type: e.target.value })} className="px-3 py-2 border rounded-lg text-sm">
                             {SONG_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                           </select>
