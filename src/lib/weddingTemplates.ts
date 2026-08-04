@@ -671,6 +671,99 @@ export const WEDDING_TEMPLATES: WeddingTemplateData[] = [
   },
 
   // ═══════════════════════════════════════════════════════════════
+  // BHUTAN — BUDDHIST NGALOP
+  // ═══════════════════════════════════════════════════════════════
+  {
+    name: "Buddhist Ngalop",
+    slug: "buddhist-bhutanese-ngalop",
+    country: "bhutan",
+    religion: "buddhist",
+    region: "Ngalop",
+    currency: "BTN",
+    events: [
+      { name: "Lhabsang", description: "Monks burn incense and offer to local deities", startTime: "07:00", duration: 60, isRitual: true, dayOffset: -1 },
+      { name: "Thrisor", description: "Purification ceremony — cleanses body, speech, mind, soul", startTime: "09:00", duration: 90, isRitual: true, dayOffset: 0 },
+      { name: "Butter Lamp Lighting", description: "Couple prostrates 6 times, then butter lamps are lit", startTime: "10:30", duration: 30, isRitual: true, dayOffset: 0 },
+      { name: "Changphoed", description: "Ara (local brew) offered to deities, then shared by couple from same wooden phoob", startTime: "11:00", duration: 30, isRitual: true, dayOffset: 0 },
+      { name: "Ring Exchange", description: "Exchange of wedding rings to bind the couple", startTime: "11:30", duration: 15, isRitual: true, dayOffset: 0 },
+      { name: "Tsepamey Choko", description: "Blessings from Head Lama for longevity and happy marriage", startTime: "11:45", duration: 30, isRitual: true, dayOffset: 0 },
+      { name: "Zhugdrey Phunsum Tshogpa", description: "Food sharing ritual — oranges symbolize the couple's bond", startTime: "12:15", duration: 60, isRitual: false, dayOffset: 0 },
+      { name: "Dhar Nyanga", description: "Presentation of five-color scarves with good wishes", startTime: "13:15", duration: 30, isRitual: true, dayOffset: 0 },
+      { name: "Wedding Feast", description: "Celebration with masked dances (cham), music, and traditional food", startTime: "18:00", duration: 240, isRitual: false, dayOffset: 0 },
+    ],
+    budgetRanges: {
+      budget: { min: 100000, max: 500000, label: "Nu.1–5 Lakh" },
+      mid: { min: 500000, max: 2000000, label: "Nu.5–20 Lakh" },
+      luxury: { min: 2000000, max: 10000000, label: "Nu.20 Lakh–1 Crore" },
+    },
+    dressCodes: {
+      bride: "Kira (hand-woven raw silk traditional dress) with koma (belt), toego (outer jacket), and radio (scarf); elaborate jewelry",
+      groom: "Gho (traditional knee-length robe) with kera (belt), knee-high socks, and traditional shoes; yellow silk for formal occasions",
+      guests: "Traditional Bhutanese dress (kira for women, gho for men) preferred; formal Western attire acceptable for foreign guests",
+    },
+    foodDefaults: {
+      type: "non_vegetarian",
+      staples: ["Bhutanese"],
+      keyDishes: ["Ema datshi (chili cheese)", "Red rice", "Momos (dumplings)", "Phaksha paa (pork with red chilies)", "Jasha maru (spiced chicken)", "Ara (local brew)"],
+      restrictions: ["No beef in some communities", "Ara offered at ceremony but not required for all guests"],
+    },
+    checklistItems: [
+      { category: "Auspicious Date", items: ["Consult Bhutanese astrologer for auspicious date", "Confirm monastery or temple venue", "Head Lama (Rimpoche) confirmed", "Monks assigned for ceremony", "Date communicated to all guests"] },
+      { category: "Lhabsang Preparation", items: ["Incense offerings prepared", "Local deities offerings arranged", "Monks briefed on ceremony sequence", "Temple courtyard cleaned", "Butter lamps prepared"] },
+      { category: "Changphoed Ritual", items: ["Ara (local brew) prepared", "Wooden phoob (sharing bowl) obtained", "Offerings for deities arranged", "Ring exchange logistics confirmed"] },
+      { category: "Wedding Feast", items: ["Venue booking confirmed", "Catering menu finalized (ema datshi, red rice, momos)", "Masked dance (cham) performers booked", "Traditional music arranged", "Photography/videography", "Dhar Nyanga scarves prepared"] },
+    ],
+    guestRange: { min: 50, typical: 200, max: 500 },
+    planningMonths: 6,
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // BHUTAN — HINDU LHOTSHAMPA
+  // ═══════════════════════════════════════════════════════════════
+  {
+    name: "Hindu Lhotshampa",
+    slug: "hindu-bhutanese-lhotshampa",
+    country: "bhutan",
+    religion: "hindu",
+    region: "Lhotshampa",
+    currency: "BTN",
+    events: [
+      { name: "Mai Ping", description: "Pre-wedding prayer ceremony at bride's home", startTime: "10:00", duration: 120, isRitual: true, dayOffset: -2 },
+      { name: "Henna Night", description: "Bride's hands decorated with henna, songs and dancing", startTime: "19:00", duration: 180, isRitual: false, dayOffset: -1 },
+      { name: "Janti", description: "Groom's procession with music and dancing to wedding venue", startTime: "08:00", duration: 60, isRitual: false, dayOffset: 0 },
+      { name: "Kanya Daan", description: "Father gives away the bride with sacred offerings", startTime: "09:00", duration: 30, isRitual: true, dayOffset: 0 },
+      { name: "Vivah Homa", description: "Sacred fire ceremony — couple makes offerings into the fire", startTime: "09:30", duration: 120, isRitual: true, dayOffset: 0 },
+      { name: "Saptapadi", description: "Seven steps around the sacred fire — seven vows", startTime: "11:00", duration: 30, isRitual: true, dayOffset: 0 },
+      { name: "Sindoor & Mangalsutra", description: "Groom applies vermilion and ties sacred necklace", startTime: "11:30", duration: 15, isRitual: true, dayOffset: 0 },
+      { name: "Reception", description: "Grand feast with traditional Nepali food, music, and dancing", startTime: "18:00", duration: 240, isRitual: false, dayOffset: 0 },
+    ],
+    budgetRanges: {
+      budget: { min: 100000, max: 500000, label: "Nu.1–5 Lakh" },
+      mid: { min: 500000, max: 2000000, label: "Nu.5–20 Lakh" },
+      luxury: { min: 2000000, max: 10000000, label: "Nu.20 Lakh–1 Crore" },
+    },
+    dressCodes: {
+      bride: "Red or maroon sari/salwar kameez with gold jewelry, bangles, and traditional Nepali bride ornaments",
+      groom: "Daura suruwal (traditional Nepali dress) with dhaka topi (hat) or formal suit",
+      guests: "Traditional Nepali attire or formal Western clothing; bright colors preferred",
+    },
+    foodDefaults: {
+      type: "non_vegetarian",
+      staples: ["Nepali"],
+      keyDishes: ["Dal bhat (lentils and rice)", "Sel roti (ring-shaped bread)", "Momos", "Aloo tama (potato and bamboo shoot)", "Meat curries", "Sweets (laddu, barfi)"],
+      restrictions: ["No beef", "Vegetarian options essential", "Halal not required"],
+    },
+    checklistItems: [
+      { category: "Mai Ping Preparation", items: ["Puja (prayer) materials arranged", "Pandit (priest) confirmed", "Venue at bride's home prepared", "Flowers and decorations", "Sacred fire materials for Vivah Homa"] },
+      { category: "Janti Planning", items: ["Barat procession route planned", "Music and DJ booked", "Dhol (drum) players confirmed", "Groom's outfit finalized", "Fireworks (if permitted)"] },
+      { category: "Fire Ceremony", items: ["Sacred fire pit constructed", "Homa materials gathered", "Seven rounds space cleared", "Kanya Daan gifts prepared", "Mangalsutra and sindoor ready"] },
+      { category: "Reception", items: ["Venue booking confirmed", "Catering menu finalized (dal bhat, sel roti)", "DJ and music arranged", "Photography/videography", "Guest seating arranged", "Cake and desserts"] },
+    ],
+    guestRange: { min: 100, typical: 300, max: 800 },
+    planningMonths: 6,
+  },
+
+  // ═══════════════════════════════════════════════════════════════
   // INDIA — HINDU BENGALI
   // ═══════════════════════════════════════════════════════════════
   {
@@ -1965,6 +2058,7 @@ export const COUNTRIES = [
   { id: "nepal", name: "Nepal", flag: "\uD83C\uDDF3\uD83C\uDDF5", currency: "NPR" },
   { id: "maldives", name: "Maldives", flag: "\uD83C\uDDF2\uD83C\uDDFB", currency: "MVR" },
   { id: "afghanistan", name: "Afghanistan", flag: "\uD83C\uDDE6\uD83C\uDDEB", currency: "AFN" },
+  { id: "bhutan", name: "Bhutan", flag: "\uD83C\uDDE7\uD83C\uDDF9", currency: "BTN" },
 ] as const;
 
 export const CITIES_BY_COUNTRY: Record<string, string[]> = {
@@ -1975,6 +2069,7 @@ export const CITIES_BY_COUNTRY: Record<string, string[]> = {
   nepal: ["Kathmandu", "Pokhara", "Lalitpur", "Bhaktapur", "Biratnagar", "Birgunj", "Dharan", "Other"],
   maldives: ["Male", "Hulhumale", "Addu City", "Fuvahmulah", "Resort/Island", "Other"],
   afghanistan: ["Kabul", "Herat", "Mazar-i-Sharif", "Jalalabad", "Kandahar", "Kunduz", "Other"],
+  bhutan: ["Thimphu", "Paro", "Punakha", "Jakar", "Gelephu", "Samdrup Jongkhar", "Other"],
 };
 
 export const CITIES_BY_REGION: Record<string, string[]> = {
@@ -2020,6 +2115,8 @@ export const CITIES_BY_REGION: Record<string, string[]> = {
   "Maldivian": ["Male", "Hulhumale", "Addu City", "Other"],
   "Sri Lankan Muslim": ["Colombo", "Kandy", "Other"],
   "Sri Lankan Christian": ["Colombo", "Negombo", "Galle", "Other"],
+  "Ngalop": ["Thimphu", "Paro", "Punakha", "Wangdue Phodrang", "Haa", "Gasa", "Other"],
+  "Lhotshampa": ["Gelephu", "Sarpang", "Samdrup Jongkhar", "Other"],
 };
 
 export const RELIGIONS_BY_COUNTRY: Record<string, Array<{ id: string; name: string }>> = {
@@ -2058,6 +2155,10 @@ export const RELIGIONS_BY_COUNTRY: Record<string, Array<{ id: string; name: stri
   afghanistan: [
     { id: "muslim", name: "Muslim" },
   ],
+  bhutan: [
+    { id: "buddhist", name: "Buddhist" },
+    { id: "hindu", name: "Hindu" },
+  ],
 };
 
 export function getTemplateSlug(country: string, religion: string, region: string): string {
@@ -2069,6 +2170,7 @@ export function getTemplateSlug(country: string, religion: string, region: strin
     nepal: "nepali",
     maldives: "maldivian",
     afghanistan: "afghan",
+    bhutan: "bhutanese",
   };
   return `${religion}-${countryMap[country] || country}-${region.toLowerCase().replace(/\s+/g, "-")}`;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import DatePicker from "@/components/DatePicker";
 import { COUNTRIES, CITIES_BY_COUNTRY, CITIES_BY_REGION, RELIGIONS_BY_COUNTRY, WEDDING_TEMPLATES } from "@/lib/weddingTemplates";
 
@@ -8,7 +8,7 @@ function formatBudgetDisplay(value: number, currency?: string): string {
   const cfg = (COUNTRIES as any).find((c: any) => c.currency === currency) || { symbol: "\u20B9", currency: "INR" };
   const symbol = getSymbol(currency);
 
-  if (["INR", "PKR", "NPR", "BDT"].includes(currency || "INR")) {
+  if (["INR", "PKR", "NPR", "BDT", "BTN"].includes(currency || "INR")) {
     if (value >= 10000000) {
       const c = value / 10000000;
       return c % 1 === 0 ? `${symbol}${c} Crore` : `${symbol}${c.toFixed(1)} Crore`;
@@ -77,12 +77,19 @@ export default function Onboarding({ onComplete }: Props) {
   const [budgetInput, setBudgetInput] = useState("1000000");
   const [guestInput, setGuestInput] = useState("200");
   const [daysInput, setDaysInput] = useState("1");
+  const [countrySearch, setCountrySearch] = useState("");
 
   const totalSteps = 9;
   const progress = (step / totalSteps) * 100;
 
   const currency = COUNTRIES.find((c) => c.id === data.country)?.currency || "INR";
   const budgetRange = getBudgetRange(currency);
+
+  const filteredCountries = useMemo(() => {
+    if (!countrySearch.trim()) return COUNTRIES;
+    const q = countrySearch.toLowerCase();
+    return COUNTRIES.filter((c) => c.name.toLowerCase().includes(q) || c.id.toLowerCase().includes(q));
+  }, [countrySearch]);
 
   useEffect(() => {
     return () => { if (toastTimer.current) clearTimeout(toastTimer.current); };
@@ -287,15 +294,36 @@ export default function Onboarding({ onComplete }: Props) {
           {step === 1 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-xl md:text-3xl font-bold mb-2">Where is your wedding?</h2>
-              <p className="text-gray-500 mb-6 md:mb-8 text-sm md:text-base">Select your country to get the right traditions, currency, and planning defaults.</p>
+              <p className="text-gray-500 mb-4 md:mb-6 text-sm md:text-base">Select your country to get the right traditions, currency, and planning defaults.</p>
+              <div className="relative mb-4">
+                <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                <input
+                  type="text"
+                  value={countrySearch}
+                  onChange={(e) => setCountrySearch(e.target.value)}
+                  placeholder="Search countries..."
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-transparent"
+                />
+                {countrySearch && (
+                  <button onClick={() => setCountrySearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
+                    <i className="fas fa-times text-xs" />
+                  </button>
+                )}
+              </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-                {COUNTRIES.map((c) => (
-                  <button key={c.id} onClick={() => selectCountry(c.id)}
+                {filteredCountries.map((c) => (
+                  <button key={c.id} onClick={() => { selectCountry(c.id); setCountrySearch(""); }}
                     className={`flex flex-col items-center gap-2 md:gap-3 p-4 md:p-7 bg-white border-2 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md ${data.country === c.id ? "border-maroon shadow-[0_0_0_3px_rgba(139,0,0,0.1)] bg-gradient-to-br from-maroon/5 to-gold/5" : "border-gray-200"}`}>
                     <span className="text-3xl md:text-5xl">{c.flag}</span>
                     <span className="font-semibold text-xs md:text-sm">{c.name}</span>
                   </button>
                 ))}
+                {filteredCountries.length === 0 && (
+                  <div className="col-span-full text-center py-8 text-gray-400">
+                    <i className="fas fa-globe text-2xl mb-2" />
+                    <p className="text-sm">No countries found. Try a different search.</p>
+                  </div>
+                )}
               </div>
             </div>
           )}

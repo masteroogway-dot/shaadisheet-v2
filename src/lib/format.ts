@@ -2,7 +2,7 @@
 // CURRENCY CONFIGURATION
 // ═══════════════════════════════════════════════════════════════
 
-export type CurrencyCode = "INR" | "PKR" | "BDT" | "LKR" | "NPR" | "MVR" | "AFN";
+export type CurrencyCode = "INR" | "PKR" | "BDT" | "LKR" | "NPR" | "MVR" | "AFN" | "BTN";
 
 interface CurrencyConfig {
   symbol: string;
@@ -19,6 +19,7 @@ const CURRENCY_MAP: Record<CurrencyCode, CurrencyConfig> = {
   NPR: { symbol: "Rs", code: "NPR", locale: "ne-NP", decimals: 0 },
   MVR: { symbol: "Rf", code: "MVR", locale: "dv-MV", decimals: 0 },
   AFN: { symbol: "\u060B", code: "AFN", locale: "fa-AF", decimals: 0 },
+  BTN: { symbol: "Nu.", code: "BTN", locale: "dz-BT", decimals: 0 },
 };
 
 function getConfig(currency?: string): CurrencyConfig {
@@ -44,6 +45,7 @@ export const formatLKR = (n: number) => formatCurrency(n, "LKR");
 export const formatNPR = (n: number) => formatCurrency(n, "NPR");
 export const formatMVR = (n: number) => formatCurrency(n, "MVR");
 export const formatAFN = (n: number) => formatCurrency(n, "AFN");
+export const formatBTN = (n: number) => formatCurrency(n, "BTN");
 
 // ═══════════════════════════════════════════════════════════════
 // FORMAT: Abbreviated currency (no symbol)
@@ -52,7 +54,7 @@ export const formatAFN = (n: number) => formatCurrency(n, "AFN");
 export function formatCurrencyAbbrev(n: number, currency?: string): string {
   const cfg = getConfig(currency);
 
-  if (currency === "INR" || currency === "PKR" || currency === "NPR") {
+  if (currency === "INR" || currency === "PKR" || currency === "NPR" || currency === "BTN") {
     // South Asian numbering: Lakh, Crore
     if (n === 0) return "0";
     if (n >= 10000000) return (n / 10000000).toFixed(1).replace(/\.0$/, "") + " Cr";
@@ -134,7 +136,7 @@ export const parseINR = (s: string) => parseCurrency(s, "INR");
 export function formatBudgetDisplay(value: number, currency?: string): string {
   const cfg = getConfig(currency);
 
-  if (currency === "INR" || currency === "PKR" || currency === "NPR" || currency === "BDT") {
+  if (currency === "INR" || currency === "PKR" || currency === "NPR" || currency === "BDT" || currency === "BTN") {
     if (value >= 10000000) {
       const c = value / 10000000;
       return c % 1 === 0 ? `${cfg.symbol}${c} Crore` : `${cfg.symbol}${c.toFixed(1)} Crore`;
@@ -175,6 +177,7 @@ export function getBudgetRange(currency?: string): { min: number; max: number; s
     case "NPR": return { min: 500000, max: 10000000, step: 100000 };    // 5L to 1Cr
     case "MVR": return { min: 50000, max: 10000000, step: 10000 };      // 50K to 1Cr
     case "AFN": return { min: 300000, max: 50000000, step: 100000 };    // 3L to 5Cr
+    case "BTN": return { min: 100000, max: 50000000, step: 50000 };     // 1L to 5Cr (pegged to INR)
     default: return { min: 100000, max: 50000000, step: 50000 };
   }
 }
