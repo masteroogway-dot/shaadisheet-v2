@@ -221,7 +221,9 @@ export default function Onboarding({ onComplete }: Props) {
             ? ["Tamil", "Hill Country Tamil"]
             : data.country === "pakistan"
               ? ["Pakistani"]
-              : [],
+              : data.country === "bhutan"
+                ? ["Lhotshampa"]
+                : [],
     muslim: data.country === "pakistan"
       ? ["Sunni", "Sindhi", "Baloch", "Kashmiri"]
       : data.country === "bangladesh"
@@ -244,7 +246,9 @@ export default function Onboarding({ onComplete }: Props) {
           ? ["Ladakhi"]
           : data.country === "bangladesh"
             ? ["Chakma"]
-            : ["Sinhalese"],
+            : data.country === "bhutan"
+              ? ["Ngalop", "Sharchop"]
+              : ["Sinhalese"],
     christian: data.country === "pakistan"
       ? ["Pakistani"]
       : data.country === "sri_lanka"
