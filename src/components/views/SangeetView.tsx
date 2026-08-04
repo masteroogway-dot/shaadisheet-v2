@@ -399,7 +399,7 @@ export default function SangeetView({ wedding, weddingId, onUpdate, onToast, can
                 </div>
               </div>
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Duration</label>
+                <label className="text-xs text-gray-500 mb-1 block">Performance duration</label>
                 <DurationPicker value={newSong.duration} onChange={(seconds) => setNewSong({ ...newSong, duration: seconds })} />
               </div>
               <textarea value={newSong.notes} onChange={(e) => setNewSong({ ...newSong, notes: e.target.value })} placeholder="Notes (optional)" className="w-full px-3 py-2 border rounded-lg text-sm" rows={2} />

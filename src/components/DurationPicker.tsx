@@ -56,15 +56,42 @@ export default function DurationPicker({ value, onChange, compact = false }: Dur
 
   if (compact) {
     return (
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1">
-          <button onClick={() => handleSecondsChange(-30)} className="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center cursor-pointer text-xs text-gray-500" title="-30s">
-            <i className="fas fa-minus" />
-          </button>
-          <span className="text-sm font-mono text-gray-700 min-w-[40px] text-center">{minutes}:{seconds.toString().padStart(2, "0")}</span>
-          <button onClick={() => handleSecondsChange(30)} className="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center cursor-pointer text-xs text-gray-500" title="+30s">
-            <i className="fas fa-plus" />
-          </button>
+      <div>
+        <label className="text-xs text-gray-500 mb-1 block">Performance duration</label>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <button onClick={() => handleMinutesChange(-1)} className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center cursor-pointer text-gray-500 transition-colors" title="-1 min">
+              <i className="fas fa-minus text-[10px]" />
+            </button>
+            <input
+              type="number"
+              min={0}
+              max={99}
+              value={minutes}
+              onChange={(e) => handleMinutesInput(e.target.value)}
+              className="w-10 h-7 text-center text-sm font-bold text-gray-900 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-maroon focus:border-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <button onClick={() => handleMinutesChange(1)} className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center cursor-pointer text-gray-500 transition-colors" title="+1 min">
+              <i className="fas fa-plus text-[10px]" />
+            </button>
+          </div>
+          <span className="text-sm font-bold text-gray-400">:</span>
+          <div className="flex items-center gap-1">
+            <button onClick={() => handleSecondsChange(-5)} className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center cursor-pointer text-gray-500 transition-colors" title="-5s">
+              <i className="fas fa-minus text-[10px]" />
+            </button>
+            <input
+              type="number"
+              min={0}
+              max={59}
+              value={seconds}
+              onChange={(e) => handleSecondsInput(e.target.value)}
+              className="w-10 h-7 text-center text-sm font-bold text-gray-900 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-maroon focus:border-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <button onClick={() => handleSecondsChange(5)} className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center cursor-pointer text-gray-500 transition-colors" title="+5s">
+              <i className="fas fa-plus text-[10px]" />
+            </button>
+          </div>
         </div>
       </div>
     );
