@@ -211,6 +211,7 @@ export default function Onboarding({ onComplete }: Props) {
 
   const religions = RELIGIONS_BY_COUNTRY[data.country] || [];
   const regions: Record<string, string[]> = {
+    // South Asia
     hindu: data.country === "india"
       ? ["North Indian", "South Indian", "Bengali", "Gujarati", "Maharashtrian", "Rajput", "Punjabi", "Kashmiri", "Assamese", "Odia", "Bihari", "Malayali", "Sindhi"]
       : data.country === "bangladesh"
@@ -218,12 +219,20 @@ export default function Onboarding({ onComplete }: Props) {
         : data.country === "nepal"
           ? ["Nepali", "Newari", "Tamang"]
           : data.country === "sri_lanka"
-            ? ["Tamil", "Hill Country Tamil"]
+            ? ["Tamil Hindu", "Hill Country Tamil"]
             : data.country === "pakistan"
-              ? ["Pakistani"]
+              ? ["Punjabi"]
               : data.country === "bhutan"
                 ? ["Lhotshampa"]
-                : [],
+                : data.country === "uae"
+                  ? ["Indian Hindu"]
+                  : data.country === "bahrain"
+                    ? ["Indian Hindu"]
+                    : data.country === "kuwait"
+                      ? ["Indian Hindu"]
+                      : data.country === "oman"
+                        ? ["Indian Hindu"]
+                        : [],
     muslim: data.country === "pakistan"
       ? ["Sunni", "Sindhi", "Baloch", "Kashmiri"]
       : data.country === "bangladesh"
@@ -236,8 +245,146 @@ export default function Onboarding({ onComplete }: Props) {
               ? ["Nepali"]
               : data.country === "sri_lanka"
                 ? ["Sri Lankan"]
-                : ["Indian"],
-    sikh: ["Punjabi"],
+                : data.country === "saudi_arabia"
+                  ? ["Hejazi", "Najdi", "Eastern Province", "Southern", "Shia Arab"]
+                  : data.country === "uae"
+                    ? ["Emirati", "Baluchi", "South Asian Muslim", "Shia"]
+                    : data.country === "oman"
+                      ? ["Ibadi", "Sunni Arab", "Baluchi", "Shia"]
+                      : data.country === "yemen"
+                        ? ["Hadhrami", "Yemeni", "Tihami", "Zaydi"]
+                        : data.country === "bahrain"
+                          ? ["Sunni Arab", "Baharna"]
+                          : data.country === "qatar"
+                            ? ["Qatari", "Baluchi", "South Asian Muslim", "Shia"]
+                            : data.country === "kuwait"
+                              ? ["Kuwaiti", "Baluchi", "South Asian Muslim", "Shia"]
+                              : data.country === "iraq"
+                                ? ["Arab Shia", "Arab Sunni", "Kurdish Sunni"]
+                                : data.country === "jordan"
+                                  ? ["Jordanian", "Palestinian", "Circassian"]
+                                  : data.country === "lebanon"
+                                    ? ["Sunni Arab", "Shia Arab"]
+                                    : data.country === "syria"
+                                      ? ["Syrian Arab"]
+                                      : data.country === "palestine"
+                                        ? ["Palestinian"]
+                                        : data.country === "israel"
+                                          ? ["Arab Israeli", "Bedouin"]
+                                          : data.country === "iran"
+                                            ? ["Persian", "Azerbaijani", "Kurdish"]
+                                            : data.country === "turkey"
+                                              ? ["Turkish", "Kurdish", "Arab"]
+                                              : data.country === "egypt"
+                                                ? ["Egyptian Arab"]
+                                                : data.country === "libya"
+                                                  ? ["Libyan Arab"]
+                                                  : data.country === "tunisia"
+                                                    ? ["Tunisian Arab"]
+                                                    : data.country === "algeria"
+                                                      ? ["Algerian Arab"]
+                                                      : data.country === "morocco"
+                                                        ? ["Moroccan Arab"]
+                                                        : data.country === "sudan"
+                                                          ? ["Sudanese Arab"]
+                                                          : data.country === "mauritania"
+                                                            ? ["Moorish"]
+                                                            : data.country === "kazakhstan"
+                                                              ? ["Kazakh"]
+                                                              : data.country === "uzbekistan"
+                                                                ? ["Uzbek"]
+                                                                : data.country === "turkmenistan"
+                                                                  ? ["Turkmen"]
+                                                                  : data.country === "kyrgyzstan"
+                                                                    ? ["Kyrgyz"]
+                                                                    : data.country === "tajikistan"
+                                                                      ? ["Tajik"]
+                                                                      : data.country === "china"
+                                                                        ? ["Hui", "Uyghur"]
+                                                                        : data.country === "mongolia"
+                                                                          ? ["Kazakh"]
+                                                                          : data.country === "thailand"
+                                                                            ? ["Malay", "Thai Muslim"]
+                                                                            : data.country === "myanmar"
+                                                                              ? ["Rohingya"]
+                                                                              : data.country === "cambodia"
+                                                                                ? ["Cham Muslim"]
+                                                                                : data.country === "malaysia"
+                                                                                  ? ["Malay"]
+                                                                                  : data.country === "singapore"
+                                                                                    ? ["Malay Singaporean"]
+                                                                                    : data.country === "indonesia"
+                                                                                      ? ["Javanese", "Sundanese", "Malay"]
+                                                                                      : data.country === "brunei"
+                                                                                        ? ["Malay"]
+                                                                                        : data.country === "philippines"
+                                                                                          ? ["Maranao", "Tausug", "Maguindanao"]
+                                                                                          : data.country === "usa"
+                                                                                            ? ["Arab American", "South Asian American"]
+                                                                                            : data.country === "uk"
+                                                                                              ? ["Pakistani Muslim", "Bangladeshi Muslim", "Arab Muslim"]
+                                                                                              : data.country === "canada"
+                                                                                                ? ["Arab Canadian", "South Asian Canadian"]
+                                                                                                : data.country === "australia"
+                                                                                                  ? ["Lebanese Australian"]
+                                                                                                  : data.country === "new_zealand"
+                                                                                                    ? ["Indian Muslim"]
+                                                                                                    : data.country === "france"
+                                                                                                      ? ["North African", "Sub-Saharan African", "Turkish"]
+                                                                                                      : data.country === "germany"
+                                                                                                        ? ["Turkish", "Arab", "Kurdish"]
+                                                                                                        : data.country === "netherlands"
+                                                                                                          ? ["Turkish", "Moroccan"]
+                                                                                                          : data.country === "belgium"
+                                                                                                            ? ["Moroccan", "Turkish", "Congolese"]
+                                                                                                            : data.country === "switzerland"
+                                                                                                              ? ["Bosnian", "Turkish", "Arab"]
+                                                                                                              : data.country === "austria"
+                                                                                                                ? ["Turkish", "Bosnian"]
+                                                                                                                : data.country === "sweden"
+                                                                                                                  ? ["Somali", "Iraqi", "Bosnian"]
+                                                                                                                  : data.country === "norway"
+                                                                                                                    ? ["Somali", "Iraqi", "Pakistani"]
+                                                                                                                    : data.country === "denmark"
+                                                                                                                      ? ["Pakistani", "Somali", "Iraqi"]
+                                                                                                                      : data.country === "finland"
+                                                                                                                        ? ["Iraqi", "Somali"]
+                                                                                                                        : data.country === "italy"
+                                                                                                                          ? ["North African"]
+                                                                                                                          : data.country === "spain"
+                                                                                                                            ? ["Moroccan"]
+                                                                                                                            : data.country === "portugal"
+                                                                                                                              ? ["Moroccan"]
+                                                                                                                              : data.country === "poland"
+                                                                                                                                ? ["Tatar"]
+                                                                                                                                : data.country === "bulgaria"
+                                                                                                                                  ? ["Turkish"]
+                                                                                                                                  : data.country === "greece"
+                                                                                                                                    ? ["Turkish", "Albanian"]
+                                                                                                                                    : data.country === "croatia"
+                                                                                                                                      ? ["Bosniak"]
+                                                                                                                                      : data.country === "slovenia"
+                                                                                                                                        ? ["Bosniak"]
+                                                                                                                                        : data.country === "serbia"
+                                                                                                                                          ? ["Bosniak", "Albanian"]
+                                                                                                                                          : data.country === "bosnia"
+                                                                                                                                            ? ["Bosniak"]
+                                                                                                                                            : data.country === "montenegro"
+                                                                                                                                              ? ["Bosniak", "Albanian"]
+: data.country === "north_macedonia"
+  ? ["North Macedonian Albanian"]
+                                                                                                                                                : data.country === "albania"
+                                                                                                                                                  ? ["Albanian"]
+                                                                                                                                                  : data.country === "ukraine"
+                                                                                                                                                    ? ["Crimean Tatar"]
+                                                                                                                                                    : data.country === "russia"
+                                                                                                                                                      ? ["Tatar", "Chechen", "Dagestani"]
+                                                                                                                                                      : [],
+    sikh: data.country === "uk"
+      ? ["Punjabi Sikh"]
+      : data.country === "canada"
+        ? ["Punjabi Sikh"]
+        : ["Punjabi"],
     buddhist: data.country === "sri_lanka"
       ? ["Sinhalese"]
       : data.country === "nepal"
@@ -247,15 +394,263 @@ export default function Onboarding({ onComplete }: Props) {
           : data.country === "bangladesh"
             ? ["Chakma"]
             : data.country === "bhutan"
-              ? ["Ngalop", "Sharchop"]
-              : ["Sinhalese"],
+              ? ["Ngalop"]
+              : data.country === "china"
+                ? ["Han"]
+                : data.country === "japan"
+                  ? ["Japanese Buddhist"]
+                  : data.country === "south_korea"
+                    ? ["Korean Buddhist"]
+                    : data.country === "mongolia"
+                      ? ["Mongolian Buddhist"]
+                      : data.country === "taiwan"
+                        ? ["Taiwanese Buddhist"]
+                        : data.country === "vietnam"
+                          ? ["Kinh"]
+                          : data.country === "thailand"
+                            ? ["Thai", "Lao Isan", "Khon Muang"]
+                            : data.country === "myanmar"
+                              ? ["Bamar", "Shan", "Mon"]
+                              : data.country === "cambodia"
+                                ? ["Khmer"]
+                                : data.country === "laos"
+                                  ? ["Lao Loum"]
+                                  : data.country === "malaysia"
+                                    ? ["Chinese Malaysian"]
+                                    : data.country === "singapore"
+                                      ? ["Chinese Singaporean"]
+                                      : data.country === "indonesia"
+                                        ? ["Chinese Indonesian"]
+                                        : data.country === "brunei"
+                                          ? ["Chinese Bruneian"]
+                                          : data.country === "kazakhstan"
+                                            ? ["Kazakh"]
+                                            : data.country === "russia"
+                                              ? ["Buryat", "Kalmyk", "Tuvinian"]
+                                              : data.country === "usa"
+                                                ? ["East Asian Buddhist"]
+                                                : data.country === "canada"
+                                                  ? ["Chinese Canadian"]
+                                                  : data.country === "australia"
+                                                    ? ["Chinese Australian"]
+                                                    : data.country === "denmark"
+                                                      ? ["Thai"]
+                                                      : [],
     christian: data.country === "pakistan"
       ? ["Pakistani"]
       : data.country === "sri_lanka"
-        ? ["Sri Lankan"]
+        ? ["Sri Lankan Christian"]
         : data.country === "india"
-          ? ["Indian", "Goan", "Kerala", "Northeast"]
-          : ["Indian"],
+          ? ["Indian Christian", "Goan Christian", "Kerala Christian", "Northeast Christian"]
+          : data.country === "uae"
+            ? ["Catholic", "Protestant", "Orthodox"]
+            : data.country === "bahrain"
+              ? ["Catholic", "Protestant"]
+              : data.country === "kuwait"
+                ? ["Catholic", "Protestant"]
+                : data.country === "iraq"
+                  ? ["Assyrian", "Chaldean"]
+                  : data.country === "jordan"
+                    ? ["Greek Orthodox", "Catholic"]
+                    : data.country === "lebanon"
+                      ? ["Maronite", "Greek Orthodox", "Melkite", "Armenian"]
+                      : data.country === "syria"
+                        ? ["Greek Orthodox", "Syriac", "Armenian"]
+                        : data.country === "palestine"
+                          ? ["Greek Orthodox", "Catholic"]
+                          : data.country === "israel"
+                            ? ["Greek Orthodox", "Catholic", "Maronite"]
+                            : data.country === "iran"
+                              ? ["Armenian", "Assyrian"]
+                              : data.country === "turkey"
+                                ? ["Greek Orthodox", "Armenian"]
+                                : data.country === "egypt"
+                                  ? ["Coptic"]
+                                  : data.country === "libya"
+                                    ? ["Coptic", "Catholic"]
+                                    : data.country === "tunisia"
+                                      ? ["Catholic", "Protestant"]
+                                      : data.country === "algeria"
+                                        ? ["Catholic", "Protestant"]
+                                        : data.country === "morocco"
+                                          ? ["Catholic", "Protestant"]
+                                          : data.country === "sudan"
+                                            ? ["Coptic", "Catholic", "Protestant"]
+                                            : data.country === "philippines"
+                                              ? ["Tagalog", "Cebuano", "Ilocano", "Hiligaynon", "Bicolano"]
+                                              : data.country === "south_korea"
+                                                ? ["Korean Protestant", "Korean Catholic"]
+                                                : data.country === "japan"
+                                                  ? ["Protestant", "Catholic"]
+                                                  : data.country === "vietnam"
+                                                    ? ["Vietnamese Catholic"]
+                                                    : data.country === "thailand"
+                                                      ? ["Protestant", "Catholic"]
+                                                      : data.country === "myanmar"
+                                                        ? ["Baptist", "Catholic"]
+                                                        : data.country === "cambodia"
+                                                          ? ["Catholic", "Protestant"]
+                                                          : data.country === "laos"
+                                                            ? ["Protestant", "Catholic"]
+                                                            : data.country === "malaysia"
+                                                              ? ["Catholic", "Protestant"]
+                                                              : data.country === "singapore"
+                                                                ? ["Catholic", "Protestant"]
+                                                                : data.country === "indonesia"
+                                                                  ? ["Protestant", "Catholic"]
+                                                                  : data.country === "brunei"
+                                                                    ? ["Catholic", "Protestant"]
+                                                                    : data.country === "usa"
+                                                                      ? ["Evangelical", "Mainline Protestant", "Black Protestant", "Irish Catholic", "Italian Catholic", "Hispanic Catholic", "Polish Catholic"]
+                                                                      : data.country === "uk"
+                                                                        ? ["English", "Welsh", "Scottish"]
+                                                                        : data.country === "canada"
+                                                                          ? ["French Canadian", "Irish Catholic", "Italian Catholic", "United Church"]
+                                                                          : data.country === "australia"
+                                                                            ? ["Irish Australian", "Italian Australian", "English Australian"]
+                                                                            : data.country === "new_zealand"
+                                                                              ? ["Pākehā", "Māori"]
+                                                                              : data.country === "ireland"
+                                                                                ? ["Irish", "Church of Ireland"]
+                                                                                : data.country === "france"
+                                                                                  ? ["French", "Reformed"]
+                                                                                  : data.country === "germany"
+                                                                                    ? ["Bavarian", "Rhineland", "Lutheran"]
+                                                                                    : data.country === "italy"
+                                                                                      ? ["Neapolitan", "Sicilian", "Lombard", "Venetian", "Tuscan", "Emilian"]
+                                                                                      : data.country === "spain"
+                                                                                        ? ["Castilian", "Andalusian", "Catalan", "Valencian", "Galician"]
+                                                                                        : data.country === "portugal"
+                                                                                          ? ["Portuguese", "Brazilian"]
+                                                                                          : data.country === "netherlands"
+                                                                                            ? ["Dutch Reformed", "Calvinist", "Brabantian"]
+                                                                                            : data.country === "belgium"
+                                                                                              ? ["Flemish", "Walloon"]
+                                                                                              : data.country === "switzerland"
+                                                                                                ? ["Swiss", "Italian Swiss", "Reformed"]
+                                                                                                : data.country === "austria"
+                                                                                                  ? ["Austrian"]
+                                                                                                  : data.country === "sweden"
+                                                                                                    ? ["Church of Sweden"]
+                                                                                                    : data.country === "norway"
+                                                                                                      ? ["Church of Norway"]
+                                                                                                      : data.country === "denmark"
+                                                                                                        ? ["Church of Denmark"]
+                                                                                                        : data.country === "finland"
+                                                                                                          ? ["Finnish"]
+                                                                                                          : data.country === "iceland"
+                                                                                                            ? ["Evangelical Lutheran"]
+                                                                                                            : data.country === "poland"
+                                                                                                              ? ["Polish", "Lutheran", "Polish Orthodox"]
+                                                                                                              : data.country === "czech_republic"
+                                                                                                                ? ["Czech", "Moravian", "Hussite"]
+                                                                                                                : data.country === "slovakia"
+                                                                                                                  ? ["Slovak", "Hungarian", "Greek Catholic"]
+                                                                                                                  : data.country === "hungary"
+                                                                                                                    ? ["Hungarian", "German Hungarian", "Calvinist", "Lutheran"]
+                                                                                                                    : data.country === "romania"
+                                                                                                                      ? ["Romanian", "Aromanian", "Romanian Catholic", "Hungarian Catholic", "Calvinist"]
+                                                                                                                      : data.country === "bulgaria"
+                                                                                                                        ? ["Bulgarian"]
+                                                                                                                        : data.country === "greece"
+                                                                                                                          ? ["Greek", "Macedonian", "Pontic"]
+                                                                                                                          : data.country === "croatia"
+                                                                                                                            ? ["Croatian", "Serbian Orthodox"]
+                                                                                                                            : data.country === "slovenia"
+                                                                                                                              ? ["Slovenian", "Serbian Orthodox"]
+                                                                                                                              : data.country === "serbia"
+                                                                                                                                ? ["Serbian", "Hungarian Catholic"]
+                                                                                                                                : data.country === "bosnia"
+                                                                                                                                  ? ["Serb", "Croat"]
+                                                                                                                                  : data.country === "montenegro"
+                                                                                                                                    ? ["Montenegrin", "Serb", "Croat"]
+                                                                                                                                    : data.country === "north_macedonia"
+                                                                                                                                      ? ["Macedonian"]
+                                                                                                                                      : data.country === "albania"
+                                                                                                                                        ? ["Albanian Orthodox", "Albanian Catholic"]
+                                                                                                                                        : data.country === "ukraine"
+                                                                                                                                          ? ["Ukrainian Orthodox", "Ukrainian Greek Catholic", "Roman Catholic"]
+                                                                                                                                          : data.country === "belarus"
+                                                                                                                                            ? ["Belarusian", "Belarusian Catholic"]
+                                                                                                                                            : data.country === "russia"
+                                                                                                                                              ? ["Russian"]
+                                                                                                                                            : data.country === "estonia"
+                                                                                                                                              ? ["Estonian"]
+                                                                                                                                              : data.country === "latvia"
+                                                                                                                                                ? ["Latvian"]
+                                                                                                                                                : data.country === "lithuania"
+                                                                                                                                                  ? ["Lithuanian"]
+                                                                                                                                                  : ["Indian"],
+    jewish: data.country === "israel"
+      ? ["Ashkenazi", "Mizrahi", "Sephardi", "Ethiopian"]
+      : data.country === "iran"
+        ? ["Persian Jews"]
+        : data.country === "morocco"
+          ? ["Moroccan Jews"]
+          : data.country === "usa"
+            ? ["American Jewish"]
+            : data.country === "uk"
+              ? ["Ashkenazi"]
+              : ["Ashkenazi"],
+    yazidi: data.country === "iraq"
+      ? ["Yazidi"]
+      : [],
+    druze: data.country === "lebanon"
+      ? ["Druze"]
+      : data.country === "syria"
+        ? ["Druze"]
+        : data.country === "israel"
+          ? ["Druze"]
+          : [],
+    zoroastrian: data.country === "iran"
+      ? ["Zoroastrian"]
+      : [],
+    shinto: data.country === "japan"
+      ? ["Japanese"]
+      : [],
+    folk: data.country === "china"
+      ? ["Han Folk"]
+      : data.country === "south_korea"
+        ? ["Korean Folk"]
+        : data.country === "taiwan"
+          ? ["Taiwanese Folk", "Taoist"]
+          : data.country === "vietnam"
+            ? ["Vietnamese Folk"]
+            : data.country === "laos"
+              ? ["Lao Theung", "Lao Soung"]
+              : data.country === "malaysia"
+                ? ["Chinese Folk"]
+                : data.country === "singapore"
+                  ? ["Chinese Folk"]
+                  : [],
+    taoist: data.country === "taiwan"
+      ? ["Taoist"]
+      : [],
+    caodaist: data.country === "vietnam"
+      ? ["Caodaist"]
+      : [],
+    hoa_hao: data.country === "vietnam"
+      ? ["Hoa Hao"]
+      : [],
+    shamanic: data.country === "mongolia"
+      ? ["Tengerist"]
+      : data.country === "russia"
+        ? ["Siberian"]
+        : [],
+    lds: data.country === "usa"
+      ? ["Mormon"]
+      : [],
+    maori: data.country === "new_zealand"
+      ? ["Māori"]
+      : [],
+    neopagan: data.country === "iceland"
+      ? ["Neopagan"]
+      : data.country === "lithuania"
+        ? ["Romuva"]
+        : [],
+    traditional: data.country === "sudan"
+      ? ["Traditional"]
+      : [],
     jain: ["Indian"],
     parsi: ["Parsi"],
   };
