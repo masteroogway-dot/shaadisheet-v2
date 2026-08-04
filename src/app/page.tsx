@@ -492,6 +492,31 @@ export default function Home() {
         </div>
       </section>
 
+      {/* PROMOTIONAL VIDEO */}
+      <section className="py-12 md:py-20 bg-white relative">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
+          <ScrollReveal>
+            <div className="text-center mb-8 md:mb-12">
+              <h2 className="text-xl md:text-3xl font-bold text-gray-900 mb-2" style={{ fontFamily: "var(--font-display)" }}>See ShaadiSheet in Action</h2>
+              <p className="text-gray-500 text-sm md:text-base">Watch how we help families plan the perfect South Asian wedding</p>
+            </div>
+          </ScrollReveal>
+          <ScrollReveal delay={0.1}>
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200">
+              <video
+                className="w-full aspect-video object-cover"
+                controls
+                preload="metadata"
+                poster="/hero.png"
+              >
+                <source src="/promo-video.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
+
       {/* FEATURES */}
       <section id="features" className="py-16 md:py-28 relative">
         <div className="paisley-overlay" />
