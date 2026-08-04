@@ -419,7 +419,7 @@ export default function Home() {
             <img src="/logo.png" alt="ShaadiSheet" className="h-[45px] md:h-[65px] w-auto" style={{ filter: scrolled ? "none" : "invert(1) brightness(2)" }} />
           </Link>
           <div className="hidden md:flex gap-8 text-sm font-medium">
-            <a href="#features" className={`${scrolled ? "text-gray-600 hover:text-maroon" : "text-white/80 hover:text-white"} transition-colors`}>Features</a>
+            <Link href="/features" className={`${scrolled ? "text-gray-600 hover:text-maroon" : "text-white/80 hover:text-white"} transition-colors`}>Features</Link>
             <a href="#how-it-works" className={`${scrolled ? "text-gray-600 hover:text-maroon" : "text-white/80 hover:text-white"} transition-colors`}>How It Works</a>
             <a href="#religions" className={`${scrolled ? "text-gray-600 hover:text-maroon" : "text-white/80 hover:text-white"} transition-colors`}>Weddings</a>
           </div>
