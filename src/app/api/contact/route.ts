@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { rateLimit } from "@/lib/rate-limit";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 function escapeHtml(str: string): string {
   return str
@@ -29,7 +31,7 @@ export async function POST(req: Request) {
     const safeSubject = escapeHtml(String(subject || "No subject").slice(0, 200));
     const safeMessage = escapeHtml(String(message).slice(0, 5000)).replace(/\n/g, "<br/>");
 
-    await resend.emails.send({
+    await getResend().emails.send({
       from: "ShaadiSheet Contact <onboarding@resend.dev>",
       to: "theshaadisheet@gmail.com",
       replyTo: email,
