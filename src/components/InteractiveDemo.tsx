@@ -144,6 +144,7 @@ export default function InteractiveDemo({ onOpenChange }: { onOpenChange?: (open
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<DemoTab>("overview");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleOpen = (open: boolean) => {
     setIsOpen(open);
@@ -189,7 +190,7 @@ export default function InteractiveDemo({ onOpenChange }: { onOpenChange?: (open
               {/* ── TOP HEADER BAR ── */}
               <div className="h-[52px] md:h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-3 md:px-6 shrink-0">
                 <div className="flex items-center gap-2 md:gap-3">
-                  <button className="w-10 h-10 md:w-10 md:h-10 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 lg:hidden cursor-pointer">
+                  <button onClick={() => setSidebarOpen(!sidebarOpen)} className="w-10 h-10 md:w-10 md:h-10 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 lg:hidden cursor-pointer">
                     <i className="fas fa-bars text-base" />
                   </button>
                   <div className="flex items-center gap-2">
@@ -218,8 +219,67 @@ export default function InteractiveDemo({ onOpenChange }: { onOpenChange?: (open
               </div>
 
               {/* ── BODY: SIDEBAR + MAIN ── */}
-              <div className="flex flex-1 overflow-hidden">
-                {/* ── SIDEBAR ── */}
+              <div className="flex flex-1 overflow-hidden relative">
+                {/* ── MOBILE SIDEBAR OVERLAY ── */}
+                {sidebarOpen && (
+                  <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setSidebarOpen(false)}>
+                    <div className="absolute inset-0 bg-black/50" />
+                    <aside className="absolute left-0 top-0 bottom-0 w-[280px] bg-white border-r border-gray-200 flex flex-col overflow-y-auto z-50" onClick={(e) => e.stopPropagation()}>
+                      <div className="p-3 border-b border-gray-200 flex items-center justify-between">
+                        <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all cursor-pointer">
+                          <i className="fas fa-arrow-left w-5 text-center" />
+                          <span>My Weddings</span>
+                        </button>
+                        <button onClick={() => setSidebarOpen(false)} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500 cursor-pointer">
+                          <i className="fas fa-times" />
+                        </button>
+                      </div>
+                      <nav className="flex-1 py-2">
+                        {SIDEBAR_SECTIONS.map((section) => {
+                          const isActive = activeSection === section;
+                          return (
+                            <div key={section.title} className="mb-1">
+                              <div className={`w-full flex items-center gap-2 px-4 py-2 text-[0.65rem] font-bold uppercase tracking-wider ${isActive ? "text-maroon" : "text-gray-400"}`}>
+                                <i className={`fas ${section.icon} w-4 text-center text-[0.7rem]`} />
+                                <span className="flex-1 text-left">{section.title}</span>
+                                <i className="fas fa-chevron-down text-[0.55rem]" />
+                              </div>
+                              <div className="mt-0.5">
+                                {section.items.map((item) => {
+                                  const isLocked = !["overview", "budget", "vendors", "guests", "events", "tasks", "hashtags", "sangeet", "colors"].includes(item.id);
+                                  return (
+                                    <button
+                                      key={item.id}
+                                      onClick={() => {
+                                        if (!isLocked) {
+                                          setActiveTab(item.id as DemoTab);
+                                          setSidebarOpen(false);
+                                        }
+                                      }}
+                                      className={`w-full flex items-center gap-3 px-4 py-2.5 ml-2 mr-2 min-h-[44px] rounded-lg text-[0.85rem] font-medium transition-all mb-0.5 ${
+                                        isLocked
+                                          ? "text-gray-400 cursor-not-allowed opacity-60"
+                                          : activeTab === item.id
+                                            ? "bg-gradient-to-br from-maroon to-red-800 text-white shadow-sm cursor-pointer"
+                                            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+                                      }`}
+                                    >
+                                      <i className={`fas ${item.icon} w-5 text-center text-sm`} />
+                                      <span className="flex-1 text-left">{item.label}</span>
+                                      {isLocked && <i className="fas fa-lock text-[10px] text-gray-400" />}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </nav>
+                    </aside>
+                  </div>
+                )}
+
+                {/* ── DESKTOP SIDEBAR ── */}
                 <aside className="hidden lg:flex w-[240px] bg-white border-r border-gray-200 flex-col shrink-0 overflow-y-auto">
                   <div className="p-3 border-b border-gray-200">
                     <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all w-full cursor-pointer">

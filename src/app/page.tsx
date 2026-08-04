@@ -423,9 +423,9 @@ export default function Home() {
             <a href="#how-it-works" className={`${scrolled ? "text-gray-600 hover:text-maroon" : "text-white/80 hover:text-white"} transition-colors`}>How It Works</a>
             <a href="#religions" className={`${scrolled ? "text-gray-600 hover:text-maroon" : "text-white/80 hover:text-white"} transition-colors`}>Weddings</a>
           </div>
-          <div className="flex gap-2 md:gap-3 items-center">
-            <Link href="/auth" className={`px-3 md:px-5 py-2 md:py-2.5 text-xs md:text-sm font-semibold transition-colors ${scrolled ? "text-gray-700 hover:text-maroon" : "text-white/90 hover:text-white"}`}>Log In</Link>
-            <Link href="/auth" className="px-3 md:px-5 py-2 md:py-2.5 text-xs md:text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-dark transition-colors">Start Free</Link>
+          <div className="flex gap-1.5 md:gap-3 items-center">
+            <Link href="/auth" className={`px-2 md:px-5 py-1.5 md:py-2.5 text-[11px] md:text-sm font-semibold transition-colors ${scrolled ? "text-gray-700 hover:text-maroon" : "text-white/90 hover:text-white"}`}>Log In</Link>
+            <Link href="/auth" className="px-2.5 md:px-5 py-1.5 md:py-2.5 text-[11px] md:text-sm font-semibold text-white bg-maroon rounded-lg hover:bg-maroon-dark transition-colors">Start Free</Link>
           </div>
         </div>
       </nav>
