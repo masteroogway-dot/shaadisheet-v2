@@ -371,6 +371,8 @@ model SangeetSong {
   type          String              @default("Group")
   event         String              @default("Sangeet")
   notes         String              @default("")
+  musicUrl      String              @default("")
+  musicPlatform String              @default("")
   order         Int                 @default(0)
   createdAt     DateTime            @default(now())
   wedding       Wedding             @relation(fields: [weddingId], references: [id], onDelete: Cascade)

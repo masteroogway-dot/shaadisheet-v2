@@ -6,6 +6,8 @@ import {
   createSangeetPerformance, updateSangeetPerformance, deleteSangeetPerformance,
   createSangeetPractice, updateSangeetPractice, deleteSangeetPractice,
 } from "@/lib/actions";
+import MusicPlayer from "@/components/MusicPlayer";
+import { detectMusicPlatform, getMusicPlatformLabel, getMusicPlatformColor, type MusicPlatform } from "@/lib/music";
 
 interface Props {
   wedding: any;
@@ -32,7 +34,7 @@ export default function SangeetView({ wedding, weddingId, onUpdate, onToast, can
   const [showAddPractice, setShowAddPractice] = useState(false);
   const [editingSong, setEditingSong] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
-  const [newSong, setNewSong] = useState({ title: "", artist: "", duration: 0, type: "Group", event: "Sangeet", notes: "" });
+  const [newSong, setNewSong] = useState({ title: "", artist: "", duration: 0, type: "Group", event: "Sangeet", notes: "", musicUrl: "", musicPlatform: "" });
   const [newPerfSong, setNewPerfSong] = useState<string | null>(null);
   const [newPerfName, setNewPerfName] = useState("");
   const [newPractice, setNewPractice] = useState({ date: "", time: "", location: "", notes: "", attendees: "[]" });
@@ -54,7 +56,7 @@ export default function SangeetView({ wedding, weddingId, onUpdate, onToast, can
   const handleAddSong = async () => {
     try {
       await createSangeetSong(weddingId, newSong);
-      setNewSong({ title: "", artist: "", duration: 0, type: "Group", event: "Sangeet", notes: "" });
+      setNewSong({ title: "", artist: "", duration: 0, type: "Group", event: "Sangeet", notes: "", musicUrl: "", musicPlatform: "" });
       setShowAddSong(false);
       onUpdate();
       onToast("Song added");
@@ -211,22 +213,47 @@ export default function SangeetView({ wedding, weddingId, onUpdate, onToast, can
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     {editingSong === song.id ? (
-                      <div className="grid grid-cols-2 gap-2">
-                        <input value={editData.title ?? song.title} onChange={(e) => setEditData({ ...editData, title: e.target.value })} placeholder="Song title" className="px-3 py-2 border rounded-lg text-sm" />
-                        <input value={editData.artist ?? song.artist} onChange={(e) => setEditData({ ...editData, artist: e.target.value })} placeholder="Artist" className="px-3 py-2 border rounded-lg text-sm" />
-                        <input type="number" value={editData.duration ?? song.duration} onChange={(e) => setEditData({ ...editData, duration: parseInt(e.target.value) || 0 })} placeholder="Duration (sec)" className="px-3 py-2 border rounded-lg text-sm" />
-                        <select value={editData.type ?? song.type} onChange={(e) => setEditData({ ...editData, type: e.target.value })} className="px-3 py-2 border rounded-lg text-sm">
-                          {SONG_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-                        </select>
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <input value={editData.title ?? song.title} onChange={(e) => setEditData({ ...editData, title: e.target.value })} placeholder="Song title" className="px-3 py-2 border rounded-lg text-sm" />
+                          <input value={editData.artist ?? song.artist} onChange={(e) => setEditData({ ...editData, artist: e.target.value })} placeholder="Artist" className="px-3 py-2 border rounded-lg text-sm" />
+                          <input type="number" value={editData.duration ?? song.duration} onChange={(e) => setEditData({ ...editData, duration: parseInt(e.target.value) || 0 })} placeholder="Duration (sec)" className="px-3 py-2 border rounded-lg text-sm" />
+                          <select value={editData.type ?? song.type} onChange={(e) => setEditData({ ...editData, type: e.target.value })} className="px-3 py-2 border rounded-lg text-sm">
+                            {SONG_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                          </select>
+                        </div>
+                        <input
+                          value={editData.musicUrl ?? song.musicUrl ?? ""}
+                          onChange={(e) => {
+                            const url = e.target.value;
+                            const platform = detectMusicPlatform(url);
+                            setEditData({ ...editData, musicUrl: url, musicPlatform: platform || "" });
+                          }}
+                          placeholder="Paste YouTube, Spotify, or Apple Music link"
+                          className="w-full px-3 py-2 border rounded-lg text-sm"
+                        />
+                        {(editData.musicPlatform || song.musicPlatform) && (
+                          <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full ${getMusicPlatformColor((editData.musicPlatform || song.musicPlatform) as MusicPlatform)}`}>
+                            {getMusicPlatformLabel((editData.musicPlatform || song.musicPlatform) as MusicPlatform)} detected
+                          </span>
+                        )}
                       </div>
                     ) : (
                       <>
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-bold text-gray-900">{song.title || "Untitled"}</span>
                           <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{song.type}</span>
+                          {song.musicPlatform && (
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${getMusicPlatformColor(song.musicPlatform as MusicPlatform)}`}>
+                              {getMusicPlatformLabel(song.musicPlatform as MusicPlatform)}
+                            </span>
+                          )}
                           <span className="text-xs text-gray-400">{formatDuration(song.duration)}</span>
                         </div>
                         {song.artist && <p className="text-sm text-gray-500 mt-0.5">{song.artist}</p>}
+                        {song.musicUrl && song.musicPlatform && (
+                          <MusicPlayer url={song.musicUrl} platform={song.musicPlatform as MusicPlatform} compact />
+                        )}
                       </>
                     )}
                   </div>
@@ -340,6 +367,24 @@ export default function SangeetView({ wedding, weddingId, onUpdate, onToast, can
             <div className="space-y-3">
               <input value={newSong.title} onChange={(e) => setNewSong({ ...newSong, title: e.target.value })} placeholder="Song title" className="w-full px-3 py-2 border rounded-lg text-sm" />
               <input value={newSong.artist} onChange={(e) => setNewSong({ ...newSong, artist: e.target.value })} placeholder="Artist" className="w-full px-3 py-2 border rounded-lg text-sm" />
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Music Link (optional)</label>
+                <input
+                  value={newSong.musicUrl}
+                  onChange={(e) => {
+                    const url = e.target.value;
+                    const platform = detectMusicPlatform(url);
+                    setNewSong({ ...newSong, musicUrl: url, musicPlatform: platform || "" });
+                  }}
+                  placeholder="Paste YouTube, Spotify, or Apple Music link"
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                />
+                {newSong.musicPlatform && (
+                  <span className={`inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full ${getMusicPlatformColor(newSong.musicPlatform as MusicPlatform)}`}>
+                    {getMusicPlatformLabel(newSong.musicPlatform as MusicPlatform)} detected
+                  </span>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Duration (seconds)</label>

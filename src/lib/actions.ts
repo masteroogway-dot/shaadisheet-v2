@@ -2517,7 +2517,7 @@ export async function getWeddingTemplateBudgetRanges(weddingId: string) {
 // SANGEET CHOREOGRAPHY PLANNER
 // ═══════════════════════════════════════════════════════════════
 
-export async function createSangeetSong(weddingId: string, data: { title?: string; artist?: string; duration?: number; type?: string; event?: string; notes?: string }) {
+export async function createSangeetSong(weddingId: string, data: { title?: string; artist?: string; duration?: number; type?: string; event?: string; notes?: string; musicUrl?: string; musicPlatform?: string }) {
   const wedding = await getCurrentWedding(weddingId);
   const maxOrder = Math.max(...wedding.sangeetSongs.map((s) => s.order), -1);
   return prisma.sangeetSong.create({ data: { weddingId: wedding.id, ...data, order: maxOrder + 1 } });
