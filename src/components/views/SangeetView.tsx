@@ -7,6 +7,7 @@ import {
   createSangeetPractice, updateSangeetPractice, deleteSangeetPractice,
 } from "@/lib/actions";
 import MusicPlayer from "@/components/MusicPlayer";
+import DurationPicker from "@/components/DurationPicker";
 import { detectMusicPlatform, getMusicPlatformLabel, getMusicPlatformColor, type MusicPlatform } from "@/lib/music";
 
 interface Props {
@@ -217,11 +218,15 @@ export default function SangeetView({ wedding, weddingId, onUpdate, onToast, can
                         <div className="grid grid-cols-2 gap-2">
                           <input value={editData.title ?? song.title} onChange={(e) => setEditData({ ...editData, title: e.target.value })} placeholder="Song title" className="px-3 py-2 border rounded-lg text-sm" />
                           <input value={editData.artist ?? song.artist} onChange={(e) => setEditData({ ...editData, artist: e.target.value })} placeholder="Artist" className="px-3 py-2 border rounded-lg text-sm" />
-                          <input type="number" value={editData.duration ?? song.duration || ""} onChange={(e) => setEditData({ ...editData, duration: parseInt(e.target.value) || 0 })} placeholder="Duration (sec)" className="px-3 py-2 border rounded-lg text-sm" />
                           <select value={editData.type ?? song.type} onChange={(e) => setEditData({ ...editData, type: e.target.value })} className="px-3 py-2 border rounded-lg text-sm">
                             {SONG_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                           </select>
                         </div>
+                        <DurationPicker
+                          value={editData.duration ?? song.duration ?? 0}
+                          onChange={(seconds) => setEditData({ ...editData, duration: seconds })}
+                          compact
+                        />
                         <input
                           value={editData.musicUrl ?? song.musicUrl ?? ""}
                           onChange={(e) => {
@@ -387,15 +392,15 @@ export default function SangeetView({ wedding, weddingId, onUpdate, onToast, can
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-gray-500 mb-1 block">Duration (seconds)</label>
-                  <input type="number" value={newSong.duration || ""} onChange={(e) => setNewSong({ ...newSong, duration: parseInt(e.target.value) || 0 })} placeholder="180" className="w-full px-3 py-2 border rounded-lg text-sm" />
-                </div>
-                <div>
                   <label className="text-xs text-gray-500 mb-1 block">Type</label>
                   <select value={newSong.type} onChange={(e) => setNewSong({ ...newSong, type: e.target.value })} className="w-full px-3 py-2 border rounded-lg text-sm">
                     {SONG_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Duration</label>
+                <DurationPicker value={newSong.duration} onChange={(seconds) => setNewSong({ ...newSong, duration: seconds })} />
               </div>
               <textarea value={newSong.notes} onChange={(e) => setNewSong({ ...newSong, notes: e.target.value })} placeholder="Notes (optional)" className="w-full px-3 py-2 border rounded-lg text-sm" rows={2} />
             </div>
