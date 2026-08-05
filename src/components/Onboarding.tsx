@@ -1115,7 +1115,7 @@ export default function Onboarding({ onComplete }: Props) {
                   className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-transparent cursor-text"
                 />
                 {(countrySearch || data.country) && (
-                  <button onClick={() => { setCountrySearch(""); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
+                  <button onClick={() => { setCountrySearch(""); setData(prev => ({ ...prev, country: "" })); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
                     <i className="fas fa-times text-xs" />
                   </button>
                 )}
