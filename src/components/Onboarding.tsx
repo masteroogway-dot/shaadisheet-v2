@@ -1106,14 +1106,16 @@ export default function Onboarding({ onComplete }: Props) {
                 <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
                 <input
                   type="text"
-                  value={countrySearch}
+                  value={countrySearch || (data.country ? `${COUNTRIES.find((c) => c.id === data.country)?.flag || ""} ${COUNTRIES.find((c) => c.id === data.country)?.name || ""}` : "")}
                   onChange={(e) => setCountrySearch(e.target.value)}
                   placeholder="Type a country name..."
+                  readOnly={!!data.country && !countrySearch}
+                  onFocus={() => { if (data.country) setCountrySearch(""); }}
                   autoFocus
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-transparent cursor-text"
                 />
-                {countrySearch && (
-                  <button onClick={() => setCountrySearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
+                {(countrySearch || data.country) && (
+                  <button onClick={() => { setCountrySearch(""); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
                     <i className="fas fa-times text-xs" />
                   </button>
                 )}
