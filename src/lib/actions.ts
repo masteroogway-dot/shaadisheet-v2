@@ -198,6 +198,8 @@ export async function getAllWeddings() {
 export async function updateWedding(data: {
   weddingId: string;
   name?: string;
+  partner1Name?: string;
+  partner2Name?: string;
   religion?: string;
   region?: string;
   country?: string;

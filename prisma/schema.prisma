@@ -91,6 +91,8 @@ model Wedding {
   id              String                @id @default(cuid())
   userId          String
   name            String                @default("")
+  partner1Name    String                @default("")
+  partner2Name    String                @default("")
   religion        String                @default("")
   region          String                @default("")
   country         String                @default("india")

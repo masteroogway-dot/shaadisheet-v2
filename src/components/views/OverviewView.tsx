@@ -1,15 +1,14 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import CountUp from "@/components/animations/CountUp";
-import { updateWedding } from "@/lib/actions";
-import { formatCurrency, formatCurrencyAbbrev, getCurrencySymbol, getBudgetRange } from "@/lib/format";
+import { formatCurrency, formatCurrencyAbbrev, getCurrencySymbol } from "@/lib/format";
 import InviteModal from "@/components/InviteModal";
 import WeddingWebsiteModal from "@/components/WeddingWebsiteModal";
 import WeddingQuestionnaire from "@/components/WeddingQuestionnaire";
 import ToastContainer, { Toast } from "@/components/Toast";
-import CurrencyInput from "@/components/CurrencyInput";
 
 function formatTime(time: string): string {
   if (!time) return "";
@@ -21,13 +20,6 @@ function formatTime(time: string): string {
 
 export default function OverviewView({ wedding, onUpdate, userRole = "owner", onToast }: { wedding: any; onUpdate?: () => void; userRole?: string; onToast?: (msg: string, type?: "success" | "error") => void }) {
   const { data: session } = useSession();
-  const [editBudget, setEditBudget] = useState("");
-  const [editGuests, setEditGuests] = useState("");
-  const [editDate, setEditDate] = useState("");
-  const [editingBudget, setEditingBudget] = useState(false);
-  const [editingGuests, setEditingGuests] = useState(false);
-  const [editingDate, setEditingDate] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [websiteOpen, setWebsiteOpen] = useState(false);
   const [questionnaireOpen, setQuestionnaireOpen] = useState(false);
@@ -46,72 +38,7 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const canEditBudget = userRole === "owner" || userRole === "co-owner";
   const canManageCollabs = userRole === "owner" || userRole === "co-owner";
-
-  const BUDGET_MIN = 100000;
-  const BUDGET_MAX = 100000000;
-  const GUEST_MIN = 50;
-  const GUEST_MAX = 5000;
-
-  const handleSaveBudget = async () => {
-    const val = parseInt(editBudget) || 0;
-    if (val < BUDGET_MIN || val > BUDGET_MAX) {
-      addToast(`Budget must be between ${getCurrencySymbol(wedding.currency)}10 Lakh and ${getCurrencySymbol(wedding.currency)}10 Crore`, "error");
-      return;
-    }
-    setSaving(true);
-    try {
-      await updateWedding({ weddingId: wedding.id, budget: val });
-      setEditingBudget(false);
-      addToast("Budget updated successfully", "success");
-      if (onUpdate) onUpdate();
-    } catch (e) {
-      console.error(e);
-      addToast("Failed to update budget", "error");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleSaveGuests = async () => {
-    const val = parseInt(editGuests) || 0;
-    if (val < GUEST_MIN || val > GUEST_MAX) {
-      addToast(`Guest count must be between ${GUEST_MIN.toLocaleString("en-IN")} and ${GUEST_MAX.toLocaleString("en-IN")}`, "error");
-      return;
-    }
-    setSaving(true);
-    try {
-      await updateWedding({ weddingId: wedding.id, guestCount: val });
-      setEditingGuests(false);
-      addToast("Guest count updated successfully", "success");
-      if (onUpdate) onUpdate();
-    } catch (e) {
-      console.error(e);
-      addToast("Failed to update guest count", "error");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleSaveDate = async () => {
-    if (!editDate) {
-      addToast("Please select a date", "error");
-      return;
-    }
-    setSaving(true);
-    try {
-      await updateWedding({ weddingId: wedding.id, weddingDate: new Date(editDate) });
-      setEditingDate(false);
-      addToast("Wedding date updated successfully", "success");
-      if (onUpdate) onUpdate();
-    } catch (e) {
-      console.error(e);
-      addToast("Failed to update wedding date", "error");
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const handleChangeCollabRole = async (userId: string, newRole: string) => {
     try {
@@ -313,6 +240,13 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                 <i className="fas fa-globe text-white/70" />
                 <span className="hidden sm:inline">Website</span>
               </button>
+              <Link
+                href={`/dashboard/${wedding.id}/wedding-settings`}
+                className="flex items-center gap-2 px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-sm font-semibold text-white hover:bg-white/20 transition-colors cursor-pointer shrink-0 min-h-[44px]"
+              >
+                <i className="fas fa-cog text-white/70" />
+                <span className="hidden sm:inline">Settings</span>
+              </Link>
               <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-4 py-3 shrink-0">
                 <div className="text-2xl">{currentPhase.emoji}</div>
                 <div>
@@ -471,122 +405,6 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                     </span>
                   </div>
                 ))}
-              </div>
-            </div>
-          {/* Wedding Settings */}            <div className="bg-white rounded-xl border border-gray-200 p-5 md:p-6 mb-8 md:mb-10">
-              <h3 className="font-bold text-gray-900 mb-4">
-                <i className="fas fa-cog text-gray-400 mr-2" />
-                Wedding Settings
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Budget */}
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Total Budget</p>
-                  {editingBudget ? (
-                    <>
-                      <CurrencyInput
-                        value={parseInt(editBudget) || 0}
-                        onChange={(val) => setEditBudget(String(val))}
-                        placeholder={String(wedding.budget || "")}
-                        currency={wedding.currency}
-                      />
-                      <p className="text-[0.65rem] text-gray-400 mt-1">Min: {formatCurrency(getBudgetRange(wedding.currency).min, wedding.currency)}, Max: {formatCurrency(getBudgetRange(wedding.currency).max, wedding.currency)}</p>
-                      <div className="flex gap-2 mt-3">
-                        <button onClick={handleSaveBudget} disabled={saving} className="px-3 py-1.5 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
-                          {saving ? "Saving..." : "Save"}
-                        </button>
-                        <button onClick={() => setEditingBudget(false)} className="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
-                          Cancel
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-lg font-extrabold text-gray-900 truncate">
-                        {totalBudget > 0 ? formatCurrency(totalBudget, wedding.currency) : "Not set"}
-                      </p>
-                      {canEditBudget && (
-                        <button onClick={() => { setEditBudget(String(wedding.budget || "")); setEditingBudget(true); }} className="px-2.5 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer shrink-0">
-                          <i className="fas fa-pen" />
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Guest Count */}
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Expected Guests</p>
-                  {editingGuests ? (
-                    <>
-                      <input
-                        type="number"
-                        value={editGuests}
-                        onChange={(e) => setEditGuests(e.target.value)}
-                        placeholder={String(wedding.guestCount || "")}
-                        className="w-full px-3 py-1.5 border-2 border-gray-200 focus:border-maroon rounded-lg text-sm font-bold focus:outline-none transition-colors"
-                        min={GUEST_MIN}
-                        max={GUEST_MAX}
-                      />
-                      <p className="text-[0.65rem] text-gray-400 mt-1">Min: 50, Max: 5,000</p>
-                      <div className="flex gap-2 mt-3">
-                        <button onClick={handleSaveGuests} disabled={saving} className="px-3 py-1.5 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
-                          {saving ? "Saving..." : "Save"}
-                        </button>
-                        <button onClick={() => setEditingGuests(false)} className="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
-                          Cancel
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-lg font-extrabold text-gray-900 truncate">
-                        {(wedding.guestCount || 0) > 0 ? (wedding.guestCount || 0).toLocaleString("en-IN") : "Not set"}
-                      </p>
-                      {canEditBudget && (
-                        <button onClick={() => { setEditGuests(String(wedding.guestCount || "")); setEditingGuests(true); }} className="px-2.5 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer shrink-0">
-                          <i className="fas fa-pen" />
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Wedding Date */}
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Wedding Date</p>
-                  {editingDate ? (
-                    <>
-                      <input
-                        type="date"
-                        value={editDate}
-                        onChange={(e) => setEditDate(e.target.value)}
-                        className="w-full px-3 py-1.5 border-2 border-gray-200 focus:border-maroon rounded-lg text-sm font-bold focus:outline-none transition-colors"
-                      />
-                      <div className="flex gap-2 mt-3">
-                        <button onClick={handleSaveDate} disabled={saving} className="px-3 py-1.5 bg-maroon text-white text-xs font-semibold rounded-lg hover:bg-maroon-dark disabled:opacity-50 cursor-pointer">
-                          {saving ? "Saving..." : "Save"}
-                        </button>
-                        <button onClick={() => setEditingDate(false)} className="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 cursor-pointer">
-                          Cancel
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-lg font-extrabold text-gray-900 truncate">
-                        {wedding.weddingDate
-                          ? new Date(wedding.weddingDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
-                          : "Not set"}
-                      </p>
-                      {canEditBudget && (
-                        <button onClick={() => { setEditDate(wedding.weddingDate ? new Date(wedding.weddingDate).toISOString().split("T")[0] : ""); setEditingDate(true); }} className="px-2.5 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 cursor-pointer shrink-0">
-                          <i className="fas fa-pen" />
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           {/* Collaborators Section */}
