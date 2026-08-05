@@ -5807,7 +5807,7 @@ export const COUNTRIES = [
   { id: "syria", name: "Syria", flag: "\uD83C\uDDF8\uD83C\uDDFE", currency: "SYP" },
   { id: "palestine", name: "Palestine", flag: "\uD83C\uDDF5\uD83C\uDDF8", currency: "ILS" },
   { id: "israel", name: "Israel", flag: "\uD83C\uDDEE\uD83C\uDDF1", currency: "ILS" },
-  { id: "iran", name: "Iran", flag: "\uD83C\uDDEE\uD83C\uDDEE", currency: "IRR" },
+  { id: "iran", name: "Iran", flag: "\uD83C\uDDEE\uD83C\uDDF7", currency: "IRR" },
   { id: "turkey", name: "Turkey", flag: "\uD83C\uDDF9\uD83C\uDDF7", currency: "TRY" },
   { id: "egypt", name: "Egypt", flag: "\uD83C\uDDEA\uD83C\uDDEC", currency: "EGP" },
   { id: "libya", name: "Libya", flag: "\uD83C\uDDF1\uD83C\uDDFE", currency: "LYD" },

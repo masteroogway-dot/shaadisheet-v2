@@ -1101,15 +1101,16 @@ export default function Onboarding({ onComplete }: Props) {
           {step === 1 && (
             <div className="animate-[fadeInUp_0.4s_ease]">
               <h2 className="text-xl md:text-3xl font-bold mb-2">Where is your wedding?</h2>
-              <p className="text-gray-500 mb-4 md:mb-6 text-sm md:text-base">Select your country to get the right traditions, currency, and planning defaults.</p>
+              <p className="text-gray-500 mb-4 md:mb-6 text-sm md:text-base">Start typing to search for your country.</p>
               <div className="relative mb-4">
                 <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
                 <input
                   type="text"
                   value={countrySearch}
                   onChange={(e) => setCountrySearch(e.target.value)}
-                  placeholder="Search countries..."
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-transparent"
+                  placeholder="Type a country name..."
+                  autoFocus
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-transparent"
                 />
                 {countrySearch && (
                   <button onClick={() => setCountrySearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
@@ -1117,21 +1118,23 @@ export default function Onboarding({ onComplete }: Props) {
                   </button>
                 )}
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-                {filteredCountries.map((c) => (
-                  <button key={c.id} onClick={() => { selectCountry(c.id); setCountrySearch(""); }}
-                    className={`flex flex-col items-center gap-2 md:gap-3 p-4 md:p-7 bg-white border-2 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md ${data.country === c.id ? "border-maroon shadow-[0_0_0_3px_rgba(139,0,0,0.1)] bg-gradient-to-br from-maroon/5 to-gold/5" : "border-gray-200"}`}>
-                    <span className="text-3xl md:text-5xl">{c.flag}</span>
-                    <span className="font-semibold text-xs md:text-sm">{c.name}</span>
-                  </button>
-                ))}
-                {filteredCountries.length === 0 && (
-                  <div className="col-span-full text-center py-8 text-gray-400">
-                    <i className="fas fa-globe text-2xl mb-2" />
-                    <p className="text-sm">No countries found. Try a different search.</p>
-                  </div>
-                )}
-              </div>
+              {countrySearch && filteredCountries.length > 0 && (
+                <div className="border border-gray-200 rounded-xl bg-white shadow-lg max-h-[300px] overflow-y-auto">
+                  {filteredCountries.map((c) => (
+                    <button key={c.id} onClick={() => { selectCountry(c.id); setCountrySearch(""); }}
+                      className={`flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-maroon/5 transition-colors cursor-pointer ${data.country === c.id ? "bg-maroon/5" : ""}`}>
+                      <span className="text-xl">{c.flag}</span>
+                      <span className="font-medium text-sm">{c.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {countrySearch && filteredCountries.length === 0 && (
+                <div className="text-center py-6 text-gray-400">
+                  <i className="fas fa-globe text-2xl mb-2" />
+                  <p className="text-sm">No countries found. Try a different search.</p>
+                </div>
+              )}
             </div>
           )}
 
