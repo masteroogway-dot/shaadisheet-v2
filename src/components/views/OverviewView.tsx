@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import CountUp from "@/components/animations/CountUp";
 import { formatCurrency, formatCurrencyAbbrev, getCurrencySymbol } from "@/lib/format";
@@ -20,6 +21,7 @@ function formatTime(time: string): string {
 
 export default function OverviewView({ wedding, onUpdate, userRole = "owner", onToast }: { wedding: any; onUpdate?: () => void; userRole?: string; onToast?: (msg: string, type?: "success" | "error") => void }) {
   const { data: session } = useSession();
+  const router = useRouter();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [websiteOpen, setWebsiteOpen] = useState(false);
   const [questionnaireOpen, setQuestionnaireOpen] = useState(false);
@@ -240,13 +242,13 @@ export default function OverviewView({ wedding, onUpdate, userRole = "owner", on
                 <i className="fas fa-globe text-white/70" />
                 <span className="hidden sm:inline">Website</span>
               </button>
-              <Link
-                href={`/dashboard/${wedding.id}/wedding-settings`}
+              <button
+                onClick={() => router.push(`/dashboard/${wedding.id}/wedding-settings`)}
                 className="flex items-center gap-2 px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-sm font-semibold text-white hover:bg-white/20 transition-colors cursor-pointer shrink-0 min-h-[44px]"
               >
                 <i className="fas fa-cog text-white/70" />
                 <span className="hidden sm:inline">Settings</span>
-              </Link>
+              </button>
               <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-4 py-3 shrink-0">
                 <div className="text-2xl">{currentPhase.emoji}</div>
                 <div>
