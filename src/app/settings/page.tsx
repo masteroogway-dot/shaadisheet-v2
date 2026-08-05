@@ -5,15 +5,94 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import NoIndex from "@/components/NoIndex";
+import { updateWedding } from "@/lib/actions";
+
+const CURRENCIES = [
+  { code: "INR", symbol: "₹", name: "Indian Rupee" },
+  { code: "USD", symbol: "$", name: "US Dollar" },
+  { code: "GBP", symbol: "£", name: "British Pound" },
+  { code: "EUR", symbol: "€", name: "Euro" },
+  { code: "CAD", symbol: "C$", name: "Canadian Dollar" },
+  { code: "AUD", symbol: "A$", name: "Australian Dollar" },
+  { code: "NZD", symbol: "NZ$", name: "New Zealand Dollar" },
+  { code: "SGD", symbol: "S$", name: "Singapore Dollar" },
+  { code: "CHF", symbol: "CHF", name: "Swiss Franc" },
+  { code: "PKR", symbol: "₨", name: "Pakistani Rupee" },
+  { code: "BDT", symbol: "৳", name: "Bangladeshi Taka" },
+  { code: "LKR", symbol: "Rs", name: "Sri Lankan Rupee" },
+  { code: "NPR", symbol: "₨", name: "Nepalese Rupee" },
+  { code: "AED", symbol: "AED", name: "UAE Dirham" },
+  { code: "SAR", symbol: "﷼", name: "Saudi Riyal" },
+  { code: "QAR", symbol: "QR", name: "Qatari Riyal" },
+  { code: "KWD", symbol: "KD", name: "Kuwaiti Dinar" },
+  { code: "BHD", symbol: "BD", name: "Bahraini Dinar" },
+  { code: "OMR", symbol: "OMR", name: "Omani Rial" },
+  { code: "JOD", symbol: "JD", name: "Jordanian Dinar" },
+  { code: "EGP", symbol: "E£", name: "Egyptian Pound" },
+  { code: "TRY", symbol: "₺", name: "Turkish Lira" },
+  { code: "ILS", symbol: "₪", name: "Israeli Shekel" },
+  { code: "ZAR", symbol: "R", name: "South African Rand" },
+  { code: "NGN", symbol: "₦", name: "Nigerian Naira" },
+  { code: "KES", symbol: "KSh", name: "Kenyan Shilling" },
+  { code: "GHS", symbol: "GH₵", name: "Ghanaian Cedi" },
+  { code: "THB", symbol: "฿", name: "Thai Baht" },
+  { code: "MYR", symbol: "RM", name: "Malaysian Ringgit" },
+  { code: "PHP", symbol: "₱", name: "Philippine Peso" },
+  { code: "IDR", symbol: "Rp", name: "Indonesian Rupiah" },
+  { code: "VND", symbol: "₫", name: "Vietnamese Dong" },
+  { code: "CNY", symbol: "¥", name: "Chinese Yuan" },
+  { code: "JPY", symbol: "¥", name: "Japanese Yen" },
+  { code: "KRW", symbol: "₩", name: "South Korean Won" },
+  { code: "RUB", symbol: "₽", name: "Russian Ruble" },
+  { code: "PLN", symbol: "zł", name: "Polish Zloty" },
+  { code: "CZK", symbol: "Kč", name: "Czech Koruna" },
+  { code: "HUF", symbol: "Ft", name: "Hungarian Forint" },
+  { code: "RON", symbol: "lei", name: "Romanian Leu" },
+  { code: "SEK", symbol: "kr", name: "Swedish Krona" },
+  { code: "NOK", symbol: "kr", name: "Norwegian Krone" },
+  { code: "DKK", symbol: "kr", name: "Danish Krone" },
+];
 
 export default function SettingsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [notifications, setNotifications] = useState(true);
+  const [currency, setCurrency] = useState("INR");
+  const [weddingId, setWeddingId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/auth");
   }, [status, router]);
+
+  useEffect(() => {
+    async function loadWedding() {
+      try {
+        const res = await fetch("/api/weddings");
+        const data = await res.json();
+        const weddings = data.owned || data.weddings || [];
+        if (weddings.length > 0) {
+          setWeddingId(weddings[0].id);
+          setCurrency(weddings[0].currency || "INR");
+        }
+      } catch (e) {
+        console.error("Failed to load wedding:", e);
+      }
+    }
+    if (status === "authenticated") loadWedding();
+  }, [status]);
+
+  const handleCurrencyChange = async (newCurrency: string) => {
+    setCurrency(newCurrency);
+    if (!weddingId) return;
+    setSaving(true);
+    try {
+      await updateWedding({ weddingId, currency: newCurrency });
+    } catch (e) {
+      console.error("Failed to update currency:", e);
+    }
+    setSaving(false);
+  };
 
   if (status === "loading") {
     return (
@@ -96,11 +175,23 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-900">Currency</p>
-                <p className="text-xs text-gray-500 mt-0.5">Display currency as Indian Rupees</p>
+                <p className="text-xs text-gray-500 mt-0.5">Display currency across your wedding planner</p>
               </div>
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-sm font-medium text-gray-700">
-                <span className="text-maroon">₹</span> INR
-              </span>
+              <div className="relative">
+                <select
+                  value={currency}
+                  onChange={(e) => handleCurrencyChange(e.target.value)}
+                  disabled={saving}
+                  className="appearance-none px-3 py-1.5 pr-8 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-maroon cursor-pointer disabled:opacity-50"
+                >
+                  {CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.symbol} {c.code}
+                    </option>
+                  ))}
+                </select>
+                <i className="fas fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none" />
+              </div>
             </div>
           </div>
         </div>
