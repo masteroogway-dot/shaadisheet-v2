@@ -61,11 +61,15 @@ export default function SettingsPage() {
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/auth");
   }, [status, router]);
+
+  useEffect(() => {
+    const savedCurrency = localStorage.getItem("shaadisheet-currency");
+    if (savedCurrency) setCurrency(savedCurrency);
+  }, []);
 
   useEffect(() => {
     async function loadWedding() {
@@ -75,7 +79,7 @@ export default function SettingsPage() {
         const weddings = data.owned || data.weddings || [];
         if (weddings.length > 0) {
           setWeddingId(weddings[0].id);
-          setCurrency(weddings[0].currency || "INR");
+          if (weddings[0].currency) setCurrency(weddings[0].currency);
         }
       } catch (e) {
         console.error("Failed to load wedding:", e);
@@ -85,11 +89,13 @@ export default function SettingsPage() {
   }, [status]);
 
   const handleSave = async () => {
-    if (!weddingId) return;
     setSaving(true);
     setSaved(false);
     try {
-      await updateWedding({ weddingId, currency });
+      localStorage.setItem("shaadisheet-currency", currency);
+      if (weddingId) {
+        await updateWedding({ weddingId, currency });
+      }
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
@@ -169,7 +175,7 @@ export default function SettingsPage() {
                 <p className="text-xs text-gray-500 mt-0.5">Receive updates about your weddings</p>
               </div>
               <button
-                onClick={() => { setNotifications(!notifications); setHasChanges(true); }}
+                onClick={() => setNotifications(!notifications)}
                 className={`w-11 h-6 rounded-full relative transition-colors duration-200 cursor-pointer ${notifications ? "bg-maroon" : "bg-gray-300"}`}
               >
                 <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${notifications ? "left-[22px]" : "left-0.5"}`} />
@@ -184,7 +190,7 @@ export default function SettingsPage() {
               <div className="relative">
                 <select
                   value={currency}
-                  onChange={(e) => { setCurrency(e.target.value); setHasChanges(true); }}
+                  onChange={(e) => setCurrency(e.target.value)}
                   disabled={saving}
                   className="appearance-none px-3 py-1.5 pr-8 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-maroon cursor-pointer disabled:opacity-50"
                 >
@@ -230,7 +236,7 @@ export default function SettingsPage() {
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={handleSave}
-            disabled={saving || !weddingId}
+            disabled={saving}
             className={`flex items-center justify-center gap-2 px-6 py-3 text-sm font-bold rounded-xl transition-all cursor-pointer ${
               saved
                 ? "bg-green text-white"
