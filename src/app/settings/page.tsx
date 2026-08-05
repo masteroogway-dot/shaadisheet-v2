@@ -60,6 +60,8 @@ export default function SettingsPage() {
   const [currency, setCurrency] = useState("INR");
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/auth");
@@ -82,14 +84,16 @@ export default function SettingsPage() {
     if (status === "authenticated") loadWedding();
   }, [status]);
 
-  const handleCurrencyChange = async (newCurrency: string) => {
-    setCurrency(newCurrency);
+  const handleSave = async () => {
     if (!weddingId) return;
     setSaving(true);
+    setSaved(false);
     try {
-      await updateWedding({ weddingId, currency: newCurrency });
+      await updateWedding({ weddingId, currency });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
     } catch (e) {
-      console.error("Failed to update currency:", e);
+      console.error("Failed to save settings:", e);
     }
     setSaving(false);
   };
@@ -165,7 +169,7 @@ export default function SettingsPage() {
                 <p className="text-xs text-gray-500 mt-0.5">Receive updates about your weddings</p>
               </div>
               <button
-                onClick={() => setNotifications(!notifications)}
+                onClick={() => { setNotifications(!notifications); setHasChanges(true); }}
                 className={`w-11 h-6 rounded-full relative transition-colors duration-200 cursor-pointer ${notifications ? "bg-maroon" : "bg-gray-300"}`}
               >
                 <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${notifications ? "left-[22px]" : "left-0.5"}`} />
@@ -180,7 +184,7 @@ export default function SettingsPage() {
               <div className="relative">
                 <select
                   value={currency}
-                  onChange={(e) => handleCurrencyChange(e.target.value)}
+                  onChange={(e) => { setCurrency(e.target.value); setHasChanges(true); }}
                   disabled={saving}
                   className="appearance-none px-3 py-1.5 pr-8 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-maroon cursor-pointer disabled:opacity-50"
                 >
@@ -213,13 +217,41 @@ export default function SettingsPage() {
         </div>
 
         {/* Danger zone */}
-        <div className="bg-white border border-red-200 rounded-2xl p-6 md:p-8">
+        <div className="bg-white border border-red-200 rounded-2xl p-6 md:p-8 mb-6">
           <h2 className="text-base font-bold text-red-600 mb-2">Danger Zone</h2>
           <p className="text-sm text-gray-500 mb-5">Permanently delete your account and all associated data. This action cannot be undone.</p>
           <button className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-red-600 border border-red-300 rounded-xl hover:bg-red-50 transition-colors cursor-pointer">
             <i className="fas fa-trash-can text-xs" />
             Delete Account
           </button>
+        </div>
+
+        {/* Save & Return */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={handleSave}
+            disabled={saving || !weddingId}
+            className={`flex items-center justify-center gap-2 px-6 py-3 text-sm font-bold rounded-xl transition-all cursor-pointer ${
+              saved
+                ? "bg-green text-white"
+                : "bg-gradient-to-br from-maroon to-maroon-light text-white shadow-[0_4px_15px_rgba(139,0,0,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(139,0,0,0.4)]"
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            {saving ? (
+              <><i className="fas fa-spinner fa-spin text-xs" /> Saving...</>
+            ) : saved ? (
+              <><i className="fas fa-check text-xs" /> Saved!</>
+            ) : (
+              <><i className="fas fa-save text-xs" /> Save Changes</>
+            )}
+          </button>
+          <Link
+            href="/dashboard"
+            className="flex items-center justify-center gap-2 px-6 py-3 text-sm font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+          >
+            <i className="fas fa-arrow-left text-xs" />
+            Return to Dashboard
+          </Link>
         </div>
       </div>
     </div>
