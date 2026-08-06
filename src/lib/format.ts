@@ -116,7 +116,7 @@ function getConfig(currency?: string): CurrencyConfig {
 
 export function formatCurrency(n: number, currency?: string): string {
   const cfg = getConfig(currency);
-  const formatted = n.toLocaleString(cfg.locale, { maximumFractionDigits: cfg.decimals });
+  const formatted = n.toLocaleString("en-US", { maximumFractionDigits: cfg.decimals });
   return `${cfg.symbol}${formatted}`;
 }
 
@@ -143,7 +143,7 @@ export function formatCurrencyAbbrev(n: number, currency?: string): string {
     if (n >= 10000000) return (n / 10000000).toFixed(1).replace(/\.0$/, "") + " Cr";
     if (n >= 100000) return (n / 100000).toFixed(1).replace(/\.0$/, "") + " L";
     if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + " K";
-    return n.toLocaleString(cfg.locale);
+    return n.toLocaleString("en-US");
   }
 
   // Western numbering: K, M, B
@@ -151,7 +151,7 @@ export function formatCurrencyAbbrev(n: number, currency?: string): string {
   if (n >= 1000000000) return (n / 1000000000).toFixed(1).replace(/\.0$/, "") + "B";
   if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
   if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + "K";
-  return n.toLocaleString(cfg.locale);
+  return n.toLocaleString("en-US");
 }
 
 // ═══════════════════════════════════════════════════════════════

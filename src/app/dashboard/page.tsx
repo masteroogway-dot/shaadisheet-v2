@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { getAllWeddings, createWedding, updateWedding, deleteWedding } from "@/lib/actions";
-import { formatCurrency, getCurrencySymbol } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 import ProfileMenu from "@/components/ProfileMenu";
 import NoIndex from "@/components/NoIndex";
 
@@ -126,7 +126,7 @@ export default function DashboardPage() {
 
   const formatBudget = (budget: number, currency: string) => {
     if (budget === 0) return "Not set";
-    return `${getCurrencySymbol(currency)}${formatCurrency(budget, currency)}`;
+    return formatCurrency(budget, currency);
   };
 
   const formatGuestCount = (count: number) => {
