@@ -1050,30 +1050,18 @@ export async function seedWeddingEvents(weddingId: string) {
       }
     }
 
-    let needsUpdate = false;
-    for (const evt of existing) {
-      const expectedDate = new Date(weddingDate);
-      const templateEntry = filteredTemplate.find((t: any) => t.name === evt.name);
-      if (templateEntry) {
-        expectedDate.setDate(expectedDate.getDate() + templateEntry.dayOffset);
-        const expectedStr = expectedDate.toISOString().split("T")[0];
-        if (evt.date !== expectedStr) {
-          needsUpdate = true;
-          break;
-        }
-      }
-    }
-
-    if (!needsUpdate) return;
-
-    for (const evt of existing) {
-      const templateEntry = filteredTemplate.find((t: any) => t.name === evt.name);
-      if (templateEntry) {
-        const newDate = new Date(weddingDate);
-        newDate.setDate(newDate.getDate() + templateEntry.dayOffset);
-        await prisma.weddingEvent.update({
-          where: { id: evt.id },
-          data: { date: newDate.toISOString().split("T")[0] },
+    const existingNames = new Set(existing.map((e: any) => e.name));
+    let order = existing.length > 0 ? Math.max(...existing.map((e: any) => e.order || 0)) + 1 : 0;
+    for (const t of filteredTemplate) {
+      if (!existingNames.has(t.name)) {
+        const date = new Date(weddingDate);
+        date.setDate(date.getDate() + t.dayOffset);
+        await prisma.weddingEvent.create({
+          data: {
+            weddingId, order: order++, name: t.name, description: t.description,
+            date: date.toISOString().split("T")[0], startTime: t.startTime, duration: t.duration,
+            location: wedding.weddingCity || "", isRitual: t.isRitual, isSimultaneous: t.isSimultaneous || false,
+          },
         });
       }
     }
