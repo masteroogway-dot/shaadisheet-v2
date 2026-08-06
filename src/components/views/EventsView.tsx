@@ -134,15 +134,6 @@ export default function EventsView({ wedding, weddingId, canEdit = true }: { wed
   }, [weddingId]);
 
   const today = new Date().toISOString().split("T")[0];
-  const weddingStart = wedding.weddingDate
-    ? new Date(wedding.weddingDate).toISOString().split("T")[0]
-    : today;
-  const weddingEnd = (() => {
-    if (!weddingStart) return "";
-    const d = new Date(weddingStart);
-    d.setDate(d.getDate() + (wedding.weddingDays || 1) - 1);
-    return d.toISOString().split("T")[0];
-  })();
 
   const handleSave = async (id: string) => {
     await updateWeddingEvent(weddingId, id, editData);
@@ -157,7 +148,7 @@ export default function EventsView({ wedding, weddingId, canEdit = true }: { wed
     const newEvent = await createWeddingEvent(weddingId, {
       name: "New Event",
       description: "",
-      date: weddingStart || "",
+      date: wedding.weddingDate ? new Date(wedding.weddingDate).toISOString().split("T")[0] : today,
       startTime: "10:00",
       duration: 60,
       location: wedding.weddingCity || "",
@@ -311,8 +302,6 @@ export default function EventsView({ wedding, weddingId, canEdit = true }: { wed
                                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Date</label>
                                 <DatePicker
                                   value={editData.date ?? ""}
-                                  min={weddingStart || undefined}
-                                  max={weddingEnd || undefined}
                                   onChange={(val) => setEditData({ ...editData, date: val })}
                                 />
                               </div>
