@@ -384,6 +384,36 @@ export default function Onboarding({ onComplete }: Props) {
   };
 
   const religions = RELIGIONS_BY_COUNTRY[data.country] || [];
+
+  // Smart region lookup: use CITIES_BY_REGION keys as community/region options
+  // Match by checking if any CITIES_BY_REGION key contains the country or religion name
+  const getRegionsForReligion = (religionId: string): string[] => {
+    const countryName = COUNTRIES.find((c) => c.id === data.country)?.name || "";
+    const allRegionKeys = Object.keys(CITIES_BY_REGION);
+
+    // Find matching regions by checking if the key contains relevant terms
+    const matchingRegions = allRegionKeys.filter((key) => {
+      const keyLower = key.toLowerCase();
+      const countryLower = countryName.toLowerCase();
+      // Match regions that contain the country name or are relevant diaspora
+      return keyLower.includes(countryLower) ||
+        keyLower.includes(data.country?.replace(/_/g, " ") || "");
+    });
+
+    if (matchingRegions.length > 0) return matchingRegions;
+
+    // Fallback: provide generic region options based on country
+    const country = data.country;
+    if (country === "usa") return ["American"];
+    if (country === "uk") return ["British"];
+    if (country === "canada") return ["Canadian"];
+    if (country === "australia") return ["Australian"];
+    if (country === "new_zealand") return ["New Zealander"];
+    if (country === "ireland") return ["Irish"];
+    // For any other country, just show the country name as the region
+    return [countryName || "Default"];
+  };
+
   const regions: Record<string, string[]> = {
     hindu: data.country === "india"
       ? ["North Indian", "South Indian", "Bengali", "Gujarati", "Maharashtrian", "Rajput", "Punjabi", "Kashmiri", "Assamese", "Odia", "Bihari", "Malayali", "Sindhi"]
@@ -399,7 +429,7 @@ export default function Onboarding({ onComplete }: Props) {
                 ? ["Lhotshampa"]
                 : data.country === "malaysia" || data.country === "singapore" || data.country === "myanmar" || data.country === "indonesia"
                   ? ["Indian Hindu", "Tamil Hindu"]
-                  : ["Indian", "Sri Lankan", "Tamil", "Nepali", "Gujarati", "Bengali"],
+                  : getRegionsForReligion("hindu"),
     muslim: data.country === "pakistan"
       ? ["Sunni", "Sindhi", "Baloch", "Kashmiri"]
       : data.country === "bangladesh"
@@ -570,9 +600,9 @@ export default function Onboarding({ onComplete }: Props) {
                                                                                                                                                                             ? ["Ugandan"]
                                                                                                                                                                             : data.country === "ethiopia"
                                                                                                                                                                               ? ["Oromo", "Somali"]
-                                                                                                                                                                              : data.country === "ghana"
-                                                                                                                                                                                ? ["Hausa", "Mamprusi"]
-                                                                                                                                                                                : ["South Asian"],
+                                                                                                                                                                               : data.country === "ghana"
+                                                                                                                                                                                 ? ["Hausa", "Mamprusi"]
+                                                                                                                                                                                 : getRegionsForReligion("muslim"),
     sikh: data.country === "uk"
       ? ["Punjabi Sikh"]
       : data.country === "canada"
@@ -589,7 +619,7 @@ export default function Onboarding({ onComplete }: Props) {
                   ? ["Kenyan Sikh"]
                   : data.country === "uganda"
                     ? ["Ugandan Sikh"]
-                    : ["Punjabi"],
+                    : getRegionsForReligion("sikh"),
     buddhist: data.country === "sri_lanka"
       ? ["Sinhalese"]
       : data.country === "nepal"
@@ -650,9 +680,9 @@ export default function Onboarding({ onComplete }: Props) {
                                                               ? ["Thai", "Vietnamese"]
                                                               : data.country === "netherlands"
                                                                 ? ["Thai", "Indonesian", "Vietnamese"]
-                                                                : data.country === "switzerland"
-                                                                  ? ["Thai", "Sri Lankan", "Vietnamese"]
-                                                                  : [],
+                                                                 : data.country === "switzerland"
+                                                                   ? ["Thai", "Sri Lankan", "Vietnamese"]
+                                                                   : getRegionsForReligion("buddhist"),
     christian: data.country === "pakistan"
       ? ["Pakistani"]
       : data.country === "sri_lanka"
@@ -819,9 +849,9 @@ export default function Onboarding({ onComplete }: Props) {
                                                                                                                                                                         ? ["Catholic", "Anglican", "Hindu"]
                                                                                                                                                                         : data.country === "guyana"
                                                                                                                                                                           ? ["Hindu", "Catholic"]
-                                                                                                                                                                          : data.country === "fiji"
-                                                                                                                                                                            ? ["Methodist", "Catholic"]
-                                                                                                                                                                            : ["Indian"],
+                                                                                                                                                                           : data.country === "fiji"
+                                                                                                                                                                             ? ["Methodist", "Catholic"]
+                                                                                                                                                                             : getRegionsForReligion("christian"),
     jewish: data.country === "israel"
       ? ["Ashkenazi", "Mizrahi", "Sephardi", "Ethiopian"]
       : data.country === "iran"
@@ -840,7 +870,7 @@ export default function Onboarding({ onComplete }: Props) {
                     ? ["Ashkenazi", "Sephardi"]
                     : data.country === "argentina"
                       ? ["Ashkenazi", "Sephardi"]
-                      : ["Ashkenazi", "Sephardi"],
+                      : getRegionsForReligion("jewish"),
     yazidi: data.country === "iraq"
       ? ["Yazidi"]
       : data.country === "germany"
@@ -849,14 +879,14 @@ export default function Onboarding({ onComplete }: Props) {
           ? ["Yazidi"]
           : data.country === "usa"
             ? ["Yazidi American"]
-            : [],
+            : getRegionsForReligion("yazidi"),
     druze: data.country === "lebanon"
       ? ["Druze"]
       : data.country === "syria"
         ? ["Druze"]
         : data.country === "israel"
           ? ["Druze"]
-          : [],
+          : getRegionsForReligion("druze"),
     zoroastrian: data.country === "iran"
       ? ["Zoroastrian"]
       : data.country === "india"
@@ -865,10 +895,10 @@ export default function Onboarding({ onComplete }: Props) {
           ? ["Parsi", "Iranian"]
           : data.country === "uk"
             ? ["Parsi", "Iranian"]
-            : ["Parsi", "Iranian"],
+            : getRegionsForReligion("zoroastrian"),
     shinto: data.country === "japan"
       ? ["Japanese"]
-      : [],
+      : getRegionsForReligion("shinto"),
     folk: data.country === "china"
       ? ["Han Folk"]
       : data.country === "south_korea"
@@ -883,25 +913,25 @@ export default function Onboarding({ onComplete }: Props) {
                 ? ["Chinese Folk"]
                 : data.country === "singapore"
                   ? ["Chinese Folk"]
-                  : [],
+                  : getRegionsForReligion("folk"),
     taoist: data.country === "taiwan"
       ? ["Taoist"]
       : data.country === "singapore"
         ? ["Taoist"]
         : data.country === "malaysia"
           ? ["Chinese Taoist"]
-          : [],
+          : getRegionsForReligion("taoist"),
     caodaist: data.country === "vietnam"
       ? ["Caodaist"]
-      : [],
+      : getRegionsForReligion("caodaist"),
     hoa_hao: data.country === "vietnam"
       ? ["Hoa Hao"]
-      : [],
+      : getRegionsForReligion("hoa_hao"),
     shamanic: data.country === "mongolia"
       ? ["Tengerist"]
       : data.country === "russia"
         ? ["Siberian"]
-        : [],
+        : getRegionsForReligion("shamanic"),
     lds: data.country === "usa"
       ? ["Mormon"]
       : data.country === "mexico"
@@ -910,10 +940,10 @@ export default function Onboarding({ onComplete }: Props) {
           ? ["Brazilian Mormon"]
           : data.country === "philippines"
             ? ["Filipino Mormon"]
-            : ["LDS"],
+            : getRegionsForReligion("lds"),
     maori: data.country === "new_zealand"
       ? ["Māori"]
-      : [],
+      : getRegionsForReligion("maori"),
     neopagan: data.country === "iceland"
       ? ["Neopagan"]
       : data.country === "lithuania"
@@ -922,7 +952,7 @@ export default function Onboarding({ onComplete }: Props) {
           ? ["Wiccan", "Asatru"]
           : data.country === "uk"
             ? ["Wiccan", "Druid"]
-            : [],
+            : getRegionsForReligion("neopagan"),
     traditional: data.country === "sudan"
       ? ["Traditional"]
       : data.country === "china"
@@ -941,13 +971,13 @@ export default function Onboarding({ onComplete }: Props) {
                     ? ["Oromo"]
                     : data.country === "tanzania"
                       ? ["Maasai"]
-                      : ["Traditional"],
+                      : getRegionsForReligion("traditional"),
     jain: data.country === "india"
       ? ["Marwari", "Gujarati", "Digambara", "Shvetambara"]
-      : ["Indian"],
+      : getRegionsForReligion("jain"),
     parsi: data.country === "india"
       ? ["Parsi"]
-      : ["Parsi"],
+      : getRegionsForReligion("parsi"),
     anglican: data.country === "uk"
       ? ["English", "Welsh"]
       : data.country === "usa"
@@ -956,14 +986,14 @@ export default function Onboarding({ onComplete }: Props) {
           ? ["Anglican Canadian"]
           : data.country === "australia"
             ? ["Anglican Australian"]
-            : ["Anglican"],
+            : getRegionsForReligion("anglican"),
     presbyterian: data.country === "uk"
       ? ["Scottish", "Irish Presbyterian"]
       : data.country === "usa"
         ? ["Presbyterian American"]
         : data.country === "south_korea"
           ? ["Korean Presbyterian"]
-          : ["Presbyterian"],
+          : getRegionsForReligion("presbyterian"),
     protestant: data.country === "usa"
       ? ["Baptist", "Methodist", "Lutheran", "Pentecostal", "Reformed"]
       : data.country === "uk"
@@ -972,7 +1002,7 @@ export default function Onboarding({ onComplete }: Props) {
           ? ["Lutheran", "Reformed"]
           : data.country === "south_korea"
             ? ["Korean Protestant"]
-            : ["Protestant"],
+            : getRegionsForReligion("protestant"),
     orthodox: data.country === "russia"
       ? ["Russian Orthodox"]
       : data.country === "greece"
@@ -987,7 +1017,7 @@ export default function Onboarding({ onComplete }: Props) {
                 ? ["Greek Orthodox", "Russian Orthodox", "Antiochian Orthodox"]
                 : data.country === "uk"
                   ? ["Greek Orthodox", "Russian Orthodox", "Romanian Orthodox"]
-                  : ["Orthodox"],
+                  : getRegionsForReligion("orthodox"),
     catholic: data.country === "italy"
       ? ["Neapolitan", "Sicilian", "Lombard", "Venetian", "Tuscan", "Emilian"]
       : data.country === "spain"
@@ -1034,7 +1064,7 @@ export default function Onboarding({ onComplete }: Props) {
                                                 ? ["Hungarian"]
                                                 : data.country === "croatia"
                                                   ? ["Croatian"]
-                                                  : ["Catholic"],
+                                                  : getRegionsForReligion("catholic"),
     islam: data.country === "pakistan"
       ? ["Sunni", "Shia", "Deobandi", "Barelvi"]
       : data.country === "bangladesh"
@@ -1049,14 +1079,14 @@ export default function Onboarding({ onComplete }: Props) {
                 ? ["Pakistani", "Bangladeshi", "Arab", "Somali", "Turkish"]
                 : data.country === "australia"
                   ? ["Lebanese", "Afghan", "Turkish", "Somali"]
-                  : ["Muslim"],
+                  : getRegionsForReligion("islam"),
     mormon: data.country === "usa"
       ? ["American Mormon"]
       : data.country === "uk"
         ? ["British Mormon"]
         : data.country === "mexico"
           ? ["Mexican Mormon"]
-          : ["Mormon"],
+          : getRegionsForReligion("mormon"),
   };
 
   // Get events for current selection - with fallback logic
