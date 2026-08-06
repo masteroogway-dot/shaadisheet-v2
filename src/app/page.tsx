@@ -13,9 +13,9 @@ import PublicHashtagGenerator from "@/components/PublicHashtagGenerator";
 import InteractiveDemo from "@/components/InteractiveDemo";
 
 /* ─────────────────────────────────────────────
-   ROSE PETAL ANIMATION
+   FLOWER PETAL ANIMATION (Universal)
    ───────────────────────────────────────────── */
-function RosePetals() {
+function FlowerPetals() {
   const [petals, setPetals] = useState<{ id: number; left: number; size: number; delay: number; duration: number; rotation: number; type: number }[]>([]);
 
   useEffect(() => {
@@ -26,7 +26,7 @@ function RosePetals() {
       delay: Math.random() * 2.5,
       duration: 3 + Math.random() * 3.5,
       rotation: Math.random() * 360,
-      type: Math.floor(Math.random() * 3),
+      type: Math.floor(Math.random() * 4),
     }));
     setPetals(generated);
   }, []);
@@ -53,8 +53,13 @@ function RosePetals() {
             </>
           ) : p.type === 1 ? (
             <>
-              <ellipse cx="10" cy="10" rx="6" ry="7" fill="#EF5350" opacity="0.8" transform={`rotate(${p.rotation} 10 10)`} />
-              <ellipse cx="10" cy="10" rx="4" ry="5" fill="#D32F2F" opacity="0.4" transform={`rotate(${p.rotation + 30} 10 10)`} />
+              <ellipse cx="10" cy="10" rx="6" ry="7" fill="#EC407A" opacity="0.8" transform={`rotate(${p.rotation} 10 10)`} />
+              <ellipse cx="10" cy="10" rx="4" ry="5" fill="#D81B60" opacity="0.4" transform={`rotate(${p.rotation + 30} 10 10)`} />
+            </>
+          ) : p.type === 2 ? (
+            <>
+              <ellipse cx="10" cy="10" rx="5" ry="7" fill="#AB47BC" opacity="0.75" transform={`rotate(${p.rotation} 10 10)`} />
+              <ellipse cx="10" cy="10" rx="3" ry="5" fill="#8E24AA" opacity="0.4" transform={`rotate(${p.rotation + 25} 10 10)`} />
             </>
           ) : (
             <>
@@ -69,120 +74,7 @@ function RosePetals() {
 }
 
 /* ─────────────────────────────────────────────
-   MARIGOLD GARLAND SVG
-   ───────────────────────────────────────────── */
-function MarigoldGarland({ side }: { side: "left" | "right" }) {
-  const isLeft = side === "left";
-  const cx = isLeft ? 45 : 55;
-
-  // Dense pom-pom marigold flowers stacked tightly
-  const flowers = Array.from({ length: 14 }, (_, i) => ({
-    cy: 20 + i * 22,
-    r: 14 + (i % 2) * 2,
-    orange: i % 2 === 0,
-  }));
-
-  return (
-    <div
-      className={`absolute top-0 ${isLeft ? "left-0" : "right-0"} h-full pointer-events-none`}
-      style={{
-        width: 120,
-        animation: `garlandSway${isLeft ? "Left" : "Right"} 5s ease-in-out infinite`,
-        transformOrigin: "top center",
-      }}
-    >
-      <svg viewBox="0 0 100 340" className="w-full h-full" fill="none">
-        {/* Main string */}
-        <line x1={cx} y1="0" x2={cx} y2="340" stroke="#8B6914" strokeWidth="2" opacity="0.4" />
-
-        {flowers.map((f, i) => (
-          <g key={i}>
-            {/* Pom-pom petals - dense radial pattern */}
-            {Array.from({ length: 16 }, (_, j) => {
-              const angle = (j * 22.5 * Math.PI) / 180;
-              const petalR = f.r * 0.55;
-              const dist = f.r * 0.45;
-              return (
-                <ellipse
-                  key={j}
-                  cx={cx + Math.cos(angle) * dist}
-                  cy={f.cy + Math.sin(angle) * dist}
-                  rx={petalR}
-                  ry={petalR * 0.6}
-                  fill={f.orange ? "#FF8F00" : "#FFD54F"}
-                  transform={`rotate(${j * 22.5} ${cx + Math.cos(angle) * dist} ${f.cy + Math.sin(angle) * dist})`}
-                  opacity={0.85 + (j % 3) * 0.05}
-                />
-              );
-            })}
-            {/* Inner petals layer */}
-            {Array.from({ length: 8 }, (_, j) => {
-              const angle = ((j * 45 + 22.5) * Math.PI) / 180;
-              const dist = f.r * 0.22;
-              return (
-                <ellipse
-                  key={`inner-${j}`}
-                  cx={cx + Math.cos(angle) * dist}
-                  cy={f.cy + Math.sin(angle) * dist}
-                  rx={f.r * 0.3}
-                  ry={f.r * 0.2}
-                  fill={f.orange ? "#E65100" : "#FFB300"}
-                  transform={`rotate(${j * 45 + 22.5} ${cx + Math.cos(angle) * dist} ${f.cy + Math.sin(angle) * dist})`}
-                  opacity="0.9"
-                />
-              );
-            })}
-            {/* Center pom-pom */}
-            <circle cx={cx} cy={f.cy} r={f.r * 0.3} fill={f.orange ? "#BF360C" : "#F57F17"} />
-            <circle cx={cx} cy={f.cy} r={f.r * 0.18} fill={f.orange ? "#E65100" : "#FFC107"} opacity="0.8" />
-
-            {/* Fluffy outer edges - extra petal bumps */}
-            {Array.from({ length: 12 }, (_, j) => {
-              const angle = (j * 30 * Math.PI) / 180;
-              return (
-                <circle
-                  key={`edge-${j}`}
-                  cx={cx + Math.cos(angle) * f.r * 0.85}
-                  cy={f.cy + Math.sin(angle) * f.r * 0.85}
-                  r={f.r * 0.22}
-                  fill={f.orange ? (j % 2 === 0 ? "#FF8F00" : "#FFB300") : (j % 2 === 0 ? "#FFD54F" : "#FFCA28")}
-                  opacity="0.75"
-                />
-              );
-            })}
-          </g>
-        ))}
-
-        {/* Green leaf tassels between flowers */}
-        {[1, 3, 5, 7, 9, 11].map((idx) => {
-          const f = flowers[idx];
-          const leafX = isLeft ? cx - 14 : cx + 14;
-          return (
-            <g key={`leaf-${idx}`}>
-              <ellipse cx={leafX} cy={f.cy + 8} rx="5" ry="9" fill="#558B2F" opacity="0.5" transform={`rotate(${isLeft ? -20 : 20} ${leafX} ${f.cy + 8})`} />
-              <ellipse cx={leafX + (isLeft ? -4 : 4)} cy={f.cy + 4} rx="4" ry="7" fill="#689F38" opacity="0.4" transform={`rotate(${isLeft ? -35 : 35} ${leafX + (isLeft ? -4 : 4)} ${f.cy + 4})`} />
-            </g>
-          );
-        })}
-
-        {/* Bottom tassel */}
-        {(() => {
-          const lastF = flowers[flowers.length - 1];
-          return (
-            <g>
-              <line x1={cx} y1={lastF.cy + lastF.r} x2={cx} y2={lastF.cy + lastF.r + 20} stroke="#8B6914" strokeWidth="1.5" opacity="0.4" />
-              <circle cx={cx} cy={lastF.cy + lastF.r + 22} r="4" fill="#FF8F00" opacity="0.5" />
-              <circle cx={cx} cy={lastF.cy + lastF.r + 22} r="2" fill="#E65100" opacity="0.6" />
-            </g>
-          );
-        })()}
-      </svg>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────
-   WEDDING CATEGORIES DATA
+   MAIN LANDING PAGE
    ───────────────────────────────────────────── */
 type Region = { name: string; ceremony: string; events: string };
 type WeddingCategory = { id: string; bg: string; title: string; desc: string; svg: React.ReactNode; regions: Region[] };
@@ -204,15 +96,7 @@ const WEDDING_CATEGORIES: WeddingCategory[] = [
       { name: "South Indian", ceremony: "Kanyadaanam, Thaali Tying", events: "Nischayam → Mehendi → Wedding → Reception" },
       { name: "Bengali", ceremony: "Shubho Drishti, Sindoor Daan", events: "Gaye Holud → Dodhi Mangal → Shubho Drishti → Wedding → Bou Bhat" },
       { name: "Gujarati", ceremony: "Jaimala, Pheras", events: "Gol Dhana → Mehendi → Sangeet → Wedding → Reception" },
-      { name: "Maharashtrian", ceremony: "Sakhar Puda, Antpat", events: "Lagna → Mehendi → Haldi → Wedding → Reception" },
-      { name: "Rajput", ceremony: "Pithi, Baraat", events: "Roka → Pithi → Sangeet → Wedding → Reception" },
       { name: "Punjabi", ceremony: "Chunni, Jaggo", events: "Roka → Chunni → Mehendi → Sangeet → Jaggo → Wedding → Reception" },
-      { name: "Kashmiri", ceremony: "Lagan Ceremony", events: "Lagan → Wedding → Reception" },
-      { name: "Assamese", ceremony: "Jur Phool", events: "Pattra → Jur Phool → Wedding → Reception" },
-      { name: "Odia", ceremony: "Chhurakan", events: "Baai Vaata → Chhurakan → Wedding → Reception" },
-      { name: "Bihari", ceremony: "Sakora", events: "Sakora → Haldi → Wedding → Reception" },
-      { name: "Malayali", ceremony: "Thaali Tying", events: "Nischayam → Kanyadaanam → Thaali → Reception" },
-      { name: "Sindhi", ceremony: "Lada Ceremony", events: "Lada → Mehendi → Wedding → Reception" },
     ],
   },
   {
@@ -228,9 +112,40 @@ const WEDDING_CATEGORIES: WeddingCategory[] = [
       </svg>
     ),
     regions: [
-      { name: "Indian Muslim", ceremony: "Nikah, Walima", events: "Mangni → Mehendi → Nikah → Walima" },
-      { name: "Sindhi", ceremony: "Dholki, Nikah", events: "Dholki → Mehendi → Nikah → Walima" },
-      { name: "Kashmiri", ceremony: "Wazwan, Nikah", events: "Dil Mangle → Nikah → Walima" },
+      { name: "Arab", ceremony: "Katb el-Kitab, Mahr", events: "Engagement → Henna Night → Katb el-Kitab → Wedding → Walima" },
+      { name: "South Asian", ceremony: "Nikah, Walima", events: "Mangni → Mehendi → Nikah → Walima" },
+      { name: "Turkish", ceremony: "Nikah, Kına Gecesi", events: "Tevilil → Henna Night → Nikah → Düğün (Wedding)" },
+    ],
+  },
+  {
+    id: "christian", bg: "bg-blue-50", title: "Christian", desc: "Church Ceremony",
+    svg: (
+      <svg className="w-8 h-8 md:w-10 md:h-10 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+        <path d="M4 18h16" /><path d="M6 18v-6h12v6" />
+        <path d="M10 12V7l2-4 2 4v5" />
+        <line x1="12" y1="1" x2="12" y2="3" /><line x1="11" y1="2" x2="13" y2="2" />
+        <path d="M10.5 18v-3h3v3" /><circle cx="12" cy="14.5" r="1" />
+      </svg>
+    ),
+    regions: [
+      { name: "Western", ceremony: "Church Wedding", events: "Engagement → Rehearsal Dinner → Church Wedding → Reception" },
+      { name: "Filipino", ceremony: "Church Wedding, Cord & Veil", events: "Sponsor Selection → Church Wedding → Reception" },
+      { name: "Latin American", ceremony: "Catholic Ceremony", events: "Pedida → Church Wedding → Fiesta" },
+    ],
+  },
+  {
+    id: "jewish", bg: "bg-indigo-50", title: "Jewish", desc: "Chuppah Ceremony",
+    svg: (
+      <svg className="w-8 h-8 md:w-10 md:h-10 text-indigo-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+        <path d="M4 18h16" /><path d="M6 18v-4h12v4" />
+        <path d="M10 14V6h4v8" /><path d="M8 8h8" /><path d="M8 11h8" />
+      </svg>
+    ),
+    regions: [
+      { name: "Ashkenazi", ceremony: "Chuppah, Ketubah", events: "Aufruf → Mikveh → Ketubah Signing → Chuppah → Reception" },
+      { name: "Sephardic", ceremony: "Chuppah, Ketubah", events: "Hachnassat → Ketubah Signing → Chuppah → Reception" },
     ],
   },
   {
@@ -249,27 +164,41 @@ const WEDDING_CATEGORIES: WeddingCategory[] = [
     ],
   },
   {
-    id: "sri_lankan", bg: "bg-pink-50", title: "Sri Lankan", desc: "Poruwa Ceremony",
+    id: "east_asian", bg: "bg-red-50", title: "East Asian", desc: "Tea Ceremony to Banquet",
     svg: (
-      <svg className="w-8 h-8 md:w-10 md:h-10 text-pink-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg className="w-8 h-8 md:w-10 md:h-10 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
         <path d="M4 18h16" /><path d="M6 18v-5h12v5" />
         <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
-        <path d="M10 6l2-3 2 3" /><circle cx="12" cy="8" r="1.5" fill="currentColor" opacity="0.3" />
+        <circle cx="12" cy="10" r="2" /><circle cx="12" cy="10" r="0.8" fill="currentColor" opacity="0.3" />
       </svg>
     ),
     regions: [
-      { name: "Sinhalese Buddhist", ceremony: "Poruwa, Kiribath", events: "Poruwa Ceremony → Kiribath → Reception" },
-      { name: "Tamil Hindu", ceremony: "Thaali, Saptapadi", events: "Kanyadaanam → Thaali Ceremony → Agni Pradakshina → Saptapadi → Reception" },
-      { name: "Hill Country Tamil", ceremony: "Thaali Ceremony", events: "Kanyadaanam → Thaali → Reception" },
-      { name: "Muslim", ceremony: "Nikah, Walima", events: "Mangni → Nikah → Walima" },
-      { name: "Christian", ceremony: "Church Wedding", events: "Engagement → Church Wedding → Reception" },
+      { name: "Chinese", ceremony: "Tea Ceremony, Gate Crashing", events: "Gate Crashing → Tea Ceremony → Wedding Banquet → Tea at Groom's" },
+      { name: "Japanese", ceremony: "San-san-kudo, Hina-matsuri", events: "Nijikai → Tea Ceremony → Wedding Ceremony → Reception" },
+      { name: "Korean", ceremony: "Pyebaek, Jeonanrye", events: "Pyebaek → Wedding Ceremony → Reception → Hapgeunrye" },
     ],
   },
   {
-    id: "nepal", bg: "bg-teal-50", title: "Nepali", desc: "Kanya Daan to Bidai",
+    id: "latin_american", bg: "bg-yellow-50", title: "Latin American", desc: "La Pedida to Fiesta",
     svg: (
-      <svg className="w-8 h-8 md:w-10 md:h-10 text-teal-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg className="w-8 h-8 md:w-10 md:h-10 text-yellow-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
+        <path d="M4 18h16" /><path d="M6 18v-5h12v5" />
+        <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
+        <path d="M9 7c-1-2 0-4 0-4" /><path d="M15 7c1-2 0-4 0-4" />
+      </svg>
+    ),
+    regions: [
+      { name: "Mexican", ceremony: "Las Arras, Lazo", events: "La Pedida → Las Arras → Church Wedding → Fiesta" },
+      { name: "Brazilian", ceremony: "Cordas, Alliance", events: "Festa de Debutante → Wedding Ceremony → Festas" },
+      { name: "Colombian", ceremony: "Ceremonia Religiosa", events: "Pedida → Church Wedding → Fiesta" },
+    ],
+  },
+  {
+    id: "african", bg: "bg-emerald-50", title: "African", desc: "Traditional Ceremonies",
+    svg: (
+      <svg className="w-8 h-8 md:w-10 md:h-10 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
         <path d="M4 18h16" /><path d="M6 18v-5h12v5" />
         <circle cx="12" cy="10" r="3" /><circle cx="12" cy="10" r="1" fill="currentColor" opacity="0.3" />
@@ -277,114 +206,26 @@ const WEDDING_CATEGORIES: WeddingCategory[] = [
       </svg>
     ),
     regions: [
-      { name: "Nepali Hindu", ceremony: "Swayamvar, Sindoor", events: "Tika-Tala → Mehendi → Janti → Wedding → Mukh Herne → Reception" },
-      { name: "Newari", ceremony: "Ihi, Swayamvar", events: "Ihi → Supari → Swayamvar → Sindoor → Departure → Reception" },
-      { name: "Tamang", ceremony: "Wedding Ceremony", events: "Tika → Janti → Wedding → Reception" },
-      { name: "Sherpa", ceremony: "Buddhist Ceremony", events: "Buddhist Ceremony → Reception" },
-      { name: "Muslim", ceremony: "Nikah, Walima", events: "Mangni → Nikah → Walima" },
+      { name: "Nigerian (Yoruba)", ceremony: "Engagement, Church Wedding", events: "Introduction → Bride Price → Engagement → Church Wedding → Reception" },
+      { name: "Kenyan", ceremony: "Ruracio, Church Wedding", events: "Ruracio → Traditional Wedding → Church Wedding → Reception" },
+      { name: "South African", ceremony: "Lobola, Umabo", events: "Lobola Negotiation → Umabo → Church Wedding → Reception" },
     ],
   },
   {
-    id: "christian", bg: "bg-blue-50", title: "Christian", desc: "Church Ceremony",
-    svg: (
-      <svg className="w-8 h-8 md:w-10 md:h-10 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
-        <path d="M4 18h16" /><path d="M6 18v-6h12v6" />
-        <path d="M10 12V7l2-4 2 4v5" />
-        <line x1="12" y1="1" x2="12" y2="3" /><line x1="11" y1="2" x2="13" y2="2" />
-        <path d="M10.5 18v-3h3v3" /><circle cx="12" cy="14.5" r="1" />
-      </svg>
-    ),
-    regions: [
-      { name: "Indian Christian", ceremony: "Church Wedding", events: "Engagement → Roce → Church Wedding → Reception" },
-      { name: "Goan Christian", ceremony: "Church Wedding, Soro-potel", events: "Engagement → Roce → Church Wedding → Reception" },
-      { name: "Kerala Christian", ceremony: "Minnukettu", events: "Engagement → Roce → Church Wedding → Minnukettu → Reception" },
-      { name: "Northeast Christian", ceremony: "Church Wedding", events: "Engagement → Church Wedding → Traditional Feast" },
-    ],
-  },
-  {
-    id: "jain", bg: "bg-purple-50", title: "Jain", desc: "Panch Kalyanak",
+    id: "middle_eastern", bg: "bg-purple-50", title: "Middle Eastern", desc: "Zaffa to Farah",
     svg: (
       <svg className="w-8 h-8 md:w-10 md:h-10 text-purple-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
         <path d="M4 18h16" /><path d="M6 18v-5h12v5" />
         <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
-        <circle cx="12" cy="12" r="2.5" /><circle cx="12" cy="12" r="1" fill="currentColor" opacity="0.3" />
-        <line x1="12" y1="6" x2="12" y2="4" /><circle cx="12" cy="3.5" r="0.5" fill="currentColor" opacity="0.4" />
-      </svg>
-    ),
-    regions: [
-      { name: "Indian Jain", ceremony: "Mada Mandap, Granthi Bandhan", events: "Vagdana → Engagement → Mehendi → Sangeet → Wedding → Reception" },
-    ],
-  },
-  {
-    id: "pakistani", bg: "bg-cyan-50", title: "Pakistani", desc: "Mehndi to Walima",
-    svg: (
-      <svg className="w-8 h-8 md:w-10 md:h-10 text-cyan-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
-        <path d="M4 18h16" /><path d="M6 18v-5h12v5" />
-        <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
-        <path d="M11 4.5a1.5 1.5 0 1 0 2 0 1.5 1.5 0 0 0-2 0" fill="currentColor" opacity="0.4" />
-        <circle cx="12" cy="10" r="2" /><circle cx="12" cy="10" r="0.8" fill="currentColor" opacity="0.3" />
-      </svg>
-    ),
-    regions: [
-      { name: "Sunni", ceremony: "Nikah, Walima", events: "Dholki → Mayun → Mehndi → Baraat → Nikah → Walima" },
-      { name: "Sindhi", ceremony: "Dholki, Nikah", events: "Dholki → Mehndi → Nikah → Walima" },
-      { name: "Baloch", ceremony: "Nikah, Attan", events: "Khwara → Nikah → Walima (with Attan dance)" },
-      { name: "Kashmiri", ceremony: "Wazwan, Nikah", events: "Dil Mangle → Nikah → Walima" },
-      { name: "Hindu", ceremony: "Kanyadaan, Pheras", events: "Roka → Mehendi → Wedding → Reception" },
-      { name: "Christian", ceremony: "Church Wedding", events: "Engagement → Church Wedding → Reception" },
-    ],
-  },
-  {
-    id: "afghanistan", bg: "bg-red-50", title: "Afghan", desc: "Khwara to Walima",
-    svg: (
-      <svg className="w-8 h-8 md:w-10 md:h-10 text-red-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
-        <path d="M4 18h16" /><path d="M6 18v-5h12v5" />
-        <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
         <circle cx="12" cy="10" r="2" /><circle cx="12" cy="10" r="0.8" fill="currentColor" opacity="0.3" />
         <path d="M11 4.5a1.5 1.5 0 1 0 2 0 1.5 1.5 0 0 0-2 0" fill="currentColor" opacity="0.4" />
       </svg>
     ),
     regions: [
-      { name: "Pashtun", ceremony: "Khwara, Nikah, Attan", events: "Khwara → Shirni Khori → Henna Night → Nikah → Walima (with Attan dance)" },
-      { name: "Tajik", ceremony: "Nikah, Walima", events: "Mangni → Henna Night → Nikah → Walima" },
-      { name: "Hazara", ceremony: "Nikah, Walima", events: "Mangni → Nikah → Walima" },
-      { name: "Uzbek", ceremony: "Nikah, Malkeh", events: "Mangni → Nikah → Malkeh (reception)" },
-    ],
-  },
-  {
-    id: "maldives", bg: "bg-sky-50", title: "Maldivian", desc: "Nikah to Valimah",
-    svg: (
-      <svg className="w-8 h-8 md:w-10 md:h-10 text-sky-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
-        <path d="M4 18h16" /><path d="M6 18v-5h12v5" />
-        <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
-        <path d="M10 6l2-3 2 3" /><circle cx="12" cy="8" r="1.5" fill="currentColor" opacity="0.3" />
-        <line x1="4" y1="10" x2="20" y2="10" />
-      </svg>
-    ),
-    regions: [
-      { name: "Maldivian Muslim", ceremony: "Nikah, Boduberu", events: "Henna Night → Nikah → Boduberu (drumming/dance) → Valimah" },
-    ],
-  },
-  {
-    id: "bangladesh", bg: "bg-emerald-50", title: "Bangladeshi", desc: "Gaye Holud to Bou Bhat",
-    svg: (
-      <svg className="w-8 h-8 md:w-10 md:h-10 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 18h16v2H4z" fill="currentColor" opacity="0.15" />
-        <path d="M4 18h16" /><path d="M6 18v-5h12v5" />
-        <path d="M8 13c0-4 2-7 4-7s4 3 4 7" />
-        <circle cx="12" cy="10" r="2" /><circle cx="12" cy="10" r="0.8" fill="currentColor" opacity="0.3" />
-        <path d="M9 7c-1-2 0-4 0-4" /><path d="M15 7c1-2 0-4 0-4" />
-      </svg>
-    ),
-    regions: [
-      { name: "Bengali Muslim", ceremony: "Gaye Holud, Nikah", events: "Gaye Holud → Mehendi → Nikah → Walima → Bou Bhat" },
-      { name: "Bengali Hindu", ceremony: "Shubho Drishti, Sindoor", events: "Gaye Holud → Dodhi Mangal → Shubho Drishti → Wedding → Bou Bhat" },
-      { name: "Chakma Buddhist", ceremony: "Buddhist Ceremony", events: "Buddhist Ceremony → Reception" },
+      { name: "Egyptian", ceremony: "Katb el-Kitab, Zaffa", events: "Engagement → Henna Night → Katb el-Kitab → Zaffa → Wedding → Farah" },
+      { name: "Lebanese", ceremony: "Katb el-Kitab", events: "Engagement → Henna Night → Katb el-Kitab → Wedding → Dabke" },
+      { name: "Persian", ceremony: "Aghd, Sofreh Aghd", events: "Baleh Boran → Henna Night → Aghd → Wedding → Farah" },
     ],
   },
 ];
@@ -409,7 +250,7 @@ export default function Home() {
   return (
     <div className="min-h-screen wedding-bg">
       {/* Rose Petals */}
-      {petalKey > 0 && <RosePetals key={petalKey} />}
+      {petalKey > 0 && <FlowerPetals key={petalKey} />}
 
       {/* NAVBAR */}
       {!demoOpen && (
@@ -439,7 +280,7 @@ export default function Home() {
             <source media="(max-width: 767px)" srcSet="/hero-mobile.png" />
             <img
               src="/hero.png"
-              alt="South Asian Wedding"
+              alt="Wedding Celebration"
               className="w-full h-full object-cover"
             />
           </picture>
@@ -448,23 +289,16 @@ export default function Home() {
           }} />
         </div>
 
-        {/* Marigold Garlands - hidden on mobile */}
-        <div className="relative z-[4] opacity-50 hidden md:block">
-          <MarigoldGarland side="left" />
-          <MarigoldGarland side="right" />
-        </div>
-
         {/* Content over background */}
         <div className="relative z-[5] w-full pt-[70px] md:pt-[100px] pb-16 md:pb-28 px-4 md:px-6">
           <div className="max-w-6xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-xs md:text-sm font-medium text-white/90 mb-6 md:mb-8">
               <span className="w-2 h-2 rounded-full bg-green animate-pulse" />
-              Built for South Asian Weddings
+              Built for Weddings Worldwide
             </div>
             <h1 className="text-[2rem] md:text-4xl lg:text-[3.5rem] font-extrabold leading-[1.08] mb-4 md:mb-6 tracking-tight text-white drop-shadow-lg">
               Plan Your{" "}
-              <span className="text-[#FFD54F]">South Asian</span>{" "}
-              Wedding
+              <span className="text-[#FFD54F]">Dream Wedding</span>
               <br />
               <ShinyText
                 text="Without the Chaos"
@@ -475,7 +309,7 @@ export default function Home() {
               />
             </h1>
             <BlurText
-              text="Track every guest, every vendor, every ritual - all in one place. From engagement to reception, plan every moment flawlessly."
+              text="Track every guest, every vendor, every tradition — all in one place. From engagement to reception, plan every moment flawlessly."
               className="text-sm md:text-lg text-white/80 max-w-[560px] mb-6 md:mb-10 leading-relaxed mx-auto drop-shadow"
               delay={150}
               animateBy="words"
@@ -498,7 +332,7 @@ export default function Home() {
           <ScrollReveal>
             <div className="text-center mb-8 md:mb-12">
               <h2 className="text-xl md:text-3xl font-bold text-gray-900 mb-2" style={{ fontFamily: "var(--font-display)" }}>See ShaadiSheet in Action</h2>
-              <p className="text-gray-500 text-sm md:text-base">Watch how we help families plan the perfect South Asian wedding</p>
+              <p className="text-gray-500 text-sm md:text-base">Watch how we help families plan the perfect wedding</p>
             </div>
           </ScrollReveal>
           <ScrollReveal delay={0.1}>
@@ -527,14 +361,14 @@ export default function Home() {
                 <span className="wedding-badge">Features</span>
               </div>
               <h2 className="text-2xl md:text-[2.5rem] font-bold mb-3 md:mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>Everything You Need</h2>
-              <p className="text-gray-500 text-sm md:text-base max-w-lg mx-auto">One app to plan the perfect South Asian wedding. No spreadsheets, no chaos.</p>
+              <p className="text-gray-500 text-sm md:text-base max-w-lg mx-auto">One app to plan the perfect wedding. No spreadsheets, no chaos.</p>
             </div>
           </ScrollReveal>
           <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" staggerDelay={0.1}>
             {[
-              { icon: <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="9" /><path d="M12 7v10M9 9.5c0-1 1.5-2 3-2s3 1 3 2-1.5 1.5-3 2-3 1-3 2 1.5 2 3 2 3-1 3-2" /></svg>, title: "Budget Tracker", desc: "Track every rupee, taka, or dollar with pre-filled categories for South Asian weddings." },
-              { icon: <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 21V7l9-4 9 4v14" /><path d="M9 21V11h6v10" /><path d="M3 11h18" /><circle cx="12" cy="7" r="1" fill="currentColor" opacity="0.4" /></svg>, title: "Vendor Manager", desc: "Track every vendor — from priest or officiant to caterer to DJ." },
-              { icon: <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 7h6M9 11h6M9 15h4" /><path d="M7 7l1.5 1.5L11 6" fill="currentColor" opacity="0.5" /><path d="M7 11l1.5 1.5L11 10" fill="currentColor" opacity="0.5" /></svg>, title: "Ritual Checklists", desc: "Every ritual in order — Roka to Vidaai, Nikah to Walima, Baraat to Bouquet." },
+              { icon: <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="9" /><path d="M12 7v10M9 9.5c0-1 1.5-2 3-2s3 1 3 2-1.5 1.5-3 2-3 1-3 2 1.5 2 3 2 3-1 3-2" /></svg>, title: "Budget Tracker", desc: "Track every dollar with pre-filled categories for any wedding style." },
+              { icon: <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 21V7l9-4 9 4v14" /><path d="M9 21V11h6v10" /><path d="M3 11h18" /><circle cx="12" cy="7" r="1" fill="currentColor" opacity="0.4" /></svg>, title: "Vendor Manager", desc: "Track every vendor — from officiant to caterer to DJ." },
+              { icon: <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 7h6M9 11h6M9 15h4" /><path d="M7 7l1.5 1.5L11 6" fill="currentColor" opacity="0.5" /><path d="M7 11l1.5 1.5L11 10" fill="currentColor" opacity="0.5" /></svg>, title: "Tradition Checklists", desc: "Every tradition in order — engagement to reception, ceremony to celebration." },
               { icon: <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="9" cy="8" r="3.5" /><circle cx="17" cy="9" r="2.5" /><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6" /><path d="M17 14c2.5 0 5 1.5 5 4" /></svg>, title: "Guest Management", desc: "RSVP tracking, dietary preferences, seating arrangements." },
               { icon: <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.5 8.5 3 11l6.5 2.5L12 20l2.5-6.5L21 11l-6.5-2.5z" /><path d="M19 15l-1.5 4-3.5-3 4-1z" opacity="0.5" /><path d="M5 15l1.5 4 3.5-3-4-1z" opacity="0.5" /></svg>, title: "AI Assistant", desc: "Get instant, intelligent recommendations for your wedding." },
               { icon: <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="10" r="4" /><circle cx="16" cy="10" r="4" /><path d="M4 18c0-2.5 2-4.5 4-5M20 18c0-2.5-2-4.5-4-5" /><path d="M10 10h4" strokeWidth="2" /></svg>, title: "Real-time Collaboration", desc: "Share with family, planners, and vendors." },
@@ -568,7 +402,7 @@ export default function Home() {
             <div className="absolute top-10 left-[15%] right-[15%] h-0.5 hidden md:block" style={{ background: "linear-gradient(to right, transparent, #D4AF37, transparent)" }} />
             {[
               { n: "1", t: "Tell Us!", d: "Country, religion, region, budget, guest count, events." },
-              { n: "2", t: "Get Your Template!", d: "Pre-filled rituals, budget categories, checklists." },
+              { n: "2", t: "Get Your Template!", d: "Pre-filled traditions, budget categories, checklists." },
               { n: "3", t: "Plan & Collaborate!", d: "Track budget, manage vendors, organize guests." },
               { n: "4", t: "Celebrate!", d: "Zero chaos, pure joy." },
             ].map((s, i) => (
@@ -593,7 +427,7 @@ export default function Home() {
               <div className="gold-divider mb-4 md:mb-6">
                 <span className="wedding-badge">Weddings</span>
               </div>
-              <h2 className="text-2xl md:text-[2.5rem] font-bold mb-3 md:mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>Built for Every South Asian Wedding</h2>
+              <h2 className="text-2xl md:text-[2.5rem] font-bold mb-3 md:mb-4 text-gray-900" style={{ fontFamily: "var(--font-display)" }}>Built for Every Wedding Tradition</h2>
               <p className="text-gray-500 text-sm md:text-base max-w-xl mx-auto">Click a tradition below to explore all regional styles</p>
             </div>
           </ScrollReveal>
@@ -672,15 +506,13 @@ export default function Home() {
                               <div className="w-8 h-8 rounded-lg bg-maroon/10 flex items-center justify-center">
                                 {cat?.id === "hindu" && <i className="fas fa-om text-maroon text-sm" />}
                                 {cat?.id === "muslim" && <i className="fas fa-star-and-crescent text-maroon text-sm" />}
-                                {cat?.id === "sikh" && <i className="fas fa-wheat-awn text-maroon text-sm" />}
                                 {cat?.id === "christian" && <i className="fas fa-cross text-maroon text-sm" />}
-                                {cat?.id === "jain" && <i className="fas fa-hand-holding-heart text-maroon text-sm" />}
-                                {cat?.id === "sri_lankan" && <i className="fas fa-torii-gate text-maroon text-sm" />}
-                                {cat?.id === "nepal" && <i className="fas fa-mountain-sun text-maroon text-sm" />}
-                                {cat?.id === "pakistani" && <i className="fas fa-mosque text-maroon text-sm" />}
-                                {cat?.id === "afghanistan" && <i className="fas fa-mountain text-maroon text-sm" />}
-                                {cat?.id === "maldives" && <i className="fas fa-umbrella-beach text-maroon text-sm" />}
-                                {cat?.id === "bangladesh" && <i className="fas fa-water text-maroon text-sm" />}
+                                {cat?.id === "jewish" && <i className="fas fa-star-of-david text-maroon text-sm" />}
+                                {cat?.id === "sikh" && <i className="fas fa-wheat-awn text-maroon text-sm" />}
+                                {cat?.id === "east_asian" && <i className="fas fa-yin-yang text-maroon text-sm" />}
+                                {cat?.id === "latin_american" && <i className="fas fa-sun text-maroon text-sm" />}
+                                {cat?.id === "african" && <i className="fas fa-drum text-maroon text-sm" />}
+                                {cat?.id === "middle_eastern" && <i className="fas fa-mosque text-maroon text-sm" />}
                               </div>
                               <div>
                                 <h4 className="font-bold text-gray-900 text-sm md:text-base">{cat?.title} — {region.name}</h4>
@@ -695,14 +527,15 @@ export default function Home() {
                               <div className="flex items-start gap-2">
                                 <i className="fas fa-map-marker-alt text-maroon text-xs mt-0.5 w-4" />
                                 <p className="text-gray-700 text-xs md:text-sm">
-                                  {expandedCategory === "hindu" && "Found across India — each region brings unique rituals and traditions"}
-                                  {expandedCategory === "muslim" && "Found across South Asia — traditions vary by region and community"}
-                                  {expandedCategory === "sikh" && "Primarily Punjab region — centered around Gurdwara ceremonies"}
-                                  {expandedCategory === "sri_lankan" && "Found across Sri Lanka — Sinhalese, Tamil, Muslim, and Christian traditions"}
-                                  {expandedCategory === "nepal" && "Found across Nepal — Hindu, Buddhist, and Muslim communities"}
-                                  {expandedCategory === "christian" && "Found across South Asia — from Goa to Kerala to Northeast India"}
-                                  {expandedCategory === "jain" && "Found across India — strict vegetarian traditions with unique rituals"}
-                                  {expandedCategory === "pakistani" && "Found across Pakistan — Punjab, Sindh, Balochistan, and Kashmir"}
+                                  {expandedCategory === "hindu" && "Found across India and the diaspora — each region brings unique traditions"}
+                                  {expandedCategory === "muslim" && "Found worldwide — traditions vary by region and community"}
+                                  {expandedCategory === "christian" && "Found worldwide — from Western ceremonies to cultural variations"}
+                                  {expandedCategory === "jewish" && "Ashkenazi and Sephardic traditions with rich cultural heritage"}
+                                  {expandedCategory === "sikh" && "Centered around Gurdwara ceremonies with the Anand Karaj"}
+                                  {expandedCategory === "east_asian" && "Chinese, Japanese, and Korean traditions with tea ceremonies and banquets"}
+                                  {expandedCategory === "latin_american" && "From Mexico to Brazil — vibrant celebrations with family at the center"}
+                                  {expandedCategory === "african" && "Rich traditions from Nigeria to South Africa with cultural ceremonies"}
+                                  {expandedCategory === "middle_eastern" && "Egyptian, Lebanese, and Persian celebrations with Zaffa and Dabke"}
                                 </p>
                               </div>
                             </div>
@@ -752,7 +585,7 @@ export default function Home() {
               <div className="flex items-center gap-2.5 mb-3">
                 <img src="/logo.png" alt="ShaadiSheet" className="h-[40px] md:h-[55px] w-auto" style={{ filter: "invert(1) brightness(2)" }} />
               </div>
-              <p className="text-gray-400 text-sm">Har Shaadi Ka Plan.</p>
+              <p className="text-gray-400 text-sm">Every love story deserves a perfect plan.</p>
             </div>
             {[
               { title: "Product", links: [
