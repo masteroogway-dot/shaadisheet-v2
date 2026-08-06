@@ -1087,6 +1087,128 @@ export default function Onboarding({ onComplete }: Props) {
         : data.country === "mexico"
           ? ["Mexican Mormon"]
           : getRegionsForReligion("mormon"),
+    christian_catholic: data.country === "ghana"
+      ? ["Catholic"]
+      : data.country === "south_africa"
+        ? ["Catholic"]
+        : data.country === "jamaica"
+          ? ["Catholic"]
+          : data.country === "trinidad"
+            ? ["Catholic"]
+            : data.country === "bahamas"
+              ? ["Catholic"]
+              : data.country === "barbados"
+                ? ["Catholic"]
+                : data.country === "guyana"
+                  ? ["Catholic"]
+                  : data.country === "fiji"
+                    ? ["Catholic"]
+                    : ["Catholic"],
+    christian_protestant: data.country === "ghana"
+      ? ["Pentecostal", "Anglican", "Methodist"]
+      : data.country === "south_africa"
+        ? ["Pentecostal", "Anglican", "Methodist", "Zionist"]
+        : data.country === "nigeria"
+          ? ["Pentecostal", "Anglican", "Methodist"]
+          : data.country === "kenya"
+            ? ["Pentecostal", "Anglican", "Methodist"]
+            : data.country === "tanzania"
+              ? ["Lutheran", "Anglican"]
+              : data.country === "ethiopia"
+                ? ["Protestant"]
+                : data.country === "uganda"
+                  ? ["Pentecostal", "Anglican"]
+                  : data.country === "rwanda"
+                    ? ["Catholic", "Anglican", "Pentecostal"]
+                    : data.country === "jamaica"
+                      ? ["Protestant"]
+                      : data.country === "trinidad"
+                        ? ["Anglican"]
+                        : data.country === "barbados"
+                          ? ["Anglican"]
+                          : data.country === "guyana"
+                            ? ["Protestant"]
+                            : data.country === "fiji"
+                              ? ["Methodist"]
+                              : ["Protestant"],
+    indigenous: data.country === "ghana"
+      ? ["Ashanti", "Ewe", "Ga"]
+      : data.country === "south_africa"
+        ? ["Zulu", "Xhosa", "Sotho", "Tswana"]
+        : data.country === "nigeria"
+          ? ["Yoruba", "Igbo", "Hausa"]
+          : data.country === "kenya"
+            ? ["Kikuyu", "Luo", "Maasai"]
+            : data.country === "tanzania"
+              ? ["Maasai", "Chagga"]
+              : data.country === "ethiopia"
+                ? ["Oromo", "Amhara"]
+                : data.country === "uganda"
+                  ? ["Baganda"]
+                  : data.country === "brazil"
+                    ? ["Afro-Brazilian"]
+                    : data.country === "jamaica"
+                      ? ["Maroon"]
+                      : ["Traditional"],
+    afro_brazilian: data.country === "brazil"
+      ? ["Candomblé", "Umbanda", "Macumba"]
+      : ["Afro-Brazilian"],
+    afro_caribbean: data.country === "jamaica"
+      ? ["Rastafarian", "Revival"]
+      : data.country === "trinidad"
+        ? ["Shouter Baptist", "Rastafarian"]
+        : data.country === "cuba"
+          ? ["Santería", "Palo"]
+          : data.country === "haiti"
+            ? ["Vodou"]
+            : data.country === "barbados"
+              ? ["Rastafarian"]
+              : data.country === "guyana"
+                ? ["Rastafarian"]
+                : ["Rastafarian"],
+    irreligious: data.country === "usa"
+      ? ["Agnostic", "Atheist", "Secular"]
+      : data.country === "uk"
+        ? ["Secular", "Agnostic", "Atheist"]
+        : data.country === "canada"
+          ? ["Secular", "Agnostic"]
+          : data.country === "australia"
+            ? ["Secular", "Agnostic"]
+            : data.country === "germany"
+              ? ["Secular"]
+              : data.country === "france"
+                ? ["Secular"]
+                : data.country === "japan"
+                  ? ["Secular"]
+                  : ["Secular"],
+    mennonite: data.country === "usa"
+      ? ["Amish", "Mennonite"]
+      : data.country === "canada"
+        ? ["Mennonite", "Hutterite"]
+        : data.country === "mexico"
+          ? ["Mennonite"]
+          : ["Mennonite"],
+    rastafarian: data.country === "jamaica"
+      ? ["Rastafarian"]
+      : data.country === "trinidad"
+        ? ["Rastafarian"]
+        : data.country === "barbados"
+          ? ["Rastafarian"]
+          : data.country === "guyana"
+            ? ["Rastafarian"]
+            : ["Rastafarian"],
+    spiritist: data.country === "brazil"
+      ? ["Espiritismo", "Kardecist"]
+      : data.country === "cuba"
+        ? ["Espiritismo"]
+        : data.country === "puerto_rico"
+          ? ["Espiritismo"]
+          : ["Spiritist"],
+    vodou: data.country === "haiti"
+      ? ["Vodou"]
+      : data.country === "usa"
+        ? ["Hoodoo", "Vodou"]
+        : ["Vodou"],
   };
 
   // Get events for current selection - with fallback logic
