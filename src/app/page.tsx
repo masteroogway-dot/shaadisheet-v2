@@ -294,22 +294,14 @@ export default function Home() {
           <div className="max-w-6xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-xs md:text-sm font-medium text-white/90 mb-6 md:mb-8">
               <span className="w-2 h-2 rounded-full bg-green animate-pulse" />
-              Built for Weddings Worldwide
+              Built for 193 Countries
             </div>
             <h1 className="text-[2rem] md:text-4xl lg:text-[3.5rem] font-extrabold leading-[1.08] mb-4 md:mb-6 tracking-tight text-white drop-shadow-lg">
-              Plan Your{" "}
-              <span className="text-[#FFD54F]">Dream Wedding</span>
-              <br />
-              <ShinyText
-                text="Without the Chaos"
-                className="text-[#FFD54F]"
-                speed={3}
-                shineColor="#FFFFFF"
-                color="rgba(255,213,79,0.6)"
-              />
+              Every Culture.<br />
+              <span className="text-[#FFD54F]">One Wedding Planner.</span>
             </h1>
             <BlurText
-              text="Track every guest, every vendor, every tradition — all in one place. From engagement to reception, plan every moment flawlessly."
+              text="Hindu pheras, Muslim nikah, Christian vows, Jewish chuppah — pre-filled traditions, budgets, and checklists for weddings worldwide. No spreadsheets, no chaos."
               className="text-sm md:text-lg text-white/80 max-w-[560px] mb-6 md:mb-10 leading-relaxed mx-auto drop-shadow"
               delay={150}
               animateBy="words"

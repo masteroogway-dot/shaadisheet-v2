@@ -10,7 +10,7 @@ import NoIndex from "@/components/NoIndex";
 export default function AuthPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [mode, setMode] = useState<"login" | "signup">("signup");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -74,13 +74,13 @@ export default function AuthPage() {
         </Link>
         <div className="relative z-10 mb-12">
           <h1 className="text-[2.5rem] font-extrabold leading-[1.15] mb-4">
-            Plan Your Indian Wedding<br />
+            Plan Your Dream Wedding<br />
             <span className="text-gold">Without the Chaos</span>
           </h1>
-          <p className="text-lg opacity-85 leading-relaxed">Budget tracking. Vendor management. Ritual checklists. AI assistance.</p>
+          <p className="text-lg opacity-85 leading-relaxed">Budget tracking. Vendor management. Tradition checklists. AI assistance.</p>
         </div>
         <div className="flex flex-col gap-4 relative z-10">
-          {["Pre-filled for Indian weddings", "Real-time collaboration", "AI-powered suggestions", "Works on any device"].map((f, i) => (
+          {["Pre-filled for your wedding traditions", "Real-time collaboration", "AI-powered suggestions", "Works on any device"].map((f, i) => (
             <div key={i} className="flex items-center gap-3 text-[0.95rem] opacity-90">
               <i className="fas fa-check-circle text-gold" /> {f}
             </div>

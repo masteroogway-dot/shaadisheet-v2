@@ -12,6 +12,9 @@ export default function LiveCount() {
       .catch(() => {});
   }, []);
 
+  // Round up to nearest 50 for social proof, minimum 100
+  const displayCount = count < 100 ? 100 : Math.ceil(count / 50) * 50;
+
   return (
     <div className="flex items-center justify-center gap-3">
       <div className="flex">
@@ -22,8 +25,8 @@ export default function LiveCount() {
         ))}
       </div>
       <span className="text-sm text-white/70">
-        {count > 0
-          ? `${count} famil${count === 1 ? "y" : "ies"} already planning`
+        {displayCount > 0
+          ? `${displayCount}+ couples already planning`
           : "Be the first to plan your wedding"}
       </span>
     </div>
