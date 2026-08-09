@@ -243,8 +243,8 @@ export default function TimelineView({ wedding, weddingId, canEdit = true }: { w
               return (
                 <div className="absolute left-0 right-0 z-20 pointer-events-none" style={{ top: `${topPct}%` }}>
                   <div className="absolute left-[10px] w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow" />
-                  <div className="absolute left-[24px] -top-2 text-[0.6rem] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{currentFormatted}</div>
-                  <div className="absolute left-[24px] top-0 right-0 h-[2px] bg-blue-400 opacity-40" />
+                  <div className="absolute left-[24px] top-[14px] text-[0.6rem] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">{currentFormatted}</div>
+                  <div className="absolute left-[24px] top-[6px] right-0 h-[2px] bg-blue-400 opacity-40" />
                 </div>
               );
             }
