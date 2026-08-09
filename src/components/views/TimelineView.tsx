@@ -233,41 +233,35 @@ export default function TimelineView({ wedding, weddingId, canEdit = true }: { w
         <div className="relative pl-10">
           <div className="absolute left-[15px] top-0 bottom-0 w-[3px] bg-gradient-to-b from-maroon to-gold rounded-full" />
 
-          {/* Current time indicator */}
-          {items.length > 0 && (() => {
-            const firstStart = timeToMinutes(items[0].startTime);
-            const lastEnd = Math.max(...items.map((i) => timeToMinutes(i.startTime) + i.duration));
-            const range = lastEnd - firstStart || 1;
-            if (nowMinutes >= firstStart && nowMinutes <= lastEnd) {
-              const topPct = ((nowMinutes - firstStart) / range) * 100;
-              return (
-                <div className="absolute left-0 right-0 z-20 pointer-events-none" style={{ top: `${topPct}%` }}>
-                  <div className="absolute left-[10px] w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow" />
-                  <div className="absolute left-[24px] top-[14px] text-[0.6rem] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">{currentFormatted}</div>
-                  <div className="absolute left-[24px] top-[6px] right-0 h-[2px] bg-blue-400 opacity-40" />
-                </div>
-              );
-            }
-            return null;
-          })()}
-
-          {items.map((item) => {
-            const isEditing = editing === item.id;
-            const isOverlapping = overlaps.has(item.id);
-
+          {/* Current time indicator - positioned inline with events */}
+          {items.map((item, idx) => {
+            const itemStart = timeToMinutes(item.startTime);
+            const itemEnd = itemStart + item.duration;
+            const isCurrentEvent = nowMinutes >= itemStart && nowMinutes < itemEnd;
+            
             return (
-              <div key={item.id} className="relative mb-4">
-                <div className={`absolute left-[-33px] top-6 w-3.5 h-3.5 bg-white border-[3px] rounded-full z-10 ${
-                  isOverlapping ? "border-red-500" : "border-maroon"
-                }`} />
-                {item.isHighlight && !isOverlapping && (
-                  <div className="absolute left-[-36px] top-[22px] w-5 h-5 border-4 border-maroon/20 rounded-full" />
+              <div key={item.id}>
+                {/* Show current time indicator before this event if we're in it */}
+                {isCurrentEvent && (
+                  <div className="relative mb-4 flex items-center gap-3">
+                    <div className="absolute left-[-33px] w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow z-10" />
+                    <div className="absolute left-[-10px] right-0 h-[2px] bg-blue-400 opacity-40" />
+                    <div className="text-[0.6rem] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 relative z-10">{currentFormatted}</div>
+                  </div>
                 )}
+                
+                <div className="relative mb-4">
+                  <div className={`absolute left-[-33px] top-6 w-3.5 h-3.5 bg-white border-[3px] rounded-full z-10 ${
+                    overlaps.has(item.id) ? "border-red-500" : "border-maroon"
+                  }`} />
+                  {item.isHighlight && !overlaps.has(item.id) && (
+                    <div className="absolute left-[-36px] top-[22px] w-5 h-5 border-4 border-maroon/20 rounded-full" />
+                  )}
 
-                <div className={`bg-white border rounded-xl p-5 transition-all ${
-                  isOverlapping ? "border-red-400 bg-red-50/30" : item.isHighlight ? "border-l-4 border-l-maroon border-gray-200" : "border-gray-200 hover:shadow-md"
-                }`}>
-                  {isEditing ? (
+                  <div className={`bg-white border rounded-xl p-5 transition-all ${
+                    overlaps.has(item.id) ? "border-red-400 bg-red-50/30" : item.isHighlight ? "border-l-4 border-l-maroon border-gray-200" : "border-gray-200 hover:shadow-md"
+                  }`}>
+                    {editing === item.id ? (
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -342,7 +336,7 @@ export default function TimelineView({ wedding, weddingId, canEdit = true }: { w
                         </div>
                         <h4 className="font-bold text-sm truncate min-w-0">{item.title}</h4>
                         {item.description && <p className="text-gray-500 text-sm truncate">{item.description}</p>}
-                        {isOverlapping && (
+                        {overlaps.has(item.id) && (
                           <span className="inline-block mt-2 text-[0.65rem] px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-semibold">
                             Overlaps with: {overlaps.get(item.id)?.join(", ")}
                           </span>
@@ -383,6 +377,7 @@ export default function TimelineView({ wedding, weddingId, canEdit = true }: { w
                     </div>
                   )}
                 </div>
+              </div>
               </div>
             );
           })}
