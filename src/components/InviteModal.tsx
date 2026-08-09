@@ -188,11 +188,11 @@ export default function InviteModal({ weddingId, weddingName, open, onClose }: P
           {link && (
             <div className="bg-gradient-to-br from-cream/80 to-white rounded-xl p-5 border border-gray-100 space-y-4">
               <div className="flex items-center gap-2">
-                <div className="flex-1 flex items-center gap-2 px-3 py-2.5 bg-white border border-gray-200 rounded-lg">
+                <div className="flex-1 flex items-center gap-2 px-3 py-2.5 bg-white border border-gray-200 rounded-lg overflow-hidden">
                   <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.914-3.814a4.5 4.5 0 00-6.364 0l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
                   </svg>
-                  <span className="text-xs text-gray-500 truncate font-mono flex-1">{link}</span>
+                  <span className="text-xs text-gray-500 truncate font-mono">{link}</span>
                 </div>
                 <button onClick={copyLink}
                   className={`px-4 py-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 ${
