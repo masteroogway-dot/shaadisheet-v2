@@ -596,6 +596,71 @@ input[type="number"]::placeholder {
   background-size: 60px 60px;
 }
 
+/* ── Dark Mode ── */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.dark .bg-cream { background: #0f172a; }
+.dark .bg-white { background: #1e293b; }
+.dark .bg-gray-100 { background: #1e293b; }
+.dark .bg-gray-50 { background: #1e293b; }
+
+.dark .text-gray-900 { color: #e2e8f0; }
+.dark .text-gray-800 { color: #e2e8f0; }
+.dark .text-gray-700 { color: #cbd5e1; }
+.dark .text-gray-600 { color: #94a3b8; }
+.dark .text-gray-500 { color: #94a3b8; }
+
+.dark .border-gray-200 { border-color: #334155; }
+.dark .border-gray-100 { border-color: #334155; }
+
+.dark .hover\:bg-gray-100:hover { background: #334155; }
+.dark .hover\:bg-gray-50:hover { background: #334155; }
+
+.dark input, .dark select, .dark textarea {
+  background: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+.dark .card-input { background: #1e293b; border-color: #334155; color: #e2e8f0; }
+.dark .card-select { background: #1e293b; border-color: #334155; color: #e2e8f0; }
+
+.dark .item-card { background: #1e293b; border-color: #334155; }
+.dark .item-card:hover { border-color: #475569; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
+
+.dark .spreadsheet thead { background: #1e293b; }
+.dark .spreadsheet th { color: #94a3b8; border-bottom-color: #334155; }
+.dark .spreadsheet td { color: #e2e8f0; border-bottom-color: #1e293b; }
+.dark .spreadsheet tbody tr:hover { background: rgba(139, 0, 0, 0.1); }
+
+.dark .btn-cancel { background: #334155; border-color: #475569; color: #94a3b8; }
+.dark .btn-cancel:hover { background: #475569; color: #e2e8f0; }
+
+.dark .wedding-bg { background-color: #0f172a; }
+.dark .wedding-card { background: #1e293b; border-color: #334155; }
+.dark .wedding-card:hover { border-color: #475569; }
+
+.dark ::-webkit-scrollbar-thumb { background: #475569; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+.dark .status-badge.confirmed { background: #064e3b; color: #6ee7b7; }
+.dark .status-badge.planning { background: #713f12; color: #fde68a; }
+.dark .status-badge.pending { background: #1e3a5f; color: #93c5fd; }
+.dark .status-badge.paid { background: #064e3b; color: #6ee7b7; }
+.dark .status-badge.partial { background: #713f12; color: #fde68a; }
+
+.dark .sidebar { background: #1e293b; border-color: #334155; }
+
+.dark .wedding-badge { background: rgba(139, 0, 0, 0.2); border-color: rgba(212, 175, 55, 0.3); color: #f59e0b; }
+.dark .gold-divider::before, .dark .gold-divider::after { background: linear-gradient(to right, transparent, rgba(212, 175, 55, 0.4), transparent); }
+
 /* ── Mobile Optimizations ── */
 @media (max-width: 768px) {
   /* Reduce rose petals on mobile for performance */

@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import ThemeToggle from "@/components/ThemeToggle";
 import { getWedding, updateWedding } from "@/lib/actions";
 import { formatCurrency, getCurrencySymbol, getBudgetRange } from "@/lib/format";
 import CurrencyInput from "@/components/CurrencyInput";
@@ -136,7 +137,7 @@ export default function WeddingSettingsPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0f172a] flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-maroon border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -147,24 +148,27 @@ export default function WeddingSettingsPage() {
   const budgetRange = getBudgetRange(currency);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 sticky top-0 z-50 shrink-0">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0f172a]">
+      <div className="h-[60px] bg-white dark:bg-[#1e293b] border-b border-gray-200 dark:border-[#334155] flex items-center justify-between px-4 md:px-6 sticky top-0 z-50 shrink-0">
         <Link href={`/dashboard/${weddingId}`} className="flex items-center gap-2.5">
           <img src="/logo.png" alt="ShaadiSheet" style={{ height: "45px", width: "auto" }} />
         </Link>
-        <Link href={`/dashboard/${weddingId}`} className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-gray-600 hover:text-maroon transition-colors cursor-pointer">
-          <i className="fas fa-arrow-left text-xs" />
-          Back to Dashboard
-        </Link>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Link href={`/dashboard/${weddingId}`} className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-gray-600 hover:text-maroon transition-colors cursor-pointer">
+            <i className="fas fa-arrow-left text-xs" />
+            Back to Dashboard
+          </Link>
+        </div>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 md:px-6 py-8 md:py-12">
-        <h1 className="text-xl md:text-2xl font-extrabold text-gray-900 mb-2">Wedding Settings</h1>
+        <h1 className="text-xl md:text-2xl font-extrabold text-gray-900 dark:text-gray-100 mb-2">Wedding Settings</h1>
         <p className="text-sm text-gray-500 mb-8">Manage your wedding details and preferences.</p>
 
         {/* Partner Names */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 mb-6">
-          <h2 className="text-base font-bold text-gray-900 mb-5">
+        <div className="bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-[#334155] rounded-2xl p-6 md:p-8 mb-6">
+          <h2 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-5">
             <i className="fas fa-heart text-maroon mr-2" />
             Couple Names
           </h2>
@@ -176,7 +180,7 @@ export default function WeddingSettingsPage() {
                 value={partner1Name}
                 onChange={(e) => setPartner1Name(e.target.value)}
                 placeholder="First name"
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-transparent"
+                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-[#334155] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-transparent"
               />
             </div>
             <div>
@@ -186,15 +190,15 @@ export default function WeddingSettingsPage() {
                 value={partner2Name}
                 onChange={(e) => setPartner2Name(e.target.value)}
                 placeholder="First name"
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-transparent"
+                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-[#334155] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-transparent"
               />
             </div>
           </div>
         </div>
 
         {/* Wedding Details */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 mb-6">
-          <h2 className="text-base font-bold text-gray-900 mb-5">
+        <div className="bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-[#334155] rounded-2xl p-6 md:p-8 mb-6">
+          <h2 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-5">
             <i className="fas fa-ring text-maroon mr-2" />
             Wedding Details
           </h2>
@@ -206,7 +210,7 @@ export default function WeddingSettingsPage() {
                 value={weddingName}
                 onChange={(e) => setWeddingName(e.target.value)}
                 placeholder="e.g. Sharma & Patel Wedding"
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-transparent"
+                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-[#334155] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-transparent"
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -216,7 +220,7 @@ export default function WeddingSettingsPage() {
                   type="date"
                   value={weddingDate}
                   onChange={(e) => setWeddingDate(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-transparent"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-[#334155] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-transparent"
                 />
               </div>
               <div>
@@ -228,7 +232,7 @@ export default function WeddingSettingsPage() {
                   placeholder="e.g. 200"
                   min={50}
                   max={5000}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-transparent"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-[#334155] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-transparent"
                 />
                 <p className="text-[0.65rem] text-gray-400 mt-1">Min: 50, Max: 5,000</p>
               </div>
@@ -237,8 +241,8 @@ export default function WeddingSettingsPage() {
         </div>
 
         {/* Budget & Currency */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 mb-6">
-          <h2 className="text-base font-bold text-gray-900 mb-5">
+        <div className="bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-[#334155] rounded-2xl p-6 md:p-8 mb-6">
+          <h2 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-5">
             <i className="fas fa-wallet text-maroon mr-2" />
             Budget & Currency
           </h2>
@@ -249,7 +253,7 @@ export default function WeddingSettingsPage() {
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full appearance-none px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon cursor-pointer"
+                  className="w-full appearance-none px-4 py-2.5 bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-[#334155] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon cursor-pointer"
                 >
                   {CURRENCIES.map((c) => (
                     <option key={c.code} value={c.code}>

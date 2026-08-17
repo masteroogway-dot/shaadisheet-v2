@@ -26,6 +26,7 @@ import ColorCoordinatorView from "@/components/views/ColorCoordinatorView";
 import FamilyPoliticsView from "@/components/views/FamilyPoliticsView";
 import AiPanel from "@/components/AiPanel";
 import ProfileMenu from "@/components/ProfileMenu";
+import ThemeToggle from "@/components/ThemeToggle";
 import ToastContainer, { Toast } from "@/components/Toast";
 import TutorialOverlay, {
   WELCOME_TOUR, BUDGET_TOUR, GUESTS_TOUR, VENDORS_TOUR, EVENTS_TOUR, AI_TOUR, WEBSITE_TOUR,
@@ -260,7 +261,7 @@ export default function WeddingDashboardPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center">
+      <div className="min-h-screen bg-cream dark:bg-[#0f172a] flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-maroon border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-500">Loading ShaadiSheet...</p>
@@ -278,9 +279,9 @@ export default function WeddingDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-gray-100 dark:bg-[#0f172a] flex flex-col">
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-      <div className="h-auto md:h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-3 md:px-6 py-2 md:py-0 sticky top-0 z-50 shrink-0">
+      <div className="h-auto md:h-[60px] bg-white dark:bg-[#1e293b] border-b border-gray-200 dark:border-[#334155] flex items-center justify-between px-3 md:px-6 py-2 md:py-0 sticky top-0 z-50 shrink-0">
         <div className="flex items-center gap-2 md:gap-3">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -299,6 +300,7 @@ export default function WeddingDashboardPage() {
           </div>
         </div>
         <div className="flex items-center gap-1.5 md:gap-2">
+          <ThemeToggle />
           <button onClick={() => setAiOpen(!aiOpen)} data-tutorial="ai" className="w-11 h-11 md:w-10 md:h-10 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-maroon transition-all cursor-pointer" title="AI Assistant">
             <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24">
               <path d="M12 2L9.5 8.5 3 11l6.5 2.5L12 20l2.5-6.5L21 11l-6.5-2.5z" fill="currentColor" />
