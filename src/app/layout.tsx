@@ -9,26 +9,28 @@ const siteUrl = "https://www.shaadisheet.com";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "ShaadiSheet - Plan Your Indian Wedding Without the Chaos",
+    default: "ShaadiSheet - Every Culture. One Wedding Planner.",
     template: "%s | ShaadiSheet",
   },
   description:
-    "Budget tracking. Vendor management. Ritual checklists. AI assistance. Everything you need for Hindu, Muslim, Sikh, Christian, and Jain weddings.",
+    "Budget tracking. Vendor management. Tradition checklists. AI assistance. Everything you need for Hindu, Muslim, Christian, Jewish, Sikh, Buddhist, and weddings from 193 countries.",
   keywords: [
-    "Indian wedding planner",
+    "wedding planner",
     "wedding budget tracker",
     "wedding vendor management",
     "Hindu wedding checklist",
     "Muslim wedding planner",
     "Sikh wedding planning",
-    "Christian wedding India",
-    "Jain wedding checklist",
+    "Christian wedding",
+    "Jewish wedding",
+    "Buddhist wedding",
+    "multicultural wedding planner",
     "wedding seating chart",
     "AI wedding assistant",
-    "desi wedding app",
-    "shaadi planning",
+    "wedding app",
     "wedding guest list",
     "wedding task manager",
+    "global wedding planner",
   ],
   authors: [{ name: "ShaadiSheet" }],
   creator: "ShaadiSheet",
@@ -36,26 +38,25 @@ export const metadata: Metadata = {
   formatDetection: { telephone: false },
   openGraph: {
     type: "website",
-    locale: "en_IN",
+    locale: "en_US",
     url: siteUrl,
     siteName: "ShaadiSheet",
-    title: "ShaadiSheet - Plan Your Indian Wedding Without the Chaos",
+    title: "ShaadiSheet - Every Culture. One Wedding Planner.",
     description:
-      "Budget tracking. Vendor management. Ritual checklists. AI assistance. Everything you need for Hindu, Muslim, Sikh, Christian, and Jain weddings.",
+      "Budget tracking. Vendor management. Tradition checklists. AI assistance. Weddings from 193 countries — Hindu, Muslim, Christian, Jewish, Sikh, Buddhist, and more.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "ShaadiSheet - Indian Wedding Planning App",
+        alt: "ShaadiSheet - Global Wedding Planning App",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "ShaadiSheet - Plan Your Indian Wedding Without the Chaos",
-    description:
-      "Budget tracking. Vendor management. Ritual checklists. AI assistance. Everything you need for Hindu, Muslim, Sikh, Christian, and Jain weddings.",
+    title: "ShaadiSheet - Every Culture. One Wedding Planner.",
+    description: "Budget tracking. Vendor management. Tradition checklists. Weddings from 193 countries.",
     images: ["/og-image.png"],
   },
   robots: {
