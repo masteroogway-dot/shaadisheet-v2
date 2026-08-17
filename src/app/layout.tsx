@@ -87,17 +87,8 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
-            var t = localStorage.getItem('theme');
-            var dark = t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-            if (dark) {
+            if (localStorage.getItem('theme') === 'dark') {
               document.documentElement.classList.add('dark');
-              document.documentElement.style.background = '#111111';
-              document.body.style.background = '#111111';
-              document.body.style.color = '#e5e5e5';
-            } else {
-              document.documentElement.style.background = '#FFF8F0';
-              document.body.style.background = '#FFF8F0';
-              document.body.style.color = '#1f2937';
             }
           })();
         `}} />
