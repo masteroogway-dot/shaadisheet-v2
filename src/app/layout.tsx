@@ -85,6 +85,22 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            var t = localStorage.getItem('theme');
+            var dark = t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            if (dark) {
+              document.documentElement.classList.add('dark');
+              document.documentElement.style.background = '#111111';
+              document.body.style.background = '#111111';
+              document.body.style.color = '#e5e5e5';
+            } else {
+              document.documentElement.style.background = '#FFF8F0';
+              document.body.style.background = '#FFF8F0';
+              document.body.style.color = '#1f2937';
+            }
+          })();
+        `}} />
         <link rel="icon" type="image/png" href="/icon.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/icon.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
@@ -99,7 +115,7 @@ export default function RootLayout({
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
         />
       </head>
-      <body className="bg-cream text-gray-900">
+      <body>
         <ThemeProvider>
           <JsonLd />
           <Providers>
