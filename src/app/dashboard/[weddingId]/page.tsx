@@ -261,7 +261,7 @@ export default function WeddingDashboardPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-cream dark:bg-[#0f172a] flex items-center justify-center">
+      <div className="min-h-screen bg-cream dark:bg-[#111111] flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-maroon border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-500">Loading ShaadiSheet...</p>
@@ -279,9 +279,9 @@ export default function WeddingDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-[#0f172a] flex flex-col">
+    <div className="min-h-screen bg-gray-100 dark:bg-[#111111] flex flex-col">
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-      <div className="h-auto md:h-[60px] bg-white dark:bg-[#1e293b] border-b border-gray-200 dark:border-[#334155] flex items-center justify-between px-3 md:px-6 py-2 md:py-0 sticky top-0 z-50 shrink-0">
+      <div className="h-auto md:h-[60px] bg-white dark:bg-[#1a1a1a] border-b border-gray-200 dark:border-[#2a2a2a] flex items-center justify-between px-3 md:px-6 py-2 md:py-0 sticky top-0 z-50 shrink-0">
         <div className="flex items-center gap-2 md:gap-3">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}

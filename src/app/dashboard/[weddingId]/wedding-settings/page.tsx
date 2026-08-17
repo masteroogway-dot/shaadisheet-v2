@@ -137,7 +137,7 @@ export default function WeddingSettingsPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-[#0f172a] flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#111111] flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-maroon border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -148,8 +148,8 @@ export default function WeddingSettingsPage() {
   const budgetRange = getBudgetRange(currency);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0f172a]">
-      <div className="h-[60px] bg-white dark:bg-[#1e293b] border-b border-gray-200 dark:border-[#334155] flex items-center justify-between px-4 md:px-6 sticky top-0 z-50 shrink-0">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#111111]">
+      <div className="h-[60px] bg-white dark:bg-[#1a1a1a] border-b border-gray-200 dark:border-[#2a2a2a] flex items-center justify-between px-4 md:px-6 sticky top-0 z-50 shrink-0">
         <Link href={`/dashboard/${weddingId}`} className="flex items-center gap-2.5">
           <img src="/logo.png" alt="ShaadiSheet" style={{ height: "45px", width: "auto" }} />
         </Link>
@@ -253,7 +253,7 @@ export default function WeddingSettingsPage() {
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full appearance-none px-4 py-2.5 bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-[#334155] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon cursor-pointer"
+                  className="w-full appearance-none px-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-maroon cursor-pointer"
                 >
                   {CURRENCIES.map((c) => (
                     <option key={c.code} value={c.code}>
